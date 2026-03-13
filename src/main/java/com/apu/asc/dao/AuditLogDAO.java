@@ -1,9 +1,16 @@
 package com.apu.asc.dao;
 
 import com.apu.asc.model.AuditLog;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuditLogDAO {
 
@@ -24,10 +31,10 @@ public class AuditLogDAO {
 
   private void load() {
     cache.clear();
-    File file = new File(FILE_PATH);
-    if (!file.exists()) return;
+    Path path = Path.of(FILE_PATH);
+    if (!Files.exists(path)) return;
 
-    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
       String line;
       while ((line = reader.readLine()) != null) {
         if (line.isBlank()) continue;
@@ -42,7 +49,12 @@ public class AuditLogDAO {
 
   public void append(AuditLog log) {
     cache.add(log);
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+    try (BufferedWriter writer =
+        Files.newBufferedWriter(
+            Path.of(FILE_PATH),
+            StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.APPEND)) {
       writer.write(log.toFileString());
       writer.newLine();
     } catch (IOException e) {

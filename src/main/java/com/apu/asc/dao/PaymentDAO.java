@@ -1,9 +1,17 @@
 package com.apu.asc.dao;
 
 import com.apu.asc.model.Payment;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PaymentDAO {
 
@@ -24,10 +32,10 @@ public class PaymentDAO {
 
   private void load() {
     cache.clear();
-    File file = new File(FILE_PATH);
-    if (!file.exists()) return;
+    Path path = Path.of(FILE_PATH);
+    if (!Files.exists(path)) return;
 
-    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
       String line;
       while ((line = reader.readLine()) != null) {
         if (line.isBlank()) continue;
@@ -48,7 +56,8 @@ public class PaymentDAO {
   }
 
   private void persist() {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+    try (BufferedWriter writer =
+        Files.newBufferedWriter(Path.of(FILE_PATH), StandardCharsets.UTF_8)) {
       for (Payment payment : cache.values()) {
         writer.write(payment.toFileString());
         writer.newLine();

@@ -1,8 +1,11 @@
 package com.apu.asc.util;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -25,7 +28,12 @@ public class SystemLogger {
             targetEntityId,
             description);
 
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE, true))) {
+    try (BufferedWriter writer =
+        Files.newBufferedWriter(
+            Path.of(LOG_FILE),
+            StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE,
+            StandardOpenOption.APPEND)) {
       writer.write(line);
       writer.newLine();
     } catch (IOException e) {
