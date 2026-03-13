@@ -8,6 +8,7 @@ import com.apu.asc.model.ApptStatus;
 import com.apu.asc.model.Feedback;
 import com.apu.asc.model.User;
 import com.apu.asc.util.DataSanitizer;
+import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
@@ -26,18 +27,22 @@ public class FeedbackService {
     this.paymentDAO = PaymentDAO.getInstance();
   }
 
-  public Feedback submitFeedback(String appointmentId, int rating, String comments) {
+  public Result<Feedback> submitFeedback(String appointmentId, int rating, String comments) {
     Appointment appt = appointmentDAO.findById(appointmentId);
-    if (appt == null || appt.getStatus() != ApptStatus.COMPLETED) return null;
-    if (paymentDAO.findByAppointment(appointmentId) == null) return null;
-    if (feedbackDAO.findByAppointment(appointmentId) != null) return null;
+    if (appt == null || appt.getStatus() != ApptStatus.COMPLETED)
+      return Result.failure("Feedback can only be submitted for completed appointments.");
+    if (paymentDAO.findByAppointment(appointmentId) == null)
+      return Result.failure("Payment must be completed before submitting feedback.");
+    if (feedbackDAO.findByAppointment(appointmentId) != null)
+      return Result.failure("Feedback has already been submitted for this appointment.");
 
-    if (rating < 1 || rating > 5) return null;
+    if (rating < 1 || rating > 5) return Result.failure("Rating must be between 1 and 5.");
 
     String id = "FBK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Feedback feedback = new Feedback(id, appointmentId, rating, DataSanitizer.clean(comments));
 
-    if (ValidationUtil.getViolations(feedback) != null) return null;
+    String violations = ValidationUtil.getViolations(feedback);
+    if (violations != null) return Result.failure(violations);
 
     feedbackDAO.save(feedback);
     SystemLogger.log(
@@ -45,7 +50,7 @@ public class FeedbackService {
         "SUBMIT_FEEDBACK",
         id,
         "Feedback submitted for appointment " + appointmentId + " — rating: " + rating + ".");
-    return feedback;
+    return Result.success(feedback);
   }
 
   public Feedback findByAppointment(String appointmentId) {

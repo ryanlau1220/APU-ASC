@@ -10,6 +10,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.model.UserStatus;
 import com.apu.asc.util.DataSanitizer;
 import com.apu.asc.util.PasswordUtil;
+import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
@@ -24,7 +25,7 @@ public class UserService {
     this.userDAO = UserDAO.getInstance();
   }
 
-  public User createUser(
+  public Result<User> createUser(
       Role role,
       String username,
       String rawPassword,
@@ -36,19 +37,20 @@ public class UserService {
     email = DataSanitizer.clean(email).trim();
     contactNumber = DataSanitizer.clean(contactNumber).trim();
 
-    if (userDAO.findByUsername(username) != null) return null;
+    if (userDAO.findByUsername(username) != null)
+      return Result.failure("Username '" + username + "' is already taken. Choose another.");
 
     String id = "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     String hash = PasswordUtil.hash(rawPassword);
     User user = buildUser(role, id, username, hash, fullName, email, contactNumber);
 
     String violations = ValidationUtil.getViolations(user);
-    if (violations != null) return null;
+    if (violations != null) return Result.failure(violations);
 
     userDAO.save(user);
     String actor = actorId();
     SystemLogger.log(actor, "CREATE_USER", id, "Created " + role + " account: '" + username + "'.");
-    return user;
+    return Result.success(user);
   }
 
   public boolean updateProfile(User user, String fullName, String email, String contactNumber) {

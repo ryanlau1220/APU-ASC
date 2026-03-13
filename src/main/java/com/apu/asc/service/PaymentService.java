@@ -9,6 +9,7 @@ import com.apu.asc.model.ApptStatus;
 import com.apu.asc.model.Payment;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
+import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.itextpdf.text.Chunk;
@@ -54,13 +55,16 @@ public class PaymentService {
     this.userDAO = UserDAO.getInstance();
   }
 
-  public Payment processPayment(String appointmentId) {
+  public Result<Payment> processPayment(String appointmentId) {
     Appointment appt = appointmentDAO.findById(appointmentId);
-    if (appt == null || appt.getStatus() != ApptStatus.COMPLETED) return null;
-    if (paymentDAO.findByAppointment(appointmentId) != null) return null;
+    if (appt == null || appt.getStatus() != ApptStatus.COMPLETED)
+      return Result.failure("Payment can only be processed for completed appointments.");
+    if (paymentDAO.findByAppointment(appointmentId) != null)
+      return Result.failure("Payment has already been recorded for this appointment.");
 
     Service service = serviceDAO.findById(appt.getServiceId());
-    if (service == null) return null;
+    if (service == null)
+      return Result.failure("Service record not found. Please contact the system administrator.");
 
     String id = "PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Payment payment =
@@ -71,7 +75,7 @@ public class PaymentService {
         "PROCESS_PAYMENT",
         id,
         "Payment " + id + " recorded for appointment " + appointmentId + ".");
-    return payment;
+    return Result.success(payment);
   }
 
   public boolean sendReceipt(String paymentId) {

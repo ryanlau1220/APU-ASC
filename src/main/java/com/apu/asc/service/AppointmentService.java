@@ -7,6 +7,7 @@ import com.apu.asc.model.ApptStatus;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.ServiceType;
 import com.apu.asc.util.DataSanitizer;
+import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import java.time.LocalDateTime;
@@ -26,7 +27,7 @@ public class AppointmentService {
     this.serviceDAO = ServiceDAO.getInstance();
   }
 
-  public Appointment createAppointment(
+  public Result<Appointment> createAppointment(
       String customerId,
       String counterStaffId,
       String serviceId,
@@ -35,9 +36,12 @@ public class AppointmentService {
     vehiclePlate = DataSanitizer.clean(vehiclePlate).trim().toUpperCase();
 
     Service service = serviceDAO.findById(serviceId);
-    if (service == null || !service.isActive()) return null;
+    if (service == null || !service.isActive())
+      return Result.failure("The selected service is unavailable or has been deactivated.");
 
-    if (hasConflict(null, dateTime, service.getType())) return null;
+    if (hasConflict(null, dateTime, service.getType()))
+      return Result.failure(
+          "The selected time slot conflicts with an existing appointment. Please choose a different time.");
 
     String id = "APT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Appointment appt =
@@ -57,7 +61,7 @@ public class AppointmentService {
         "CREATE_APPT",
         id,
         "Appointment created for customer " + customerId + " - " + vehiclePlate + ".");
-    return appt;
+    return Result.success(appt);
   }
 
   public boolean assignTechnician(String appointmentId, String technicianId) {

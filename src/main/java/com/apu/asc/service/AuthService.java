@@ -6,6 +6,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.model.UserStatus;
 import com.apu.asc.util.DataSanitizer;
 import com.apu.asc.util.PasswordUtil;
+import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
@@ -19,28 +20,33 @@ public class AuthService {
     this.userDAO = UserDAO.getInstance();
   }
 
-  public User login(String username, String rawPassword) {
-    if (username == null || rawPassword == null) return null;
+  public Result<User> login(String username, String rawPassword) {
+    if (username == null || rawPassword == null)
+      return Result.failure("Username and password are required.");
 
     User user = userDAO.findByUsername(username.trim());
-    if (user == null) return null;
-    if (user.getStatus() == UserStatus.DEACTIVATED) return null;
-    if (!PasswordUtil.verify(rawPassword, user.getPasswordHash())) return null;
+    if (user == null) return Result.failure("Invalid username or password.");
+    if (user.getStatus() == UserStatus.DEACTIVATED)
+      return Result.failure(
+          "This account has been deactivated. Please contact staff for assistance.");
+    if (!PasswordUtil.verify(rawPassword, user.getPasswordHash()))
+      return Result.failure("Invalid username or password.");
 
     SessionManager.login(user);
     SystemLogger.log(
         user.getId(), "LOGIN", user.getId(), "User '" + user.getUsername() + "' logged in.");
-    return user;
+    return Result.success(user);
   }
 
-  public Customer register(
+  public Result<Customer> register(
       String username, String rawPassword, String fullName, String email, String contactNumber) {
     username = DataSanitizer.clean(username).trim();
     fullName = DataSanitizer.clean(fullName).trim();
     email = DataSanitizer.clean(email).trim();
     contactNumber = DataSanitizer.clean(contactNumber).trim();
 
-    if (userDAO.findByUsername(username) != null) return null;
+    if (userDAO.findByUsername(username) != null)
+      return Result.failure("Username '" + username + "' is already taken. Choose another.");
 
     String id = "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     String hash = PasswordUtil.hash(rawPassword);
@@ -49,11 +55,11 @@ public class AuthService {
         new Customer(id, username, hash, UserStatus.ACTIVE, fullName, email, contactNumber);
 
     String violations = ValidationUtil.getViolations(customer);
-    if (violations != null) return null;
+    if (violations != null) return Result.failure(violations);
 
     userDAO.save(customer);
     SystemLogger.log(id, "REGISTER", id, "New customer registered: '" + username + "'.");
-    return customer;
+    return Result.success(customer);
   }
 
   public boolean changePassword(User user, String currentRaw, String newRaw) {
