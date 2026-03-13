@@ -1,13 +1,24 @@
 package com.apu.asc.model;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class Payment {
 
+  @NotBlank(message = "Payment ID must not be blank")
   private final String paymentId;
+
+  @NotBlank(message = "Appointment ID must not be blank")
   private final String appointmentId;
+
+  @DecimalMin(value = "0.01", message = "Amount paid must be at least RM 0.01")
   private final double amountPaid;
+
+  @NotNull(message = "Payment date and time must not be null")
   private final LocalDateTime paymentDateTime;
+
   private boolean receiptSent;
 
   public Payment(

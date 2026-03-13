@@ -1,17 +1,38 @@
 package com.apu.asc.model;
 
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class Appointment {
 
+  @NotBlank(message = "Appointment ID must not be blank")
   private final String appointmentId;
+
+  @NotBlank(message = "Customer ID must not be blank")
   private final String customerId;
+
+  @NotBlank(message = "Counter staff ID must not be blank")
   private final String counterStaffId;
+
+  @NotBlank(message = "Technician ID must not be blank")
   private String technicianId;
+
+  @NotBlank(message = "Service ID must not be blank")
   private final String serviceId;
+
+  @NotBlank(message = "Vehicle plate must not be blank")
   private final String vehiclePlate;
+
+  @NotNull(message = "Appointment date and time must be specified")
+  @FutureOrPresent(message = "Cannot book an appointment in the past")
   private final LocalDateTime appointmentDateTime;
+
+  @NotNull(message = "Appointment status must not be null")
   private ApptStatus status;
+
+  @NotNull(message = "Technician notes must not be null")
   private String technicianNotes;
 
   public Appointment(

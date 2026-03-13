@@ -1,14 +1,27 @@
 package com.apu.asc.model;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class AuditLog {
 
+  @NotBlank(message = "Log ID must not be blank")
   private String logId;
+
+  @NotNull(message = "Timestamp must not be null")
   private LocalDateTime timestamp;
+
+  @NotBlank(message = "User ID must not be blank")
   private String userId;
+
+  @NotBlank(message = "Action type must not be blank")
   private String actionType;
+
+  @NotBlank(message = "Target entity ID must not be blank")
   private String targetEntityId;
+
+  @NotBlank(message = "Description must not be blank")
   private String description;
 
   public AuditLog(
