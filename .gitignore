@@ -1,0 +1,50 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Documentation
+*.md
+docs/
+
+# App Data (runtime-generated, not source)
+data/
+
+# IDE Configurations
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.claude/
+.idea/
+.github/copilot-instructions.md
+CLAUDE.md
+.cursor/
+.gemini/
+*.code-workspace
+
+# NetBeans
+nbproject/private/
+nbproject/Makefile-*.mk
+nbproject/Package-*.bash
+build/
+nbbuild/
+dist/
+nbdist/
+nb-configuration.xml
+
+# IntelliJ IDEA (just in case)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets (never commit)
+.env
+src/main/resources/config.properties
