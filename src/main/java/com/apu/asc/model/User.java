@@ -1,14 +1,31 @@
 package com.apu.asc.model;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 public abstract class User {
 
   private final String id;
+
+  @NotBlank(message = "Username cannot be empty")
+  @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
   private final String username;
+
   private String passwordHash;
   private final Role role;
   private UserStatus status;
+
+  @NotBlank(message = "Full name cannot be empty")
   private String fullName;
+
+  @NotBlank(message = "Email cannot be empty")
+  @Email(message = "Invalid email format")
   private String email;
+
+  @NotBlank(message = "Contact number cannot be empty")
+  @Pattern(regexp = "^[0-9+\\-\\s]{7,15}$", message = "Invalid contact number format")
   private String contactNumber;
 
   public User(
