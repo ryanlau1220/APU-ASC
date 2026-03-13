@@ -14,6 +14,7 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -34,6 +35,7 @@ public class StaffPaymentPanel extends JPanel {
   private DefaultTableModel model;
 
   public StaffPaymentPanel(User staffUser) {
+    Objects.requireNonNull(staffUser, "staffUser must not be null");
     setLayout(new BorderLayout(8, 8));
     setBackground(new Color(45, 45, 45));
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
@@ -87,7 +89,7 @@ public class StaffPaymentPanel extends JPanel {
 
       Payment p = paymentService.findByAppointment(a.getAppointmentId());
       String amount = p != null ? String.format("RM %.2f", p.getAmountPaid()) : "UNPAID";
-      String receiptSent = p != null ? (p.isReceiptSent() ? "Yes" : "No") : "-";
+      String receiptSent = p != null ? p.isReceiptSent() ? "Yes" : "No" : "-";
 
       model.addRow(
           new Object[] {

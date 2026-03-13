@@ -1,6 +1,12 @@
 package com.apu.asc.util;
 
-import com.apu.asc.model.*;
+import com.apu.asc.model.CounterStaff;
+import com.apu.asc.model.Customer;
+import com.apu.asc.model.Manager;
+import com.apu.asc.model.Role;
+import com.apu.asc.model.Technician;
+import com.apu.asc.model.User;
+import com.apu.asc.model.UserStatus;
 
 public class UserFactory {
 

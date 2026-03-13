@@ -13,6 +13,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -32,6 +33,7 @@ public class StaffAssignPanel extends JPanel {
   private DefaultTableModel model;
 
   public StaffAssignPanel(User staffUser) {
+    Objects.requireNonNull(staffUser, "staffUser must not be null");
     setLayout(new BorderLayout(8, 8));
     setBackground(new Color(45, 45, 45));
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));

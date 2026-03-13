@@ -127,7 +127,7 @@ public class AppointmentService {
             a -> {
               Service s = serviceDAO.findById(a.getServiceId());
               int existDur =
-                  (s != null && s.getType() == ServiceType.MAJOR)
+                  s != null && s.getType() == ServiceType.MAJOR
                       ? MAJOR_DURATION_HOURS
                       : NORMAL_DURATION_HOURS;
               LocalDateTime existEnd = a.getAppointmentDateTime().plusHours(existDur);
@@ -147,7 +147,7 @@ public class AppointmentService {
             a -> {
               Service s = serviceDAO.findById(a.getServiceId());
               int existDur =
-                  (s != null && s.getType() == ServiceType.MAJOR)
+                  s != null && s.getType() == ServiceType.MAJOR
                       ? MAJOR_DURATION_HOURS
                       : NORMAL_DURATION_HOURS;
               LocalDateTime existEnd = a.getAppointmentDateTime().plusHours(existDur);
