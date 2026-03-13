@@ -1,0 +1,5 @@
+# Email Configuration (Gmail SMTP)
+# Replace with your Gmail address and App Password
+# Generate App Password: myaccount.google.com > Security > App Passwords
+mail.username=your_gmail@gmail.com
+mail.password=your_16_char_app_password
