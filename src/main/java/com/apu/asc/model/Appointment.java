@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 
 public class Appointment {
 
-    private String appointmentId;
-    private String customerId;
-    private String counterStaffId;
+    private final String appointmentId;
+    private final String customerId;
+    private final String counterStaffId;
     private String technicianId;
-    private String serviceId;
-    private String vehiclePlate;
-    private LocalDateTime appointmentDateTime;
+    private final String serviceId;
+    private final String vehiclePlate;
+    private final LocalDateTime appointmentDateTime;
     private ApptStatus status;
     private String technicianNotes;
 

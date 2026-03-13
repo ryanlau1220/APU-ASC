@@ -2,9 +2,9 @@ package com.apu.asc.model;
 
 public class Service {
 
-    private String serviceId;
-    private ServiceType type;
-    private String serviceName;
+    private final String serviceId;
+    private final ServiceType type;
+    private final String serviceName;
     private double price;
     private boolean isActive;
 

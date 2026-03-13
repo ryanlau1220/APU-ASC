@@ -1,14 +1,28 @@
 package com.apu.asc.ui.shared;
 
-import com.apu.asc.service.AuthService;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+import com.apu.asc.service.AuthService;
 
 public class RegisterFrame extends JDialog {
 
     private final AuthService authService = new AuthService();
-    private final LoginFrame parent;
 
     private JTextField usernameField;
     private JTextField fullNameField;
@@ -20,7 +34,6 @@ public class RegisterFrame extends JDialog {
 
     public RegisterFrame(LoginFrame parent) {
         super(parent, "Register — APU-ASC", true);
-        this.parent = parent;
         setSize(440, 400);
         setLocationRelativeTo(parent);
         setResizable(false);

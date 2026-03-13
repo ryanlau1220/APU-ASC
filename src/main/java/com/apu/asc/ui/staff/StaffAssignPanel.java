@@ -1,5 +1,21 @@
 package com.apu.asc.ui.staff;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
+
 import com.apu.asc.dao.UserDAO;
 import com.apu.asc.model.Appointment;
 import com.apu.asc.model.ApptStatus;
@@ -8,15 +24,8 @@ import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.UserService;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 public class StaffAssignPanel extends JPanel {
 
-    private final User staffUser;
     private final AppointmentService apptService = new AppointmentService();
     private final UserService userService        = new UserService();
     private final UserDAO userDAO                = UserDAO.getInstance();
@@ -25,7 +34,6 @@ public class StaffAssignPanel extends JPanel {
     private DefaultTableModel model;
 
     public StaffAssignPanel(User staffUser) {
-        this.staffUser = staffUser;
         setLayout(new BorderLayout(8, 8));
         setBackground(new Color(45, 45, 45));
         setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));

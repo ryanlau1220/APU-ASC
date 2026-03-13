@@ -2,10 +2,10 @@ package com.apu.asc.model;
 
 public abstract class User {
 
-    private String id;
-    private String username;
+    private final String id;
+    private final String username;
     private String passwordHash;
-    private Role role;
+    private final Role role;
     private UserStatus status;
     private String fullName;
     private String email;

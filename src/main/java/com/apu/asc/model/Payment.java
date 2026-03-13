@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 
 public class Payment {
 
-    private String paymentId;
-    private String appointmentId;
-    private double amountPaid;
-    private LocalDateTime paymentDateTime;
+    private final String paymentId;
+    private final String appointmentId;
+    private final double amountPaid;
+    private final LocalDateTime paymentDateTime;
     private boolean receiptSent;
 
     public Payment(String paymentId, String appointmentId, double amountPaid,
