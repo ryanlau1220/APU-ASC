@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 public class AppointmentDAO {
 
   private static final String FILE_PATH = "data/appointments.txt";
+  private static final Path DATA_DIR = Path.of("data");
   private static AppointmentDAO instance;
   private final Map<String, Appointment> cache = new LinkedHashMap<>();
 
@@ -64,7 +65,7 @@ public class AppointmentDAO {
   private void persist() {
     Path path = Path.of(FILE_PATH);
     try {
-      Files.createDirectories(path.getParent());
+      Files.createDirectories(DATA_DIR);
     } catch (IOException e) {
       System.err.println("AppointmentDAO createDirectories failed: " + e.getMessage());
     }

@@ -16,6 +16,7 @@ import java.util.Map;
 public class PaymentDAO {
 
   private static final String FILE_PATH = "data/payments.txt";
+  private static final Path DATA_DIR = Path.of("data");
   private static PaymentDAO instance;
   private final Map<String, Payment> cache = new LinkedHashMap<>();
 
@@ -58,7 +59,7 @@ public class PaymentDAO {
   private void persist() {
     Path path = Path.of(FILE_PATH);
     try {
-      Files.createDirectories(path.getParent());
+      Files.createDirectories(DATA_DIR);
     } catch (IOException e) {
       System.err.println("PaymentDAO createDirectories failed: " + e.getMessage());
     }

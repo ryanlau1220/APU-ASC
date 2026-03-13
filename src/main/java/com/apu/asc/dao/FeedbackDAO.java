@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class FeedbackDAO {
 
   private static final String FILE_PATH = "data/feedbacks.txt";
+  private static final Path DATA_DIR = Path.of("data");
   private static FeedbackDAO instance;
   private final Map<String, Feedback> cache = new LinkedHashMap<>();
 
@@ -52,7 +53,7 @@ public class FeedbackDAO {
   private void persist() {
     Path path = Path.of(FILE_PATH);
     try {
-      Files.createDirectories(path.getParent());
+      Files.createDirectories(DATA_DIR);
     } catch (IOException e) {
       System.err.println("FeedbackDAO createDirectories failed: " + e.getMessage());
     }

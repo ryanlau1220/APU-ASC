@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class ServiceDAO {
 
   private static final String FILE_PATH = "data/services.txt";
+  private static final Path DATA_DIR = Path.of("data");
   private static ServiceDAO instance;
   private final Map<String, Service> cache = new LinkedHashMap<>();
 
@@ -59,7 +60,7 @@ public class ServiceDAO {
   private void persist() {
     Path path = Path.of(FILE_PATH);
     try {
-      Files.createDirectories(path.getParent());
+      Files.createDirectories(DATA_DIR);
     } catch (IOException e) {
       System.err.println("ServiceDAO createDirectories failed: " + e.getMessage());
     }

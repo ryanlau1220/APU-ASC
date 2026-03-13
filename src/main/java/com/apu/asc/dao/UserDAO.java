@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class UserDAO {
 
   private static final String FILE_PATH = "data/users.txt";
+  private static final Path DATA_DIR = Path.of("data");
   private static UserDAO instance;
   private final Map<String, User> cache = new LinkedHashMap<>();
 
@@ -53,7 +54,7 @@ public class UserDAO {
   private void persist() {
     Path path = Path.of(FILE_PATH);
     try {
-      Files.createDirectories(path.getParent());
+      Files.createDirectories(DATA_DIR);
     } catch (IOException e) {
       System.err.println("UserDAO createDirectories failed: " + e.getMessage());
     }
