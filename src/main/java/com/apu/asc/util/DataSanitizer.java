@@ -6,6 +6,6 @@ public class DataSanitizer {
 
   public static String clean(String input) {
     if (input == null) return "";
-    return input.replace("||", "");
+    return input.replace("|", "");
   }
 }
