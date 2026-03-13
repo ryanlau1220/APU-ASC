@@ -8,6 +8,7 @@ import com.apu.asc.util.DataSanitizer;
 import com.apu.asc.util.PasswordUtil;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
+import com.apu.asc.util.ValidationUtil;
 import java.util.UUID;
 
 public class AuthService {
@@ -46,6 +47,10 @@ public class AuthService {
 
     Customer customer =
         new Customer(id, username, hash, UserStatus.ACTIVE, fullName, email, contactNumber);
+
+    String violations = ValidationUtil.getViolations(customer);
+    if (violations != null) return null;
+
     userDAO.save(customer);
     SystemLogger.log(id, "REGISTER", id, "New customer registered: '" + username + "'.");
     return customer;

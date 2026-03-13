@@ -12,6 +12,7 @@ import com.apu.asc.util.DataSanitizer;
 import com.apu.asc.util.PasswordUtil;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
+import com.apu.asc.util.ValidationUtil;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,6 +41,9 @@ public class UserService {
     String id = "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     String hash = PasswordUtil.hash(rawPassword);
     User user = buildUser(role, id, username, hash, fullName, email, contactNumber);
+
+    String violations = ValidationUtil.getViolations(user);
+    if (violations != null) return null;
 
     userDAO.save(user);
     String actor = actorId();
