@@ -57,8 +57,13 @@ public class ServiceDAO {
   }
 
   private void persist() {
-    try (BufferedWriter writer =
-        Files.newBufferedWriter(Path.of(FILE_PATH), StandardCharsets.UTF_8)) {
+    Path path = Path.of(FILE_PATH);
+    try {
+      Files.createDirectories(path.getParent());
+    } catch (IOException e) {
+      System.err.println("ServiceDAO createDirectories failed: " + e.getMessage());
+    }
+    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
       for (Service s : cache.values()) {
         writer.write(s.toFileString());
         writer.newLine();

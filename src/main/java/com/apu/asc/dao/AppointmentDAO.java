@@ -62,8 +62,13 @@ public class AppointmentDAO {
   }
 
   private void persist() {
-    try (BufferedWriter writer =
-        Files.newBufferedWriter(Path.of(FILE_PATH), StandardCharsets.UTF_8)) {
+    Path path = Path.of(FILE_PATH);
+    try {
+      Files.createDirectories(path.getParent());
+    } catch (IOException e) {
+      System.err.println("AppointmentDAO createDirectories failed: " + e.getMessage());
+    }
+    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
       for (Appointment a : cache.values()) {
         writer.write(a.toFileString());
         writer.newLine();

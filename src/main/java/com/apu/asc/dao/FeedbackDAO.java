@@ -50,8 +50,13 @@ public class FeedbackDAO {
   }
 
   private void persist() {
-    try (BufferedWriter writer =
-        Files.newBufferedWriter(Path.of(FILE_PATH), StandardCharsets.UTF_8)) {
+    Path path = Path.of(FILE_PATH);
+    try {
+      Files.createDirectories(path.getParent());
+    } catch (IOException e) {
+      System.err.println("FeedbackDAO createDirectories failed: " + e.getMessage());
+    }
+    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
       for (Feedback f : cache.values()) {
         writer.write(f.toFileString());
         writer.newLine();

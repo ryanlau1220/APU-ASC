@@ -51,8 +51,13 @@ public class UserDAO {
   }
 
   private void persist() {
-    try (BufferedWriter writer =
-        Files.newBufferedWriter(Path.of(FILE_PATH), StandardCharsets.UTF_8)) {
+    Path path = Path.of(FILE_PATH);
+    try {
+      Files.createDirectories(path.getParent());
+    } catch (IOException e) {
+      System.err.println("UserDAO createDirectories failed: " + e.getMessage());
+    }
+    try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
       for (User user : cache.values()) {
         writer.write(user.toFileString());
         writer.newLine();

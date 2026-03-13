@@ -49,12 +49,15 @@ public class AuditLogDAO {
 
   public void append(AuditLog log) {
     cache.add(log);
+    Path path = Path.of(FILE_PATH);
+    try {
+      Files.createDirectories(path.getParent());
+    } catch (IOException e) {
+      System.err.println("AuditLogDAO createDirectories failed: " + e.getMessage());
+    }
     try (BufferedWriter writer =
         Files.newBufferedWriter(
-            Path.of(FILE_PATH),
-            StandardCharsets.UTF_8,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.APPEND)) {
+            path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
       writer.write(log.toFileString());
       writer.newLine();
     } catch (IOException e) {
