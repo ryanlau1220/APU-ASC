@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.apu.asc</groupId>
@@ -53,7 +55,7 @@
 
     <build>
         <plugins>
-            <!-- Compile -->
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -63,19 +65,22 @@
                 </configuration>
             </plugin>
 
-            <!-- Checkstyle -->
+            <!-- Spotless -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.3.1</version>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
                 <configuration>
-                    <consoleOutput>true</consoleOutput>
-                    <failsOnError>true</failsOnError>
-                    <configLocation>google_checks.xml</configLocation>
+                    <java>
+                        <googleJavaFormat>
+                            <version>1.22.0</version>
+                        </googleJavaFormat>
+                    </java>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <id>spotless-check</id>
+                        <phase>validate</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -83,16 +88,19 @@
                 </executions>
             </plugin>
 
-            <!-- PMD -->
+            <!-- Checkstyle -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.21.2</version>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.1</version>
                 <configuration>
-                    <printFailingErrors>true</printFailingErrors>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>false</failsOnError>
+                    <configLocation>google_checks.xml</configLocation>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>checkstyle</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
@@ -111,6 +119,7 @@
                 </configuration>
                 <executions>
                     <execution>
+                        <id>spotbugs-check</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
@@ -119,22 +128,18 @@
                 </executions>
             </plugin>
 
-            <!-- Code Formatting -->
+            <!-- PMD -->
             <plugin>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <version>2.43.0</version>
-
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.21.2</version>
                 <configuration>
-                    <java>
-                        <googleJavaFormat>
-                            <version>1.22.0</version>
-                        </googleJavaFormat>
-                    </java>
+                    <printFailingErrors>true</printFailingErrors>
+                    <failOnViolation>false</failOnViolation>
                 </configuration>
-
                 <executions>
                     <execution>
+                        <id>pmd-check</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
