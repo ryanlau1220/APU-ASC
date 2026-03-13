@@ -1,11 +1,13 @@
 package com.apu.asc.ui.staff;
 
 import com.apu.asc.dao.ServiceDAO;
+import com.apu.asc.model.Appointment;
 import com.apu.asc.model.Role;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.util.Result;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -129,16 +131,16 @@ public class StaffBookApptPanel extends JPanel {
       return;
     }
 
-    var result =
+    Result<Appointment> result =
         apptService.createAppointment(customer.id, staffUser.getId(), service.id, plate, dt);
-    if (result == null) {
+    if (!result.isSuccess()) {
       messageLabel.setForeground(new Color(220, 80, 80));
-      messageLabel.setText("Booking failed: service inactive or time slot conflict.");
+      messageLabel.setText(result.getError());
       return;
     }
 
     messageLabel.setForeground(new Color(80, 200, 80));
-    messageLabel.setText("Appointment " + result.getAppointmentId() + " created!");
+    messageLabel.setText("Appointment " + result.getValue().getAppointmentId() + " created!");
     vehicleField.setText("");
   }
 

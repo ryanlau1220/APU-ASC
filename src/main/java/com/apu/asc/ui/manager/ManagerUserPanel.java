@@ -3,6 +3,7 @@ package com.apu.asc.ui.manager;
 import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.UserService;
+import com.apu.asc.util.Result;
 import java.awt.*;
 import java.util.List;
 import javax.swing.*;
@@ -122,7 +123,7 @@ public class ManagerUserPanel extends JPanel {
     if (res != JOptionPane.OK_OPTION) return;
 
     Role role = Role.valueOf((String) roleCombo.getSelectedItem());
-    User created =
+    Result<User> created =
         userService.createUser(
             role,
             username.getText(),
@@ -131,9 +132,8 @@ public class ManagerUserPanel extends JPanel {
             email.getText(),
             contact.getText());
 
-    if (created == null) {
-      JOptionPane.showMessageDialog(
-          this, "Username already taken.", "Error", JOptionPane.ERROR_MESSAGE);
+    if (!created.isSuccess()) {
+      JOptionPane.showMessageDialog(this, created.getError(), "Error", JOptionPane.ERROR_MESSAGE);
     } else {
       loadData(null);
     }

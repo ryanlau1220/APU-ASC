@@ -9,6 +9,7 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.PaymentService;
+import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -112,14 +113,11 @@ public class StaffPaymentPanel extends JPanel {
       return;
     }
 
-    Payment p = paymentService.processPayment(apptId);
-    if (p == null) {
-      JOptionPane.showMessageDialog(
-          this,
-          "Payment failed. Appointment may not be COMPLETED.",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+    Result<Payment> result = paymentService.processPayment(apptId);
+    if (!result.isSuccess()) {
+      JOptionPane.showMessageDialog(this, result.getError(), "Error", JOptionPane.ERROR_MESSAGE);
     } else {
+      Payment p = result.getValue();
       JOptionPane.showMessageDialog(
           this,
           "Payment recorded: "

@@ -6,6 +6,7 @@ import com.apu.asc.ui.customer.CustomerDashboard;
 import com.apu.asc.ui.manager.ManagerDashboard;
 import com.apu.asc.ui.staff.StaffDashboard;
 import com.apu.asc.ui.technician.TechnicianDashboard;
+import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -119,15 +120,15 @@ public class LoginFrame extends JFrame {
       return;
     }
 
-    User user = authService.login(username, password);
-    if (user == null) {
-      messageLabel.setText("Invalid credentials or account is deactivated.");
+    Result<User> result = authService.login(username, password);
+    if (!result.isSuccess()) {
+      messageLabel.setText(result.getError());
       passwordField.setText("");
       return;
     }
 
     dispose();
-    openDashboard(user);
+    openDashboard(result.getValue());
   }
 
   private void openDashboard(User user) {

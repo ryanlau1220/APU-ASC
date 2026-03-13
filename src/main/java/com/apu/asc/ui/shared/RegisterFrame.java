@@ -1,6 +1,7 @@
 package com.apu.asc.ui.shared;
 
 import com.apu.asc.service.AuthService;
+import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -130,9 +131,9 @@ public class RegisterFrame extends JDialog {
       return;
     }
 
-    var result = authService.register(username, password, fullName, email, contact);
-    if (result == null) {
-      messageLabel.setText("Username already taken. Choose another.");
+    Result<?> result = authService.register(username, password, fullName, email, contact);
+    if (!result.isSuccess()) {
+      messageLabel.setText(result.getError());
       return;
     }
 

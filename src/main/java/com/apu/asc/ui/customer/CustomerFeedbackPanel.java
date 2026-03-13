@@ -7,6 +7,7 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.FeedbackService;
+import com.apu.asc.util.Result;
 import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -121,9 +122,9 @@ public class CustomerFeedbackPanel extends JPanel {
     int rating = (int) ratingSpinner.getValue();
     String comments = commentsArea.getText().trim();
 
-    var result = feedbackService.submitFeedback(selected.id, rating, comments);
-    if (result == null) {
-      messageLabel.setText("Failed to submit. Already submitted or appointment not eligible.");
+    Result<?> result = feedbackService.submitFeedback(selected.id, rating, comments);
+    if (!result.isSuccess()) {
+      messageLabel.setText(result.getError());
       return;
     }
 
