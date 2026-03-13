@@ -2,6 +2,7 @@ package com.apu.asc.ui.manager;
 
 import com.apu.asc.dao.ServiceDAO;
 import com.apu.asc.model.Service;
+import com.apu.asc.util.ValidationUtil;
 import java.awt.*;
 import java.util.List;
 import javax.swing.*;
@@ -92,6 +93,12 @@ public class ManagerServicePanel extends JPanel {
       double price = Double.parseDouble(input.trim());
       if (price < 0) throw new NumberFormatException("negative");
       svc.setPrice(price);
+      String violations = ValidationUtil.getViolations(svc);
+      if (violations != null) {
+        JOptionPane.showMessageDialog(
+            this, violations, "Validation Error", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
       serviceDAO.save(svc);
       loadData();
     } catch (NumberFormatException ex) {

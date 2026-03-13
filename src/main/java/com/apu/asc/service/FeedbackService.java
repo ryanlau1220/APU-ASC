@@ -10,6 +10,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.util.DataSanitizer;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
+import com.apu.asc.util.ValidationUtil;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +36,9 @@ public class FeedbackService {
 
     String id = "FBK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Feedback feedback = new Feedback(id, appointmentId, rating, DataSanitizer.clean(comments));
+
+    if (ValidationUtil.getViolations(feedback) != null) return null;
+
     feedbackDAO.save(feedback);
     SystemLogger.log(
         actorId(),

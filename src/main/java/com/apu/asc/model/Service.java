@@ -1,11 +1,19 @@
 package com.apu.asc.model;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+
 public class Service {
 
   private final String serviceId;
   private final ServiceType type;
+
+  @NotBlank(message = "Service name cannot be empty")
   private final String serviceName;
+
+  @DecimalMin(value = "0.01", message = "Price must be greater than zero")
   private double price;
+
   private boolean isActive;
 
   public Service(
