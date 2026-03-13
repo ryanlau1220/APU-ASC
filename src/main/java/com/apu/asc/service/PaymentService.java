@@ -12,6 +12,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
+import com.apu.asc.util.ValidationUtil;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Font;
@@ -69,6 +70,8 @@ public class PaymentService {
     String id = "PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Payment payment =
         new Payment(id, appointmentId, service.getPrice(), LocalDateTime.now(), false);
+    String paymentViolations = ValidationUtil.getViolations(payment);
+    if (paymentViolations != null) return Result.failure(paymentViolations);
     paymentDAO.save(payment);
     SystemLogger.log(
         actorId(),

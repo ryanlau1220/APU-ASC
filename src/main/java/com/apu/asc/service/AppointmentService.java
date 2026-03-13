@@ -10,6 +10,7 @@ import com.apu.asc.util.DataSanitizer;
 import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
+import com.apu.asc.util.ValidationUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -55,6 +56,8 @@ public class AppointmentService {
             dateTime,
             ApptStatus.PENDING,
             "");
+    String apptViolations = ValidationUtil.getViolations(appt);
+    if (apptViolations != null) return Result.failure(apptViolations);
     appointmentDAO.save(appt);
     SystemLogger.log(
         actorId(),
