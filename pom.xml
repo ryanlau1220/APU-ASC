@@ -137,6 +137,7 @@
                 <configuration>
                     <printFailingErrors>true</printFailingErrors>
                     <failOnViolation>false</failOnViolation>
+                    <typeResolution>false</typeResolution>
                 </configuration>
                 <executions>
                     <execution>
