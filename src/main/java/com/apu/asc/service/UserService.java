@@ -53,17 +53,22 @@ public class UserService {
     return Result.success(user);
   }
 
-  public boolean updateProfile(User user, String fullName, String email, String contactNumber) {
+  public Result<User> updateProfile(
+      User user, String fullName, String email, String contactNumber) {
     user.setFullName(DataSanitizer.clean(fullName).trim());
     user.setEmail(DataSanitizer.clean(email).trim());
     user.setContactNumber(DataSanitizer.clean(contactNumber).trim());
+
+    String violations = ValidationUtil.getViolations(user);
+    if (violations != null) return Result.failure(violations);
+
     userDAO.save(user);
     SystemLogger.log(
         actorId(),
         "UPDATE_PROFILE",
         user.getId(),
         "Profile updated for '" + user.getUsername() + "'.");
-    return true;
+    return Result.success(user);
   }
 
   public boolean deactivateUser(String userId) {
