@@ -3,6 +3,7 @@ package com.apu.asc.ui.customer;
 import com.apu.asc.dao.PaymentDAO;
 import com.apu.asc.dao.ServiceDAO;
 import com.apu.asc.model.Appointment;
+import com.apu.asc.model.ApptStatus;
 import com.apu.asc.model.Payment;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
@@ -64,7 +65,10 @@ public class CustomerHistoryPanel extends JPanel {
   private void loadData() {
     model.setRowCount(0);
     DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm");
-    List<Appointment> list = apptService.getByCustomer(user.getId());
+    List<Appointment> list =
+        apptService.getByCustomer(user.getId()).stream()
+            .filter(a -> a.getStatus() == ApptStatus.COMPLETED)
+            .toList();
 
     for (Appointment a : list) {
       Service svc = serviceDAO.findById(a.getServiceId());
