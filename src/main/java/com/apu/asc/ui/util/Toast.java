@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
@@ -71,27 +73,42 @@ public final class Toast {
 
     positionBottomRight(toast, frame);
 
-    toast.setOpacity(0f);
+    boolean supportsTranslucency = supportsTranslucentWindows();
+
+    if (supportsTranslucency) {
+      try {
+        toast.setOpacity(0f);
+      } catch (UnsupportedOperationException ex) {
+        supportsTranslucency = false;
+      }
+    }
+
     toast.setVisible(true);
 
-    int[] step = {0};
-    final int fadeInSteps = 10;
     final int displayMs = 2800;
-    final int fadeOutSteps = 10;
+    if (supportsTranslucency) {
+      int[] step = {0};
+      final int fadeInSteps = 10;
+      final int fadeOutSteps = 10;
 
-    Timer fadeIn = new Timer(20, null);
-    fadeIn.addActionListener(
-        e -> {
-          step[0]++;
-          toast.setOpacity(Math.min(1f, step[0] / (float) fadeInSteps));
-          if (step[0] >= fadeInSteps) {
-            fadeIn.stop();
-            Timer hold = new Timer(displayMs, ev -> startFadeOut(toast, fadeOutSteps));
-            hold.setRepeats(false);
-            hold.start();
-          }
-        });
-    fadeIn.start();
+      Timer fadeIn = new Timer(20, null);
+      fadeIn.addActionListener(
+          e -> {
+            step[0]++;
+            toast.setOpacity(Math.min(1f, step[0] / (float) fadeInSteps));
+            if (step[0] >= fadeInSteps) {
+              fadeIn.stop();
+              Timer hold = new Timer(displayMs, ev -> startFadeOut(toast, fadeOutSteps));
+              hold.setRepeats(false);
+              hold.start();
+            }
+          });
+      fadeIn.start();
+    } else {
+      Timer hold = new Timer(displayMs, e -> toast.dispose());
+      hold.setRepeats(false);
+      hold.start();
+    }
 
     toast.addMouseListener(
         new MouseAdapter() {
@@ -134,16 +151,22 @@ public final class Toast {
   }
 
   private static Frame findFrame(Window owner) {
-    if (owner instanceof Frame) return (Frame) owner;
+    if (owner instanceof Frame frame) return frame;
     if (owner != null) {
       Window w = owner;
       while (w != null) {
-        if (w instanceof Frame) return (Frame) w;
+        if (w instanceof Frame frame) return frame;
         w = w.getOwner();
       }
     }
     Frame[] frames = Frame.getFrames();
     if (frames.length > 0) return frames[0];
     return null;
+  }
+
+  private static boolean supportsTranslucentWindows() {
+    GraphicsDevice device =
+        GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    return device.isWindowTranslucencySupported(GraphicsDevice.WindowTranslucency.TRANSLUCENT);
   }
 }
