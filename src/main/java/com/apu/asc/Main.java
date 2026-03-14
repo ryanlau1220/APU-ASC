@@ -1,10 +1,11 @@
 package com.apu.asc;
 
-import com.apu.asc.ui.shared.LoginFrame;
+import com.apu.asc.ui.AppShell;
 import javax.swing.SwingUtilities;
 
 public class Main {
   public static void main(String[] args) {
-    SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
+    com.formdev.flatlaf.FlatLightLaf.setup();
+    SwingUtilities.invokeLater(() -> new AppShell().setVisible(true));
   }
 }
