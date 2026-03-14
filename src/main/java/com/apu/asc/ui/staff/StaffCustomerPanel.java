@@ -3,15 +3,20 @@ package com.apu.asc.ui.staff;
 import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -20,6 +25,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class StaffCustomerPanel extends JPanel {
@@ -28,12 +34,11 @@ public class StaffCustomerPanel extends JPanel {
 
   private JTable table;
   private DefaultTableModel model;
-
   private JTextField searchField;
 
   public StaffCustomerPanel() {
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
     loadData(null);
@@ -49,24 +54,33 @@ public class StaffCustomerPanel extends JPanel {
           }
         };
     table = new JTable(model);
-    table.setRowHeight(24);
-    table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-    table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+    table.setRowHeight(Theme.TABLE_ROW_HEIGHT);
+    table.setFont(Theme.FONT_BODY);
+    table.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+    table.setSelectionBackground(Theme.BG_SELECTION);
+    table.setSelectionForeground(Theme.TEXT_PRIMARY);
+    table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     JScrollPane scroll = new JScrollPane(table);
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    top.setBackground(new Color(45, 45, 45));
+    top.setBackground(Theme.BG_PANEL);
 
     searchField = new JTextField(20);
-    JButton searchBtn = new JButton("Search");
-    JButton addBtn = new JButton("Add Customer");
-    JButton editBtn = new JButton("Edit Selected");
-    JButton deactBtn = new JButton("Deactivate");
-    JButton refreshBtn = new JButton("Refresh");
+    JButton searchBtn = makeBtn("Search", Theme.BTN_PRIMARY);
+    JButton addBtn = makeBtn("Add Customer", Theme.BTN_SUCCESS);
+    JButton editBtn = makeBtn("Edit Selected", Theme.BTN_PRIMARY);
+    JButton deactBtn = makeBtn("Deactivate", Theme.BTN_DANGER);
+    JButton refreshBtn = makeBtn("Refresh", Theme.BTN_PRIMARY);
 
-    top.add(new JLabel("Search:"));
+    JLabel searchLabel = new JLabel("Search:");
+    searchLabel.setForeground(Theme.TEXT_SECONDARY);
+    searchLabel.setFont(Theme.FONT_BODY);
+
+    top.add(searchLabel);
     top.add(searchField);
     top.add(searchBtn);
     top.add(addBtn);
@@ -82,6 +96,16 @@ public class StaffCustomerPanel extends JPanel {
     addBtn.addActionListener(e -> openAddDialog());
     editBtn.addActionListener(e -> openEditDialog());
     deactBtn.addActionListener(e -> handleDeactivate());
+  }
+
+  private JButton makeBtn(String text, java.awt.Color bg) {
+    JButton btn = new JButton(text);
+    btn.setBackground(bg);
+    btn.setForeground(Theme.TEXT_PRIMARY);
+    btn.setFocusPainted(false);
+    btn.setFont(Theme.FONT_BODY_BOLD);
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    return btn;
   }
 
   private void loadData(String filter) {
@@ -108,44 +132,75 @@ public class StaffCustomerPanel extends JPanel {
     JTextField fullName = new JTextField(16);
     JTextField email = new JTextField(16);
     JTextField contact = new JTextField(16);
+    JLabel errorLabel = new JLabel(" ");
+    errorLabel.setForeground(Theme.TEXT_ERROR);
+    errorLabel.setFont(Theme.FONT_BODY);
 
-    JPanel p = new JPanel(new GridLayout(5, 2, 6, 6));
-    p.add(new JLabel("Username:"));
-    p.add(username);
-    p.add(new JLabel("Password:"));
-    p.add(pass);
-    p.add(new JLabel("Full Name:"));
-    p.add(fullName);
-    p.add(new JLabel("Email:"));
-    p.add(email);
-    p.add(new JLabel("Contact:"));
-    p.add(contact);
+    Window owner = SwingUtilities.getWindowAncestor(this);
+    JDialog dialog =
+        new JDialog(owner, "Add Customer", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.setSize(360, 300);
+    dialog.setLocationRelativeTo(this);
+    dialog.setResizable(false);
 
-    int res =
-        JOptionPane.showConfirmDialog(
-            this, p, "Add Customer", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-    if (res != JOptionPane.OK_OPTION) return;
+    JPanel form = new JPanel(new GridLayout(5, 2, 6, 6));
+    form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
+    form.setBackground(Theme.BG_PANEL);
+    addFormRow(form, "Username:", username);
+    addFormRow(form, "Password:", pass);
+    addFormRow(form, "Full Name:", fullName);
+    addFormRow(form, "Email:", email);
+    addFormRow(form, "Contact:", contact);
 
-    Result<User> created =
-        userService.createUser(
-            Role.CUSTOMER,
-            username.getText(),
-            new String(pass.getPassword()),
-            fullName.getText(),
-            email.getText(),
-            contact.getText());
+    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
 
-    if (!created.isSuccess()) {
-      JOptionPane.showMessageDialog(this, created.getError(), "Error", JOptionPane.ERROR_MESSAGE);
-    } else {
-      loadData(null);
-    }
+    JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    btnRow.setBackground(Theme.BG_PANEL);
+    btnRow.add(cancelBtn);
+    btnRow.add(saveBtn);
+
+    JPanel bottom = new JPanel();
+    bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
+    bottom.setBackground(Theme.BG_PANEL);
+    bottom.setBorder(BorderFactory.createEmptyBorder(0, 12, 8, 12));
+    bottom.add(errorLabel);
+    bottom.add(Box.createVerticalStrut(4));
+    bottom.add(btnRow);
+
+    JPanel root = new JPanel(new BorderLayout());
+    root.setBackground(Theme.BG_PANEL);
+    root.add(form, BorderLayout.CENTER);
+    root.add(bottom, BorderLayout.SOUTH);
+    dialog.setContentPane(root);
+
+    cancelBtn.addActionListener(e -> dialog.dispose());
+    saveBtn.addActionListener(
+        e -> {
+          Result<User> created =
+              userService.createUser(
+                  Role.CUSTOMER,
+                  username.getText(),
+                  new String(pass.getPassword()),
+                  fullName.getText(),
+                  email.getText(),
+                  contact.getText());
+          if (!created.isSuccess()) {
+            errorLabel.setText(created.getError());
+          } else {
+            dialog.dispose();
+            loadData(null);
+            Toast.success(owner, "Customer added successfully.");
+          }
+        });
+
+    dialog.setVisible(true);
   }
 
   private void openEditDialog() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select a customer first.");
+      Toast.error(SwingUtilities.getWindowAncestor(this), "Select a customer first.");
       return;
     }
 
@@ -156,34 +211,68 @@ public class StaffCustomerPanel extends JPanel {
     JTextField fullName = new JTextField(user.getFullName(), 16);
     JTextField email = new JTextField(user.getEmail(), 16);
     JTextField contact = new JTextField(user.getContactNumber(), 16);
+    JLabel errorLabel = new JLabel(" ");
+    errorLabel.setForeground(Theme.TEXT_ERROR);
+    errorLabel.setFont(Theme.FONT_BODY);
 
-    JPanel p = new JPanel(new GridLayout(3, 2, 6, 6));
-    p.add(new JLabel("Full Name:"));
-    p.add(fullName);
-    p.add(new JLabel("Email:"));
-    p.add(email);
-    p.add(new JLabel("Contact:"));
-    p.add(contact);
+    Window owner = SwingUtilities.getWindowAncestor(this);
+    JDialog dialog =
+        new JDialog(owner, "Edit Customer", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.setSize(340, 220);
+    dialog.setLocationRelativeTo(this);
+    dialog.setResizable(false);
 
-    int res =
-        JOptionPane.showConfirmDialog(
-            this, p, "Edit Customer", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-    if (res != JOptionPane.OK_OPTION) return;
+    JPanel form = new JPanel(new GridLayout(3, 2, 6, 6));
+    form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
+    form.setBackground(Theme.BG_PANEL);
+    addFormRow(form, "Full Name:", fullName);
+    addFormRow(form, "Email:", email);
+    addFormRow(form, "Contact:", contact);
 
-    Result<User> result =
-        userService.updateProfile(user, fullName.getText(), email.getText(), contact.getText());
-    if (!result.isSuccess()) {
-      JOptionPane.showMessageDialog(
-          this, result.getError(), "Validation Error", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-    loadData(null);
+    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+
+    JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    btnRow.setBackground(Theme.BG_PANEL);
+    btnRow.add(cancelBtn);
+    btnRow.add(saveBtn);
+
+    JPanel bottom = new JPanel();
+    bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
+    bottom.setBackground(Theme.BG_PANEL);
+    bottom.setBorder(BorderFactory.createEmptyBorder(0, 12, 8, 12));
+    bottom.add(errorLabel);
+    bottom.add(Box.createVerticalStrut(4));
+    bottom.add(btnRow);
+
+    JPanel root = new JPanel(new BorderLayout());
+    root.setBackground(Theme.BG_PANEL);
+    root.add(form, BorderLayout.CENTER);
+    root.add(bottom, BorderLayout.SOUTH);
+    dialog.setContentPane(root);
+
+    cancelBtn.addActionListener(e -> dialog.dispose());
+    saveBtn.addActionListener(
+        e -> {
+          Result<User> result =
+              userService.updateProfile(
+                  user, fullName.getText(), email.getText(), contact.getText());
+          if (!result.isSuccess()) {
+            errorLabel.setText(result.getError());
+          } else {
+            dialog.dispose();
+            loadData(null);
+            Toast.success(owner, "Customer updated successfully.");
+          }
+        });
+
+    dialog.setVisible(true);
   }
 
   private void handleDeactivate() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select a customer first.");
+      Toast.error(SwingUtilities.getWindowAncestor(this), "Select a customer first.");
       return;
     }
 
@@ -197,5 +286,14 @@ public class StaffCustomerPanel extends JPanel {
 
     userService.deactivateUser(id);
     loadData(null);
+    Toast.success(SwingUtilities.getWindowAncestor(this), "Customer deactivated.");
+  }
+
+  private void addFormRow(JPanel panel, String labelText, javax.swing.JComponent field) {
+    JLabel lbl = new JLabel(labelText);
+    lbl.setForeground(Theme.TEXT_SECONDARY);
+    lbl.setFont(Theme.FONT_BODY);
+    panel.add(lbl);
+    panel.add(field);
   }
 }

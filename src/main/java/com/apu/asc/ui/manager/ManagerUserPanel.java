@@ -3,10 +3,31 @@ package com.apu.asc.ui.manager;
 import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Window;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class ManagerUserPanel extends JPanel {
@@ -19,7 +40,7 @@ public class ManagerUserPanel extends JPanel {
 
   public ManagerUserPanel() {
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
     loadData(null);
@@ -35,23 +56,31 @@ public class ManagerUserPanel extends JPanel {
           }
         };
     table = new JTable(model);
-    table.setRowHeight(24);
-    table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-    table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+    table.setRowHeight(Theme.TABLE_ROW_HEIGHT);
+    table.setFont(Theme.FONT_BODY);
+    table.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+    table.setSelectionBackground(Theme.BG_SELECTION);
+    table.setSelectionForeground(Theme.TEXT_PRIMARY);
+    table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     roleFilter =
         new JComboBox<>(new String[] {"ALL", "MANAGER", "STAFF", "TECHNICIAN", "CUSTOMER"});
-    JButton filterBtn = new JButton("Filter");
-    JButton addBtn = new JButton("Add User");
-    JButton editBtn = new JButton("Edit Selected");
-    JButton deactBtn = new JButton("Deactivate");
-    JButton reactivateBtn = new JButton("Reactivate");
-    JButton refreshBtn = new JButton("Refresh");
+    JButton filterBtn = makeBtn("Filter", Theme.BTN_PRIMARY);
+    JButton addBtn = makeBtn("Add User", Theme.BTN_SUCCESS);
+    JButton editBtn = makeBtn("Edit Selected", Theme.BTN_PRIMARY);
+    JButton deactBtn = makeBtn("Deactivate", Theme.BTN_DANGER);
+    JButton reactivateBtn = makeBtn("Reactivate", Theme.BTN_SUCCESS);
+    JButton refreshBtn = makeBtn("Refresh", Theme.BTN_PRIMARY);
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    top.setBackground(new Color(45, 45, 45));
-    top.add(new JLabel("Role:"));
+    top.setBackground(Theme.BG_PANEL);
+    JLabel roleLabel = new JLabel("Role:");
+    roleLabel.setForeground(Theme.TEXT_SECONDARY);
+    roleLabel.setFont(Theme.FONT_BODY);
+    top.add(roleLabel);
     top.add(roleFilter);
     top.add(filterBtn);
     top.add(addBtn);
@@ -69,6 +98,16 @@ public class ManagerUserPanel extends JPanel {
     deactBtn.addActionListener(e -> handleDeactivate());
     reactivateBtn.addActionListener(e -> handleReactivate());
     refreshBtn.addActionListener(e -> loadData(null));
+  }
+
+  private JButton makeBtn(String text, java.awt.Color bg) {
+    JButton btn = new JButton(text);
+    btn.setBackground(bg);
+    btn.setForeground(Theme.TEXT_PRIMARY);
+    btn.setFocusPainted(false);
+    btn.setFont(Theme.FONT_BODY_BOLD);
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    return btn;
   }
 
   private void applyFilter() {
@@ -102,47 +141,77 @@ public class ManagerUserPanel extends JPanel {
     JTextField fullName = new JTextField(16);
     JTextField email = new JTextField(16);
     JTextField contact = new JTextField(16);
+    JLabel errorLabel = new JLabel(" ");
+    errorLabel.setForeground(Theme.TEXT_ERROR);
+    errorLabel.setFont(Theme.FONT_BODY);
 
-    JPanel p = new JPanel(new GridLayout(6, 2, 6, 6));
-    p.add(new JLabel("Role:"));
-    p.add(roleCombo);
-    p.add(new JLabel("Username:"));
-    p.add(username);
-    p.add(new JLabel("Password:"));
-    p.add(pass);
-    p.add(new JLabel("Full Name:"));
-    p.add(fullName);
-    p.add(new JLabel("Email:"));
-    p.add(email);
-    p.add(new JLabel("Contact:"));
-    p.add(contact);
+    Window owner = SwingUtilities.getWindowAncestor(this);
+    JDialog dialog = new JDialog(owner, "Add User", Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.setSize(360, 320);
+    dialog.setLocationRelativeTo(this);
+    dialog.setResizable(false);
 
-    int res =
-        JOptionPane.showConfirmDialog(
-            this, p, "Add User", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-    if (res != JOptionPane.OK_OPTION) return;
+    JPanel form = new JPanel(new GridLayout(6, 2, 6, 6));
+    form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
+    form.setBackground(Theme.BG_PANEL);
+    addFormRow(form, "Role:", roleCombo);
+    addFormRow(form, "Username:", username);
+    addFormRow(form, "Password:", pass);
+    addFormRow(form, "Full Name:", fullName);
+    addFormRow(form, "Email:", email);
+    addFormRow(form, "Contact:", contact);
 
-    Role role = Role.valueOf((String) roleCombo.getSelectedItem());
-    Result<User> created =
-        userService.createUser(
-            role,
-            username.getText(),
-            new String(pass.getPassword()),
-            fullName.getText(),
-            email.getText(),
-            contact.getText());
+    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
 
-    if (!created.isSuccess()) {
-      JOptionPane.showMessageDialog(this, created.getError(), "Error", JOptionPane.ERROR_MESSAGE);
-    } else {
-      loadData(null);
-    }
+    JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    btnRow.setBackground(Theme.BG_PANEL);
+    btnRow.add(cancelBtn);
+    btnRow.add(saveBtn);
+
+    JPanel bottom = new JPanel();
+    bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
+    bottom.setBackground(Theme.BG_PANEL);
+    bottom.setBorder(BorderFactory.createEmptyBorder(0, 12, 8, 12));
+    bottom.add(errorLabel);
+    bottom.add(Box.createVerticalStrut(4));
+    bottom.add(btnRow);
+
+    JPanel root = new JPanel(new BorderLayout());
+    root.setBackground(Theme.BG_PANEL);
+    root.add(form, BorderLayout.CENTER);
+    root.add(bottom, BorderLayout.SOUTH);
+    dialog.setContentPane(root);
+
+    cancelBtn.addActionListener(e -> dialog.dispose());
+    saveBtn.addActionListener(
+        e -> {
+          Role role = Role.valueOf((String) roleCombo.getSelectedItem());
+          Result<User> created =
+              userService.createUser(
+                  role,
+                  username.getText(),
+                  new String(pass.getPassword()),
+                  fullName.getText(),
+                  email.getText(),
+                  contact.getText());
+          if (!created.isSuccess()) {
+            errorLabel.setText(created.getError());
+          } else {
+            dialog.dispose();
+            loadData(null);
+            Toast.success(owner, "User created successfully.");
+          }
+        });
+
+    dialog.setVisible(true);
   }
 
   private void openEditDialog() {
     int row = table.getSelectedRow();
+    Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select a user first.");
+      Toast.error(owner, "Select a user first.");
       return;
     }
 
@@ -153,34 +222,67 @@ public class ManagerUserPanel extends JPanel {
     JTextField fullName = new JTextField(user.getFullName(), 16);
     JTextField email = new JTextField(user.getEmail(), 16);
     JTextField contact = new JTextField(user.getContactNumber(), 16);
+    JLabel errorLabel = new JLabel(" ");
+    errorLabel.setForeground(Theme.TEXT_ERROR);
+    errorLabel.setFont(Theme.FONT_BODY);
 
-    JPanel p = new JPanel(new GridLayout(3, 2, 6, 6));
-    p.add(new JLabel("Full Name:"));
-    p.add(fullName);
-    p.add(new JLabel("Email:"));
-    p.add(email);
-    p.add(new JLabel("Contact:"));
-    p.add(contact);
+    JDialog dialog = new JDialog(owner, "Edit User", Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.setSize(340, 220);
+    dialog.setLocationRelativeTo(this);
+    dialog.setResizable(false);
 
-    int res =
-        JOptionPane.showConfirmDialog(
-            this, p, "Edit User", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-    if (res != JOptionPane.OK_OPTION) return;
+    JPanel form = new JPanel(new GridLayout(3, 2, 6, 6));
+    form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
+    form.setBackground(Theme.BG_PANEL);
+    addFormRow(form, "Full Name:", fullName);
+    addFormRow(form, "Email:", email);
+    addFormRow(form, "Contact:", contact);
 
-    Result<User> result =
-        userService.updateProfile(user, fullName.getText(), email.getText(), contact.getText());
-    if (!result.isSuccess()) {
-      JOptionPane.showMessageDialog(
-          this, result.getError(), "Validation Error", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-    loadData(null);
+    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+
+    JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    btnRow.setBackground(Theme.BG_PANEL);
+    btnRow.add(cancelBtn);
+    btnRow.add(saveBtn);
+
+    JPanel bottom = new JPanel();
+    bottom.setLayout(new BoxLayout(bottom, BoxLayout.Y_AXIS));
+    bottom.setBackground(Theme.BG_PANEL);
+    bottom.setBorder(BorderFactory.createEmptyBorder(0, 12, 8, 12));
+    bottom.add(errorLabel);
+    bottom.add(Box.createVerticalStrut(4));
+    bottom.add(btnRow);
+
+    JPanel root = new JPanel(new BorderLayout());
+    root.setBackground(Theme.BG_PANEL);
+    root.add(form, BorderLayout.CENTER);
+    root.add(bottom, BorderLayout.SOUTH);
+    dialog.setContentPane(root);
+
+    cancelBtn.addActionListener(e -> dialog.dispose());
+    saveBtn.addActionListener(
+        e -> {
+          Result<User> result =
+              userService.updateProfile(
+                  user, fullName.getText(), email.getText(), contact.getText());
+          if (!result.isSuccess()) {
+            errorLabel.setText(result.getError());
+          } else {
+            dialog.dispose();
+            loadData(null);
+            Toast.success(owner, "User updated successfully.");
+          }
+        });
+
+    dialog.setVisible(true);
   }
 
   private void handleDeactivate() {
     int row = table.getSelectedRow();
+    Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select a user first.");
+      Toast.error(owner, "Select a user first.");
       return;
     }
     String id = (String) model.getValueAt(row, 0);
@@ -191,12 +293,14 @@ public class ManagerUserPanel extends JPanel {
     if (confirm != JOptionPane.YES_OPTION) return;
     userService.deactivateUser(id);
     loadData(null);
+    Toast.success(owner, "User deactivated.");
   }
 
   private void handleReactivate() {
     int row = table.getSelectedRow();
+    Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select a user first.");
+      Toast.error(owner, "Select a user first.");
       return;
     }
     String id = (String) model.getValueAt(row, 0);
@@ -207,5 +311,14 @@ public class ManagerUserPanel extends JPanel {
     if (confirm != JOptionPane.YES_OPTION) return;
     userService.reactivateUser(id);
     loadData(null);
+    Toast.success(owner, "User reactivated.");
+  }
+
+  private void addFormRow(JPanel panel, String labelText, javax.swing.JComponent field) {
+    JLabel lbl = new JLabel(labelText);
+    lbl.setForeground(Theme.TEXT_SECONDARY);
+    lbl.setFont(Theme.FONT_BODY);
+    panel.add(lbl);
+    panel.add(field);
   }
 }

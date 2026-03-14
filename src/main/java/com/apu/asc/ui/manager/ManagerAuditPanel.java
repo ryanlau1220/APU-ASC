@@ -2,9 +2,19 @@ package com.apu.asc.ui.manager;
 
 import com.apu.asc.dao.AuditLogDAO;
 import com.apu.asc.model.AuditLog;
-import java.awt.*;
+import com.apu.asc.ui.util.Theme;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.FlowLayout;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -18,7 +28,7 @@ public class ManagerAuditPanel extends JPanel {
 
   public ManagerAuditPanel() {
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
     loadData();
@@ -36,9 +46,13 @@ public class ManagerAuditPanel extends JPanel {
           }
         };
     table = new JTable(model);
-    table.setRowHeight(24);
-    table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-    table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+    table.setRowHeight(Theme.TABLE_ROW_HEIGHT);
+    table.setFont(Theme.FONT_BODY);
+    table.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+    table.setSelectionBackground(Theme.BG_SELECTION);
+    table.setSelectionForeground(Theme.TEXT_PRIMARY);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
     table.getColumnModel().getColumn(0).setPreferredWidth(100);
     table.getColumnModel().getColumn(1).setPreferredWidth(150);
@@ -72,13 +86,16 @@ public class ManagerAuditPanel extends JPanel {
             });
 
     JButton refreshBtn = new JButton("Refresh");
+    refreshBtn.setFont(Theme.FONT_BODY_BOLD);
+    refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadData());
 
     JLabel searchLabel = new JLabel("Search:");
-    searchLabel.setForeground(Color.LIGHT_GRAY);
+    searchLabel.setForeground(Theme.TEXT_SECONDARY);
+    searchLabel.setFont(Theme.FONT_BODY);
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    top.setBackground(new Color(45, 45, 45));
+    top.setBackground(Theme.BG_PANEL);
     top.add(searchLabel);
     top.add(searchField);
     top.add(refreshBtn);
@@ -87,14 +104,12 @@ public class ManagerAuditPanel extends JPanel {
     add(new JScrollPane(table), BorderLayout.CENTER);
 
     JLabel statusLabel = new JLabel(" ");
-    statusLabel.setForeground(Color.LIGHT_GRAY);
-    statusLabel.setFont(new Font("SansSerif", Font.ITALIC, 11));
+    statusLabel.setForeground(Theme.TEXT_MUTED);
+    statusLabel.setFont(Theme.FONT_BODY);
     add(statusLabel, BorderLayout.SOUTH);
 
     model.addTableModelListener(
-        e -> {
-          statusLabel.setText("  Total entries: " + model.getRowCount());
-        });
+        e -> statusLabel.setText("  Total entries: " + model.getRowCount()));
   }
 
   private void filterTable(TableRowSorter<DefaultTableModel> sorter) {
