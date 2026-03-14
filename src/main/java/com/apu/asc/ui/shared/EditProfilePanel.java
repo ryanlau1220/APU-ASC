@@ -3,9 +3,24 @@ package com.apu.asc.ui.shared;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AuthService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
-import java.awt.*;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class EditProfilePanel extends JPanel {
 
@@ -21,10 +36,13 @@ public class EditProfilePanel extends JPanel {
   private JPasswordField newPassField;
   private JPasswordField confirmPassField;
 
+  private JLabel profileErrorLabel;
+  private JLabel passErrorLabel;
+
   public EditProfilePanel(User user) {
     this.user = user;
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
     buildUI();
   }
@@ -34,7 +52,7 @@ public class EditProfilePanel extends JPanel {
     add(Box.createVerticalStrut(8));
 
     JPanel infoForm = new JPanel(new GridBagLayout());
-    infoForm.setBackground(new Color(45, 45, 45));
+    infoForm.setBackground(Theme.BG_PANEL);
     GridBagConstraints gc = new GridBagConstraints();
     gc.insets = new Insets(5, 4, 5, 4);
     gc.fill = GridBagConstraints.HORIZONTAL;
@@ -47,11 +65,17 @@ public class EditProfilePanel extends JPanel {
     addFormRow(infoForm, gc, 1, "Email:", emailField);
     addFormRow(infoForm, gc, 2, "Contact:", contactField);
 
-    JButton saveBtn = new JButton("Save Profile");
-    styleButton(saveBtn, new Color(0, 120, 215));
+    profileErrorLabel = new JLabel(" ");
+    profileErrorLabel.setForeground(Theme.TEXT_ERROR);
+    profileErrorLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
     gc.gridy = 3;
     gc.gridwidth = 2;
+    infoForm.add(profileErrorLabel, gc);
+
+    JButton saveBtn = new JButton("Save Profile");
+    styleButton(saveBtn, Theme.BTN_PRIMARY);
+    gc.gridy = 4;
     infoForm.add(saveBtn, gc);
 
     add(infoForm);
@@ -60,7 +84,7 @@ public class EditProfilePanel extends JPanel {
     add(Box.createVerticalStrut(8));
 
     JPanel passForm = new JPanel(new GridBagLayout());
-    passForm.setBackground(new Color(45, 45, 45));
+    passForm.setBackground(Theme.BG_PANEL);
     GridBagConstraints gc2 = new GridBagConstraints();
     gc2.insets = new Insets(5, 4, 5, 4);
     gc2.fill = GridBagConstraints.HORIZONTAL;
@@ -73,11 +97,17 @@ public class EditProfilePanel extends JPanel {
     addFormRow(passForm, gc2, 1, "New Password:", newPassField);
     addFormRow(passForm, gc2, 2, "Confirm New:", confirmPassField);
 
-    JButton changeBtn = new JButton("Change Password");
-    styleButton(changeBtn, new Color(180, 80, 0));
+    passErrorLabel = new JLabel(" ");
+    passErrorLabel.setForeground(Theme.TEXT_ERROR);
+    passErrorLabel.setFont(Theme.FONT_BODY);
     gc2.gridx = 0;
     gc2.gridy = 3;
     gc2.gridwidth = 2;
+    passForm.add(passErrorLabel, gc2);
+
+    JButton changeBtn = new JButton("Change Password");
+    styleButton(changeBtn, Theme.BTN_DANGER);
+    gc2.gridy = 4;
     passForm.add(changeBtn, gc2);
 
     add(passForm);
@@ -92,17 +122,18 @@ public class EditProfilePanel extends JPanel {
     String contact = contactField.getText().trim();
 
     if (name.isEmpty() || email.isEmpty() || contact.isEmpty()) {
-      showError("All fields are required.");
+      profileErrorLabel.setText("All fields are required.");
       return;
     }
 
     Result<User> result = userService.updateProfile(user, name, email, contact);
     if (!result.isSuccess()) {
-      showError(result.getError());
+      profileErrorLabel.setText(result.getError());
       return;
     }
-    JOptionPane.showMessageDialog(
-        this, "Profile updated successfully.", "Saved", JOptionPane.INFORMATION_MESSAGE);
+
+    profileErrorLabel.setText(" ");
+    Toast.success(SwingUtilities.getWindowAncestor(this), "Profile updated successfully.");
   }
 
   private void handleChangePassword() {
@@ -111,29 +142,29 @@ public class EditProfilePanel extends JPanel {
     String confirm = new String(confirmPassField.getPassword());
 
     if (current.isEmpty() || newPass.isEmpty() || confirm.isEmpty()) {
-      showError("All password fields are required.");
+      passErrorLabel.setText("All password fields are required.");
       return;
     }
     if (!newPass.equals(confirm)) {
-      showError("New passwords do not match.");
+      passErrorLabel.setText("New passwords do not match.");
       return;
     }
     if (newPass.length() < 6) {
-      showError("New password must be at least 6 characters.");
+      passErrorLabel.setText("New password must be at least 6 characters.");
       return;
     }
 
     boolean ok = authService.changePassword(user, current, newPass);
     if (!ok) {
-      showError("Current password is incorrect.");
+      passErrorLabel.setText("Current password is incorrect.");
       return;
     }
 
     currentPassField.setText("");
     newPassField.setText("");
     confirmPassField.setText("");
-    JOptionPane.showMessageDialog(
-        this, "Password changed successfully.", "Done", JOptionPane.INFORMATION_MESSAGE);
+    passErrorLabel.setText(" ");
+    Toast.success(SwingUtilities.getWindowAncestor(this), "Password changed successfully.");
   }
 
   private void addFormRow(
@@ -150,26 +181,22 @@ public class EditProfilePanel extends JPanel {
 
   private JLabel sectionTitle(String text) {
     JLabel lbl = new JLabel(text);
-    lbl.setFont(new Font("SansSerif", Font.BOLD, 14));
-    lbl.setForeground(new Color(180, 180, 180));
+    lbl.setFont(Theme.FONT_HEADING);
+    lbl.setForeground(Theme.TEXT_HEADING);
     lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
     return lbl;
   }
 
   private JLabel styledLabel(String text) {
     JLabel lbl = new JLabel(text);
-    lbl.setForeground(Color.LIGHT_GRAY);
+    lbl.setForeground(Theme.TEXT_SECONDARY);
     return lbl;
   }
 
-  private void styleButton(JButton btn, Color bg) {
+  private void styleButton(JButton btn, java.awt.Color bg) {
     btn.setBackground(bg);
-    btn.setForeground(Color.WHITE);
+    btn.setForeground(Theme.TEXT_PRIMARY);
     btn.setFocusPainted(false);
     btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-  }
-
-  private void showError(String msg) {
-    JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
   }
 }

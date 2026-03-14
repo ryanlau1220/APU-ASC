@@ -7,11 +7,27 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.FeedbackService;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextArea;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 
 public class CustomerFeedbackPanel extends JPanel {
 
@@ -28,19 +44,19 @@ public class CustomerFeedbackPanel extends JPanel {
   public CustomerFeedbackPanel(User user) {
     this.user = user;
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
     buildUI();
   }
 
   private void buildUI() {
     JLabel title = new JLabel("Submit Feedback");
-    title.setFont(new Font("SansSerif", Font.BOLD, 16));
-    title.setForeground(Color.WHITE);
+    title.setFont(Theme.FONT_TITLE);
+    title.setForeground(Theme.TEXT_PRIMARY);
     add(title, BorderLayout.NORTH);
 
     JPanel form = new JPanel(new GridBagLayout());
-    form.setBackground(new Color(45, 45, 45));
+    form.setBackground(Theme.BG_PANEL);
     GridBagConstraints gc = new GridBagConstraints();
     gc.insets = new Insets(8, 4, 8, 4);
     gc.fill = GridBagConstraints.HORIZONTAL;
@@ -65,21 +81,22 @@ public class CustomerFeedbackPanel extends JPanel {
     form.add(new JScrollPane(commentsArea), gc);
 
     messageLabel = new JLabel(" ");
-    messageLabel.setForeground(new Color(220, 80, 80));
+    messageLabel.setForeground(Theme.TEXT_ERROR);
     gc.gridx = 0;
     gc.gridy = 3;
     gc.gridwidth = 2;
     form.add(messageLabel, gc);
 
     JButton submitBtn = new JButton("Submit Feedback");
-    submitBtn.setBackground(new Color(0, 160, 80));
-    submitBtn.setForeground(Color.WHITE);
+    submitBtn.setBackground(Theme.BTN_SUCCESS);
+    submitBtn.setForeground(Theme.TEXT_PRIMARY);
     submitBtn.setFocusPainted(false);
     submitBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     gc.gridy = 4;
     form.add(submitBtn, gc);
 
     JButton refreshBtn = new JButton("Refresh Appointments");
+    refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadEligibleAppointments());
     gc.gridy = 5;
     gc.gridwidth = 1;
@@ -102,9 +119,9 @@ public class CustomerFeedbackPanel extends JPanel {
       Service svc = serviceDAO.findById(a.getServiceId());
       String label =
           a.getAppointmentId()
-              + " — "
+              + " \u2014 "
               + a.getVehiclePlate()
-              + " — "
+              + " \u2014 "
               + (svc != null ? svc.getServiceName() : a.getServiceId());
       apptCombo.addItem(new AppointmentItem(a.getAppointmentId(), label));
     }
@@ -128,10 +145,10 @@ public class CustomerFeedbackPanel extends JPanel {
       return;
     }
 
-    messageLabel.setForeground(new Color(80, 200, 80));
-    messageLabel.setText("Feedback submitted! Thank you.");
+    messageLabel.setText(" ");
     commentsArea.setText("");
     loadEligibleAppointments();
+    Toast.success(SwingUtilities.getWindowAncestor(this), "Feedback submitted! Thank you.");
   }
 
   private void addRow(
@@ -148,7 +165,7 @@ public class CustomerFeedbackPanel extends JPanel {
 
   private JLabel styledLabel(String text) {
     JLabel lbl = new JLabel(text);
-    lbl.setForeground(Color.LIGHT_GRAY);
+    lbl.setForeground(Theme.TEXT_SECONDARY);
     return lbl;
   }
 
