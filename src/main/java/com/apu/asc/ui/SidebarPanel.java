@@ -96,7 +96,7 @@ public class SidebarPanel extends JPanel {
     return new ImageIcon(url);
   }
 
-  private class NavButton extends JButton {
+  private static class NavButton extends JButton {
     final String cardName;
 
     NavButton(String text, String iconName, String cardName) {
