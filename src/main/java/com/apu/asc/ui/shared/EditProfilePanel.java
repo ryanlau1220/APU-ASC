@@ -3,6 +3,7 @@ package com.apu.asc.ui.shared;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AuthService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.util.Result;
 import java.awt.*;
 import javax.swing.*;
 
@@ -95,7 +96,11 @@ public class EditProfilePanel extends JPanel {
       return;
     }
 
-    userService.updateProfile(user, name, email, contact);
+    Result<User> result = userService.updateProfile(user, name, email, contact);
+    if (!result.isSuccess()) {
+      showError(result.getError());
+      return;
+    }
     JOptionPane.showMessageDialog(
         this, "Profile updated successfully.", "Saved", JOptionPane.INFORMATION_MESSAGE);
   }

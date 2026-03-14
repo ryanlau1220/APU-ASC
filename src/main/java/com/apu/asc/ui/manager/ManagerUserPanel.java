@@ -167,7 +167,13 @@ public class ManagerUserPanel extends JPanel {
             this, p, "Edit User", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
     if (res != JOptionPane.OK_OPTION) return;
 
-    userService.updateProfile(user, fullName.getText(), email.getText(), contact.getText());
+    Result<User> result =
+        userService.updateProfile(user, fullName.getText(), email.getText(), contact.getText());
+    if (!result.isSuccess()) {
+      JOptionPane.showMessageDialog(
+          this, result.getError(), "Validation Error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     loadData(null);
   }
 
