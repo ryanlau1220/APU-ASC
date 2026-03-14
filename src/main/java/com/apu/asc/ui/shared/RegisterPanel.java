@@ -1,27 +1,28 @@
 package com.apu.asc.ui.shared;
 
 import com.apu.asc.service.AuthService;
+import com.apu.asc.ui.AppShell;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
-public class RegisterFrame extends JDialog {
+public class RegisterPanel extends JPanel {
 
   private final AuthService authService = new AuthService();
+  private final AppShell shell;
 
   private JTextField usernameField;
   private JTextField fullNameField;
@@ -31,27 +32,29 @@ public class RegisterFrame extends JDialog {
   private JPasswordField confirmField;
   private JLabel messageLabel;
 
-  public RegisterFrame(LoginFrame parent) {
-    super(parent, "Register — APU-ASC", true);
-    setSize(440, 400);
-    setLocationRelativeTo(parent);
-    setResizable(false);
+  public RegisterPanel(AppShell shell) {
+    this.shell = shell;
+    setLayout(new BorderLayout());
+    setBackground(Theme.BG_ROOT);
     buildUI();
   }
 
   private void buildUI() {
-    JPanel root = new JPanel(new BorderLayout());
-    root.setBackground(new Color(45, 45, 45));
-    root.setBorder(BorderFactory.createEmptyBorder(16, 32, 16, 32));
+    JPanel wrapper = new JPanel(new GridBagLayout());
+    wrapper.setBackground(Theme.BG_ROOT);
+
+    JPanel card = new JPanel(new BorderLayout(0, 0));
+    card.setBackground(Theme.BG_PANEL);
+    card.setBorder(BorderFactory.createEmptyBorder(16, 32, 16, 32));
 
     JLabel title = new JLabel("Create Customer Account");
-    title.setFont(new Font("SansSerif", Font.BOLD, 16));
-    title.setForeground(Color.WHITE);
+    title.setFont(Theme.FONT_TITLE);
+    title.setForeground(Theme.TEXT_PRIMARY);
     title.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
-    root.add(title, BorderLayout.NORTH);
+    card.add(title, BorderLayout.NORTH);
 
     JPanel form = new JPanel(new GridBagLayout());
-    form.setBackground(new Color(45, 45, 45));
+    form.setBackground(Theme.BG_PANEL);
     GridBagConstraints gc = new GridBagConstraints();
     gc.insets = new Insets(5, 4, 5, 4);
     gc.fill = GridBagConstraints.HORIZONTAL;
@@ -83,25 +86,37 @@ public class RegisterFrame extends JDialog {
     }
 
     messageLabel = new JLabel(" ");
-    messageLabel.setForeground(new Color(220, 80, 80));
-    messageLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
+    messageLabel.setForeground(Theme.TEXT_ERROR);
+    messageLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
     gc.gridy = rows.length;
     gc.gridwidth = 2;
     form.add(messageLabel, gc);
 
     JButton submitBtn = new JButton("Register");
-    submitBtn.setBackground(new Color(0, 160, 80));
-    submitBtn.setForeground(Color.WHITE);
+    submitBtn.setBackground(Theme.BTN_SUCCESS);
+    submitBtn.setForeground(Theme.TEXT_PRIMARY);
     submitBtn.setFocusPainted(false);
     submitBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     gc.gridy = rows.length + 1;
     form.add(submitBtn, gc);
 
-    root.add(form, BorderLayout.CENTER);
-    add(root);
+    JButton backBtn = new JButton("Back to Login");
+    backBtn.setForeground(Theme.TEXT_LINK);
+    backBtn.setBorderPainted(false);
+    backBtn.setContentAreaFilled(false);
+    backBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    gc.gridy = rows.length + 2;
+    form.add(backBtn, gc);
+
+    card.add(form, BorderLayout.CENTER);
+
+    GridBagConstraints wc = new GridBagConstraints();
+    wrapper.add(card, wc);
+    add(wrapper, BorderLayout.CENTER);
 
     submitBtn.addActionListener(e -> handleRegister());
+    backBtn.addActionListener(e -> shell.showCard(AppShell.CARD_LOGIN));
   }
 
   private void handleRegister() {
@@ -137,17 +152,24 @@ public class RegisterFrame extends JDialog {
       return;
     }
 
-    JOptionPane.showMessageDialog(
-        this,
-        "Account created! You can now log in.",
-        "Registration Successful",
-        JOptionPane.INFORMATION_MESSAGE);
-    dispose();
+    clearFields();
+    Toast.success(SwingUtilities.getWindowAncestor(this), "Account created! You can now log in.");
+    shell.showCard(AppShell.CARD_LOGIN);
+  }
+
+  private void clearFields() {
+    usernameField.setText("");
+    fullNameField.setText("");
+    emailField.setText("");
+    contactField.setText("");
+    passwordField.setText("");
+    confirmField.setText("");
+    messageLabel.setText(" ");
   }
 
   private JLabel styledLabel(String text) {
     JLabel lbl = new JLabel(text);
-    lbl.setForeground(Color.LIGHT_GRAY);
+    lbl.setForeground(Theme.TEXT_SECONDARY);
     return lbl;
   }
 }
