@@ -7,20 +7,27 @@ import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.Window;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class StaffAssignPanel extends JPanel {
@@ -35,7 +42,7 @@ public class StaffAssignPanel extends JPanel {
   public StaffAssignPanel(User staffUser) {
     Objects.requireNonNull(staffUser, "staffUser must not be null");
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
     loadData();
@@ -51,16 +58,21 @@ public class StaffAssignPanel extends JPanel {
           }
         };
     table = new JTable(model);
-    table.setRowHeight(24);
-    table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-    table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+    table.setRowHeight(Theme.TABLE_ROW_HEIGHT);
+    table.setFont(Theme.FONT_BODY);
+    table.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+    table.setSelectionBackground(Theme.BG_SELECTION);
+    table.setSelectionForeground(Theme.TEXT_PRIMARY);
+    table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    top.setBackground(new Color(45, 45, 45));
+    top.setBackground(Theme.BG_PANEL);
 
-    JButton assignBtn = new JButton("Assign Technician to Selected");
-    JButton refreshBtn = new JButton("Refresh");
+    JButton assignBtn = makeBtn("Assign Technician to Selected", Theme.BTN_PRIMARY);
+    JButton refreshBtn = makeBtn("Refresh", Theme.BTN_PRIMARY);
 
     top.add(assignBtn);
     top.add(refreshBtn);
@@ -70,6 +82,16 @@ public class StaffAssignPanel extends JPanel {
 
     assignBtn.addActionListener(e -> handleAssign());
     refreshBtn.addActionListener(e -> loadData());
+  }
+
+  private JButton makeBtn(String text, java.awt.Color bg) {
+    JButton btn = new JButton(text);
+    btn.setBackground(bg);
+    btn.setForeground(Theme.TEXT_PRIMARY);
+    btn.setFocusPainted(false);
+    btn.setFont(Theme.FONT_BODY_BOLD);
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    return btn;
   }
 
   private void loadData() {
@@ -95,7 +117,7 @@ public class StaffAssignPanel extends JPanel {
   private void handleAssign() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select an appointment first.");
+      Toast.error(SwingUtilities.getWindowAncestor(this), "Select an appointment first.");
       return;
     }
 
@@ -103,7 +125,7 @@ public class StaffAssignPanel extends JPanel {
 
     List<User> technicians = userService.getAllByRole(Role.TECHNICIAN);
     if (technicians.isEmpty()) {
-      JOptionPane.showMessageDialog(this, "No technicians available.");
+      Toast.error(SwingUtilities.getWindowAncestor(this), "No technicians available.");
       return;
     }
 
@@ -112,31 +134,55 @@ public class StaffAssignPanel extends JPanel {
             .map(t -> t.getFullName() + " (" + t.getId() + ")")
             .toArray(String[]::new);
 
-    String chosen =
-        (String)
-            JOptionPane.showInputDialog(
-                this,
-                "Select Technician:",
-                "Assign Technician",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                names,
-                names[0]);
-    if (chosen == null) return;
+    Window owner = SwingUtilities.getWindowAncestor(this);
+    JDialog dialog = new JDialog(owner, "Assign Technician", Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.setSize(320, 260);
+    dialog.setLocationRelativeTo(this);
+    dialog.setResizable(false);
 
-    int idx = java.util.Arrays.asList(names).indexOf(chosen);
-    String techId = technicians.get(idx).getId();
+    DefaultListModel<String> listModel = new DefaultListModel<>();
+    for (String name : names) listModel.addElement(name);
+    JList<String> techList = new JList<>(listModel);
+    techList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    techList.setSelectedIndex(0);
+    techList.setFont(Theme.FONT_BODY);
 
-    boolean ok = apptService.assignTechnician(apptId, techId);
-    if (!ok) {
-      JOptionPane.showMessageDialog(
-          this,
-          "Assignment failed: technician has a schedule conflict.",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
-    } else {
-      JOptionPane.showMessageDialog(this, "Technician assigned successfully.");
-      loadData();
-    }
+    JButton assignBtn = makeBtn("Assign", Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+
+    JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+    btnRow.setBackground(Theme.BG_PANEL);
+    btnRow.add(cancelBtn);
+    btnRow.add(assignBtn);
+
+    JLabel label = new JLabel("Select Technician:");
+    label.setForeground(Theme.TEXT_SECONDARY);
+    label.setFont(Theme.FONT_BODY);
+    label.setBorder(BorderFactory.createEmptyBorder(8, 8, 4, 8));
+
+    JPanel root = new JPanel(new BorderLayout());
+    root.setBackground(Theme.BG_PANEL);
+    root.add(label, BorderLayout.NORTH);
+    root.add(new JScrollPane(techList), BorderLayout.CENTER);
+    root.add(btnRow, BorderLayout.SOUTH);
+    dialog.setContentPane(root);
+
+    cancelBtn.addActionListener(e -> dialog.dispose());
+    assignBtn.addActionListener(
+        e -> {
+          int idx = techList.getSelectedIndex();
+          if (idx < 0) return;
+          String techId = technicians.get(idx).getId();
+          dialog.dispose();
+          boolean ok = apptService.assignTechnician(apptId, techId);
+          if (!ok) {
+            Toast.error(owner, "Assignment failed: technician has a schedule conflict.");
+          } else {
+            loadData();
+            Toast.success(owner, "Technician assigned successfully.");
+          }
+        });
+
+    dialog.setVisible(true);
   }
 }

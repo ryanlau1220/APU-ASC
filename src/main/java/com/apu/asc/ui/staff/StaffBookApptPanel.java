@@ -7,12 +7,23 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.util.Theme;
 import com.apu.asc.util.Result;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 public class StaffBookApptPanel extends JPanel {
 
@@ -30,19 +41,19 @@ public class StaffBookApptPanel extends JPanel {
   public StaffBookApptPanel(User staffUser) {
     this.staffUser = staffUser;
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
     buildUI();
   }
 
   private void buildUI() {
     JLabel title = new JLabel("Book New Appointment");
-    title.setFont(new Font("SansSerif", Font.BOLD, 16));
-    title.setForeground(Color.WHITE);
+    title.setFont(Theme.FONT_TITLE);
+    title.setForeground(Theme.TEXT_PRIMARY);
     add(title, BorderLayout.NORTH);
 
     JPanel form = new JPanel(new GridBagLayout());
-    form.setBackground(new Color(45, 45, 45));
+    form.setBackground(Theme.BG_PANEL);
     GridBagConstraints gc = new GridBagConstraints();
     gc.insets = new Insets(8, 4, 8, 4);
     gc.fill = GridBagConstraints.HORIZONTAL;
@@ -61,29 +72,32 @@ public class StaffBookApptPanel extends JPanel {
     addRow(form, gc, 3, "Date & Time (ISO):", dateTimeField);
 
     JLabel hint = new JLabel("Format: yyyy-MM-ddTHH:mm  (e.g. 2026-06-01T09:00)");
-    hint.setForeground(new Color(140, 140, 140));
-    hint.setFont(new Font("SansSerif", Font.ITALIC, 11));
+    hint.setForeground(Theme.TEXT_MUTED);
+    hint.setFont(Theme.FONT_BODY);
     gc.gridx = 1;
     gc.gridy = 4;
     gc.gridwidth = 1;
     form.add(hint, gc);
 
     messageLabel = new JLabel(" ");
-    messageLabel.setForeground(new Color(220, 80, 80));
+    messageLabel.setForeground(Theme.TEXT_ERROR);
+    messageLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
     gc.gridy = 5;
     gc.gridwidth = 2;
     form.add(messageLabel, gc);
 
     JButton bookBtn = new JButton("Book Appointment");
-    bookBtn.setBackground(new Color(0, 120, 215));
-    bookBtn.setForeground(Color.WHITE);
+    bookBtn.setBackground(Theme.BTN_PRIMARY);
+    bookBtn.setForeground(Theme.TEXT_PRIMARY);
     bookBtn.setFocusPainted(false);
+    bookBtn.setFont(Theme.FONT_BODY_BOLD);
     bookBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     gc.gridy = 6;
     form.add(bookBtn, gc);
 
     JButton refreshBtn = new JButton("Refresh Customers");
+    refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadCustomers());
     gc.gridy = 7;
     gc.gridwidth = 1;
@@ -119,6 +133,7 @@ public class StaffBookApptPanel extends JPanel {
     String dtStr = dateTimeField.getText().trim();
 
     if (customer == null || service == null || plate.isEmpty() || dtStr.isEmpty()) {
+      messageLabel.setForeground(Theme.TEXT_ERROR);
       messageLabel.setText("All fields are required.");
       return;
     }
@@ -127,6 +142,7 @@ public class StaffBookApptPanel extends JPanel {
     try {
       dt = LocalDateTime.parse(dtStr);
     } catch (DateTimeParseException ex) {
+      messageLabel.setForeground(Theme.TEXT_ERROR);
       messageLabel.setText("Invalid date format. Use yyyy-MM-ddTHH:mm.");
       return;
     }
@@ -134,12 +150,12 @@ public class StaffBookApptPanel extends JPanel {
     Result<Appointment> result =
         apptService.createAppointment(customer.id, staffUser.getId(), service.id, plate, dt);
     if (!result.isSuccess()) {
-      messageLabel.setForeground(new Color(220, 80, 80));
+      messageLabel.setForeground(Theme.TEXT_ERROR);
       messageLabel.setText(result.getError());
       return;
     }
 
-    messageLabel.setForeground(new Color(80, 200, 80));
+    messageLabel.setForeground(Theme.TEXT_SUCCESS);
     messageLabel.setText("Appointment " + result.getValue().getAppointmentId() + " created!");
     vehicleField.setText("");
   }
@@ -158,7 +174,8 @@ public class StaffBookApptPanel extends JPanel {
 
   private JLabel styledLabel(String text) {
     JLabel lbl = new JLabel(text);
-    lbl.setForeground(Color.LIGHT_GRAY);
+    lbl.setForeground(Theme.TEXT_SECONDARY);
+    lbl.setFont(Theme.FONT_BODY);
     return lbl;
   }
 

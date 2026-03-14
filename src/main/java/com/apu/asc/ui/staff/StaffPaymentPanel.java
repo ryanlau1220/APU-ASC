@@ -9,20 +9,22 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.PaymentService;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
-import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.Window;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class StaffPaymentPanel extends JPanel {
@@ -38,7 +40,7 @@ public class StaffPaymentPanel extends JPanel {
   public StaffPaymentPanel(User staffUser) {
     Objects.requireNonNull(staffUser, "staffUser must not be null");
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
     loadData();
@@ -54,17 +56,22 @@ public class StaffPaymentPanel extends JPanel {
           }
         };
     table = new JTable(model);
-    table.setRowHeight(24);
-    table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-    table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+    table.setRowHeight(Theme.TABLE_ROW_HEIGHT);
+    table.setFont(Theme.FONT_BODY);
+    table.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+    table.setSelectionBackground(Theme.BG_SELECTION);
+    table.setSelectionForeground(Theme.TEXT_PRIMARY);
+    table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    top.setBackground(new Color(45, 45, 45));
+    top.setBackground(Theme.BG_PANEL);
 
-    JButton processBtn = new JButton("Process Payment for Selected");
-    JButton receiptBtn = new JButton("Send Receipt");
-    JButton refreshBtn = new JButton("Refresh");
+    JButton processBtn = makeBtn("Process Payment for Selected", Theme.BTN_SUCCESS);
+    JButton receiptBtn = makeBtn("Send Receipt", Theme.BTN_PRIMARY);
+    JButton refreshBtn = makeBtn("Refresh", Theme.BTN_PRIMARY);
 
     top.add(processBtn);
     top.add(receiptBtn);
@@ -76,6 +83,16 @@ public class StaffPaymentPanel extends JPanel {
     processBtn.addActionListener(e -> handleProcess());
     receiptBtn.addActionListener(e -> handleSendReceipt());
     refreshBtn.addActionListener(e -> loadData());
+  }
+
+  private JButton makeBtn(String text, java.awt.Color bg) {
+    JButton btn = new JButton(text);
+    btn.setBackground(bg);
+    btn.setForeground(Theme.TEXT_PRIMARY);
+    btn.setFocusPainted(false);
+    btn.setFont(Theme.FONT_BODY_BOLD);
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    return btn;
   }
 
   private void loadData() {
@@ -101,37 +118,39 @@ public class StaffPaymentPanel extends JPanel {
 
   private void handleProcess() {
     int row = table.getSelectedRow();
+    Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select an appointment first.");
+      Toast.error(owner, "Select an appointment first.");
       return;
     }
 
     String apptId = (String) model.getValueAt(row, 0);
 
     if (!"UNPAID".equals(model.getValueAt(row, 4))) {
-      JOptionPane.showMessageDialog(this, "Payment already processed for this appointment.");
+      Toast.error(owner, "Payment already processed for this appointment.");
       return;
     }
 
     Result<Payment> result = paymentService.processPayment(apptId);
     if (!result.isSuccess()) {
-      JOptionPane.showMessageDialog(this, result.getError(), "Error", JOptionPane.ERROR_MESSAGE);
+      Toast.error(owner, result.getError());
     } else {
       Payment p = result.getValue();
-      JOptionPane.showMessageDialog(
-          this,
+      loadData();
+      Toast.success(
+          owner,
           "Payment recorded: "
               + p.getPaymentId()
-              + "\nAmount: RM "
+              + "  RM "
               + String.format("%.2f", p.getAmountPaid()));
-      loadData();
     }
   }
 
   private void handleSendReceipt() {
     int row = table.getSelectedRow();
+    Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select an appointment first.");
+      Toast.error(owner, "Select an appointment first.");
       return;
     }
 
@@ -139,24 +158,20 @@ public class StaffPaymentPanel extends JPanel {
     Payment p = paymentService.findByAppointment(apptId);
 
     if (p == null) {
-      JOptionPane.showMessageDialog(this, "Process payment first before sending receipt.");
+      Toast.error(owner, "Process payment first before sending receipt.");
       return;
     }
     if (p.isReceiptSent()) {
-      JOptionPane.showMessageDialog(this, "Receipt already sent for this appointment.");
+      Toast.error(owner, "Receipt already sent for this appointment.");
       return;
     }
 
     boolean ok = paymentService.sendReceipt(p.getPaymentId());
     if (!ok) {
-      JOptionPane.showMessageDialog(
-          this,
-          "Failed to send receipt. Check config.properties for SMTP settings.",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+      Toast.error(owner, "Failed to send receipt. Check config.properties for SMTP settings.");
     } else {
-      JOptionPane.showMessageDialog(this, "Receipt emailed successfully.");
       loadData();
+      Toast.success(owner, "Receipt emailed successfully.");
     }
   }
 }
