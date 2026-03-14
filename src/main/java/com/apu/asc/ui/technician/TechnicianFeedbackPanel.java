@@ -5,9 +5,17 @@ import com.apu.asc.model.Appointment;
 import com.apu.asc.model.Feedback;
 import com.apu.asc.model.User;
 import com.apu.asc.service.FeedbackService;
-import java.awt.*;
+import com.apu.asc.ui.util.Theme;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 public class TechnicianFeedbackPanel extends JPanel {
@@ -22,7 +30,7 @@ public class TechnicianFeedbackPanel extends JPanel {
   public TechnicianFeedbackPanel(User technician) {
     this.technician = technician;
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
     loadData();
@@ -38,15 +46,21 @@ public class TechnicianFeedbackPanel extends JPanel {
           }
         };
     table = new JTable(model);
-    table.setRowHeight(24);
-    table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-    table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+    table.setRowHeight(Theme.TABLE_ROW_HEIGHT);
+    table.setFont(Theme.FONT_BODY);
+    table.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new Dimension(0, 0));
+    table.setSelectionBackground(Theme.BG_SELECTION);
+    table.setSelectionForeground(Theme.TEXT_PRIMARY);
+    table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     JButton refreshBtn = new JButton("Refresh");
+    refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadData());
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    top.setBackground(new Color(45, 45, 45));
+    top.setBackground(Theme.BG_PANEL);
     top.add(refreshBtn);
 
     add(top, BorderLayout.NORTH);

@@ -7,10 +7,25 @@ import com.apu.asc.model.ApptStatus;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
-import java.awt.*;
+import com.apu.asc.ui.util.Theme;
+import com.apu.asc.ui.util.Toast;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 public class TechnicianJobPanel extends JPanel {
@@ -26,7 +41,7 @@ public class TechnicianJobPanel extends JPanel {
   public TechnicianJobPanel(User technician) {
     this.technician = technician;
     setLayout(new BorderLayout(8, 8));
-    setBackground(new Color(45, 45, 45));
+    setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
     loadData();
@@ -44,17 +59,26 @@ public class TechnicianJobPanel extends JPanel {
           }
         };
     table = new JTable(model);
-    table.setRowHeight(24);
-    table.setFont(new Font("SansSerif", Font.PLAIN, 12));
-    table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 12));
+    table.setRowHeight(Theme.TABLE_ROW_HEIGHT);
+    table.setFont(Theme.FONT_BODY);
+    table.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setShowGrid(false);
+    table.setIntercellSpacing(new Dimension(0, 0));
+    table.setSelectionBackground(Theme.BG_SELECTION);
+    table.setSelectionForeground(Theme.TEXT_PRIMARY);
+    table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    top.setBackground(new Color(45, 45, 45));
+    top.setBackground(Theme.BG_PANEL);
 
     JButton completeBtn = new JButton("Mark as Completed");
     JButton notesBtn = new JButton("Add/Edit Notes");
     JButton refreshBtn = new JButton("Refresh");
+
+    completeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    notesBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
     top.add(completeBtn);
     top.add(notesBtn);
@@ -99,7 +123,7 @@ public class TechnicianJobPanel extends JPanel {
   private void handleComplete() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select an appointment first.");
+      Toast.error(SwingUtilities.getWindowAncestor(this), "Select an appointment first.");
       return;
     }
 
@@ -116,45 +140,75 @@ public class TechnicianJobPanel extends JPanel {
 
     boolean ok = apptService.completeAppointment(apptId, notes == null ? "" : notes);
     if (!ok) {
-      JOptionPane.showMessageDialog(
-          this,
-          "Failed to complete. Check appointment status.",
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+      Toast.error(
+          SwingUtilities.getWindowAncestor(this), "Failed to complete. Check appointment status.");
     } else {
-      JOptionPane.showMessageDialog(this, "Appointment marked as COMPLETED.");
       loadData();
+      Toast.success(SwingUtilities.getWindowAncestor(this), "Appointment marked as COMPLETED.");
     }
   }
 
   private void handleEditNotes() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      JOptionPane.showMessageDialog(this, "Select an appointment first.");
+      Toast.error(SwingUtilities.getWindowAncestor(this), "Select an appointment first.");
       return;
     }
 
     String apptId = (String) model.getValueAt(row, 0);
     String currentNotes = (String) model.getValueAt(row, 6);
 
+    JDialog dialog =
+        new JDialog(
+            SwingUtilities.getWindowAncestor(this),
+            "Technician Notes — " + apptId,
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+    dialog.setSize(420, 280);
+    dialog.setLocationRelativeTo(this);
+    dialog.setResizable(false);
+
+    JPanel panel = new JPanel(new BorderLayout(8, 8));
+    panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+    panel.setBackground(Theme.BG_PANEL);
+
+    JLabel lbl = new JLabel("Notes for " + apptId + ":");
+    lbl.setForeground(Theme.TEXT_SECONDARY);
+    lbl.setFont(Theme.FONT_LABEL);
+    panel.add(lbl, BorderLayout.NORTH);
+
     JTextArea area = new JTextArea(currentNotes == null ? "" : currentNotes, 6, 30);
     area.setLineWrap(true);
+    area.setWrapStyleWord(true);
+    panel.add(new JScrollPane(area), BorderLayout.CENTER);
 
-    int res =
-        JOptionPane.showConfirmDialog(
-            this,
-            new JScrollPane(area),
-            "Technician Notes for " + apptId,
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE);
-    if (res != JOptionPane.OK_OPTION) return;
+    JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    btnRow.setBackground(Theme.BG_PANEL);
+    JButton saveBtn = new JButton("Save");
+    JButton cancelBtn = new JButton("Cancel");
+    saveBtn.setBackground(Theme.BTN_PRIMARY);
+    saveBtn.setForeground(Theme.TEXT_PRIMARY);
+    saveBtn.setFocusPainted(false);
+    saveBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    cancelBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    btnRow.add(cancelBtn);
+    btnRow.add(saveBtn);
+    panel.add(btnRow, BorderLayout.SOUTH);
 
-    boolean ok = apptService.updateNotes(apptId, area.getText().trim());
-    if (!ok) {
-      JOptionPane.showMessageDialog(
-          this, "Failed to save notes.", "Error", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-    loadData();
+    dialog.add(panel);
+
+    cancelBtn.addActionListener(ev -> dialog.dispose());
+    saveBtn.addActionListener(
+        ev -> {
+          boolean ok = apptService.updateNotes(apptId, area.getText().trim());
+          dialog.dispose();
+          if (!ok) {
+            Toast.error(SwingUtilities.getWindowAncestor(this), "Failed to save notes.");
+          } else {
+            loadData();
+            Toast.success(SwingUtilities.getWindowAncestor(this), "Notes saved.");
+          }
+        });
+
+    dialog.setVisible(true);
   }
 }
