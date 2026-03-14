@@ -40,6 +40,13 @@
             <version>2.0.1</version>
         </dependency>
 
+        <!-- Modern Swing Look & Feel -->
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.4</version>
+        </dependency>
+
         <!-- Input Validation -->
         <dependency>
             <groupId>org.hibernate.validator</groupId>
