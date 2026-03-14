@@ -82,10 +82,7 @@ public class PaymentService {
   }
 
   public boolean sendReceipt(String paymentId) {
-    Payment payment = paymentDAO.findByAppointment(paymentId);
-    if (payment == null) {
-      payment = findPaymentById(paymentId);
-    }
+    Payment payment = findPaymentById(paymentId);
     if (payment == null || payment.isReceiptSent()) return false;
 
     Appointment appt = appointmentDAO.findById(payment.getAppointmentId());

@@ -149,11 +149,12 @@ public class TechnicianJobPanel extends JPanel {
             JOptionPane.PLAIN_MESSAGE);
     if (res != JOptionPane.OK_OPTION) return;
 
-    Appointment appt = apptService.findById(apptId);
-    if (appt == null) return;
-    appt.setTechnicianNotes(area.getText().trim());
-
-    com.apu.asc.dao.AppointmentDAO.getInstance().save(appt);
+    boolean ok = apptService.updateNotes(apptId, area.getText().trim());
+    if (!ok) {
+      JOptionPane.showMessageDialog(
+          this, "Failed to save notes.", "Error", JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     loadData();
   }
 }

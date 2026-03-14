@@ -88,6 +88,19 @@ public class AppointmentService {
     return true;
   }
 
+  public boolean updateNotes(String appointmentId, String technicianNotes) {
+    Appointment appt = appointmentDAO.findById(appointmentId);
+    if (appt == null) return false;
+    appt.setTechnicianNotes(DataSanitizer.clean(technicianNotes));
+    appointmentDAO.save(appt);
+    SystemLogger.log(
+        actorId(),
+        "UPDATE_NOTES",
+        appointmentId,
+        "Technician notes updated for appointment " + appointmentId + ".");
+    return true;
+  }
+
   public boolean completeAppointment(String appointmentId, String technicianNotes) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null || appt.getStatus() != ApptStatus.ASSIGNED) return false;
