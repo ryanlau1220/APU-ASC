@@ -3,6 +3,7 @@ package com.apu.asc.ui.shared;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AuthService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -22,7 +23,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-public class EditProfilePanel extends JPanel {
+public class EditProfilePanel extends JPanel implements Refreshable {
 
   private final User user;
   private final UserService userService = new UserService();
@@ -192,6 +193,9 @@ public class EditProfilePanel extends JPanel {
     lbl.setForeground(Theme.TEXT_SECONDARY);
     return lbl;
   }
+
+  @Override
+  public void refresh() {}
 
   private void styleButton(JButton btn, java.awt.Color bg) {
     btn.setBackground(bg);

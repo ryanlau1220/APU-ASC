@@ -2,8 +2,10 @@ package com.apu.asc.ui.manager;
 
 import com.apu.asc.service.ReportService;
 import com.apu.asc.service.ReportService.TechnicianStats;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -13,21 +15,27 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
 
-public class ManagerReportPanel extends JPanel {
+public class ManagerReportPanel extends JPanel implements Refreshable {
 
   private final ReportService reportService = new ReportService();
-
-  private DefaultTableModel revenueModel;
-  private DefaultTableModel techModel;
 
   private JLabel kpiTotalRevenue;
   private JLabel kpiBestMonth;
   private JLabel kpiTopTech;
   private JLabel kpiTopRating;
+
+  private DefaultCategoryDataset revenueDataset;
+  private DefaultCategoryDataset techDataset;
 
   public ManagerReportPanel() {
     setLayout(new GridLayout(2, 1, 0, 12));
@@ -69,25 +77,24 @@ public class ManagerReportPanel extends JPanel {
     header.add(titleRow, BorderLayout.NORTH);
     header.add(kpiRow, BorderLayout.SOUTH);
 
-    String[] cols = {"Month (yyyy-MM)", "Total Revenue (RM)"};
-    revenueModel =
-        new DefaultTableModel(cols, 0) {
-          @Override
-          public boolean isCellEditable(int r, int c) {
-            return false;
-          }
-        };
-    JTable revenueTable = new JTable(revenueModel);
-    revenueTable.setRowHeight(Theme.TABLE_ROW_HEIGHT);
-    revenueTable.setFont(Theme.FONT_BODY);
-    revenueTable.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
-    revenueTable.setShowGrid(false);
-    revenueTable.setIntercellSpacing(new java.awt.Dimension(0, 0));
-    revenueTable.setSelectionBackground(Theme.BG_SELECTION);
-    revenueTable.setSelectionForeground(Theme.TEXT_PRIMARY);
+    revenueDataset = new DefaultCategoryDataset();
+    JFreeChart revenueChart =
+        ChartFactory.createBarChart(
+            null,
+            "Month",
+            "Revenue (RM)",
+            revenueDataset,
+            PlotOrientation.VERTICAL,
+            false,
+            true,
+            false);
+    styleChart(revenueChart, Theme.BTN_PRIMARY);
+
+    ChartPanel chartPanel = new ChartPanel(revenueChart);
+    chartPanel.setBackground(Theme.BG_PANEL);
 
     panel.add(header, BorderLayout.NORTH);
-    panel.add(new JScrollPane(revenueTable), BorderLayout.CENTER);
+    panel.add(chartPanel, BorderLayout.CENTER);
     return panel;
   }
 
@@ -112,26 +119,56 @@ public class ManagerReportPanel extends JPanel {
     header.add(title, BorderLayout.NORTH);
     header.add(kpiRow, BorderLayout.SOUTH);
 
-    String[] cols = {"Technician ID", "Name", "Jobs Completed", "Average Rating"};
-    techModel =
-        new DefaultTableModel(cols, 0) {
-          @Override
-          public boolean isCellEditable(int r, int c) {
-            return false;
-          }
-        };
-    JTable techTable = new JTable(techModel);
-    techTable.setRowHeight(Theme.TABLE_ROW_HEIGHT);
-    techTable.setFont(Theme.FONT_BODY);
-    techTable.getTableHeader().setFont(Theme.FONT_BODY_BOLD);
-    techTable.setShowGrid(false);
-    techTable.setIntercellSpacing(new java.awt.Dimension(0, 0));
-    techTable.setSelectionBackground(Theme.BG_SELECTION);
-    techTable.setSelectionForeground(Theme.TEXT_PRIMARY);
+    techDataset = new DefaultCategoryDataset();
+    JFreeChart techChart =
+        ChartFactory.createBarChart(
+            null,
+            "Technician",
+            "Jobs Completed",
+            techDataset,
+            PlotOrientation.VERTICAL,
+            false,
+            true,
+            false);
+    styleChart(techChart, Theme.BTN_SUCCESS);
+
+    ChartPanel chartPanel = new ChartPanel(techChart);
+    chartPanel.setBackground(Theme.BG_PANEL);
 
     panel.add(header, BorderLayout.NORTH);
-    panel.add(new JScrollPane(techTable), BorderLayout.CENTER);
+    panel.add(chartPanel, BorderLayout.CENTER);
     return panel;
+  }
+
+  private void styleChart(JFreeChart chart, Color barColor) {
+    Color bg = Theme.BG_PANEL;
+    chart.setBackgroundPaint(bg);
+    chart.setBorderVisible(false);
+
+    CategoryPlot plot = chart.getCategoryPlot();
+    plot.setBackgroundPaint(Theme.BG_ROOT);
+    plot.setOutlineVisible(false);
+    plot.setRangeGridlinePaint(new Color(70, 70, 70));
+    plot.setDomainGridlinesVisible(false);
+
+    BarRenderer renderer = (BarRenderer) plot.getRenderer();
+    renderer.setSeriesPaint(0, barColor);
+    renderer.setDrawBarOutline(false);
+    renderer.setShadowVisible(false);
+    renderer.setMaximumBarWidth(0.1);
+
+    CategoryAxis domainAxis = plot.getDomainAxis();
+    domainAxis.setTickLabelPaint(Theme.TEXT_SECONDARY);
+    domainAxis.setAxisLinePaint(Theme.TEXT_MUTED);
+    domainAxis.setTickMarkPaint(Theme.TEXT_MUTED);
+    domainAxis.setLabelPaint(Theme.TEXT_SECONDARY);
+
+    NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+    rangeAxis.setTickLabelPaint(Theme.TEXT_SECONDARY);
+    rangeAxis.setAxisLinePaint(Theme.TEXT_MUTED);
+    rangeAxis.setTickMarkPaint(Theme.TEXT_MUTED);
+    rangeAxis.setLabelPaint(Theme.TEXT_SECONDARY);
+    rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
   }
 
   private JLabel kpiLabel(String text) {
@@ -142,28 +179,25 @@ public class ManagerReportPanel extends JPanel {
   }
 
   private void loadData() {
-    revenueModel.setRowCount(0);
+    revenueDataset.clear();
     Map<String, Double> revenue = reportService.revenueByMonth();
     double total = 0;
     String bestMonth = "—";
     double bestAmount = -1;
 
     for (Map.Entry<String, Double> entry : revenue.entrySet()) {
-      revenueModel.addRow(new Object[] {entry.getKey(), String.format("%.2f", entry.getValue())});
+      revenueDataset.addValue(entry.getValue(), "Revenue", entry.getKey());
       total += entry.getValue();
       if (entry.getValue() > bestAmount) {
         bestAmount = entry.getValue();
         bestMonth = entry.getKey();
       }
     }
-    if (!revenue.isEmpty()) {
-      revenueModel.addRow(new Object[] {"TOTAL", String.format("%.2f", total)});
-    }
 
     kpiTotalRevenue.setText("Total Revenue: RM " + String.format("%.2f", total));
     kpiBestMonth.setText("Best Month: " + bestMonth);
 
-    techModel.setRowCount(0);
+    techDataset.clear();
     List<TechnicianStats> stats = reportService.technicianPerformance();
     String topTech = "—";
     String topRating = "—";
@@ -171,12 +205,7 @@ public class ManagerReportPanel extends JPanel {
     double maxRating = -1;
 
     for (TechnicianStats s : stats) {
-      String avgRating =
-          s.averageRating == 0.0 ? "N/A" : String.format("%.2f / 5", s.averageRating);
-      techModel.addRow(
-          new Object[] {
-            s.technician.getId(), s.technician.getFullName(), s.jobsCompleted, avgRating
-          });
+      techDataset.addValue(s.jobsCompleted, "Jobs", s.technician.getFullName());
       if (s.jobsCompleted > maxJobs) {
         maxJobs = s.jobsCompleted;
         topTech = s.technician.getFullName() + " (" + maxJobs + " jobs)";
@@ -189,5 +218,10 @@ public class ManagerReportPanel extends JPanel {
 
     kpiTopTech.setText("Top Technician: " + topTech);
     kpiTopRating.setText("Highest Avg Rating: " + topRating);
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }

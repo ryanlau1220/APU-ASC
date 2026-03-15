@@ -2,6 +2,7 @@ package com.apu.asc.ui.manager;
 
 import com.apu.asc.dao.AuditLogDAO;
 import com.apu.asc.model.AuditLog;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -18,7 +19,7 @@ import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-public class ManagerAuditPanel extends JPanel {
+public class ManagerAuditPanel extends JPanel implements Refreshable {
 
   private final AuditLogDAO auditLogDAO = AuditLogDAO.getInstance();
 
@@ -136,5 +137,10 @@ public class ManagerAuditPanel extends JPanel {
             log.getDescription()
           });
     }
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }

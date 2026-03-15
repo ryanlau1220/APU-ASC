@@ -9,6 +9,7 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.PaymentService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -25,9 +26,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
-public class StaffPaymentPanel extends JPanel {
+public class StaffPaymentPanel extends JPanel implements Refreshable {
 
   private final AppointmentService apptService = new AppointmentService();
   private final PaymentService paymentService = new PaymentService();
@@ -143,6 +145,7 @@ public class StaffPaymentPanel extends JPanel {
               + p.getPaymentId()
               + "  RM "
               + String.format("%.2f", p.getAmountPaid()));
+      dispatchReceiptAsync(p.getPaymentId(), owner);
     }
   }
 
@@ -166,12 +169,36 @@ public class StaffPaymentPanel extends JPanel {
       return;
     }
 
-    boolean ok = paymentService.sendReceipt(p.getPaymentId());
-    if (!ok) {
-      Toast.error(owner, "Failed to send receipt. Check config.properties for SMTP settings.");
-    } else {
-      loadData();
-      Toast.success(owner, "Receipt emailed successfully.");
-    }
+    dispatchReceiptAsync(p.getPaymentId(), owner);
+  }
+
+  private void dispatchReceiptAsync(String paymentId, Window owner) {
+    new SwingWorker<Boolean, Void>() {
+      @Override
+      protected Boolean doInBackground() {
+        return paymentService.sendReceipt(paymentId);
+      }
+
+      @Override
+      protected void done() {
+        try {
+          boolean ok = get();
+          if (ok) {
+            loadData();
+            Toast.success(owner, "Receipt emailed to customer.");
+          } else {
+            Toast.error(
+                owner, "Failed to send receipt. Check config.properties for SMTP settings.");
+          }
+        } catch (Exception e) {
+          Toast.error(owner, "Failed to send receipt: " + e.getMessage());
+        }
+      }
+    }.execute();
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }

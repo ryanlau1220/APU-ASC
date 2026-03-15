@@ -7,6 +7,7 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.FeedbackService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -29,7 +30,7 @@ import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 
-public class CustomerFeedbackPanel extends JPanel {
+public class CustomerFeedbackPanel extends JPanel implements Refreshable {
 
   private final User user;
   private final AppointmentService apptService = new AppointmentService();
@@ -167,6 +168,11 @@ public class CustomerFeedbackPanel extends JPanel {
     JLabel lbl = new JLabel(text);
     lbl.setForeground(Theme.TEXT_SECONDARY);
     return lbl;
+  }
+
+  @Override
+  public void refresh() {
+    loadEligibleAppointments();
   }
 
   private static class AppointmentItem {

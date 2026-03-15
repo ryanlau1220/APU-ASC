@@ -8,6 +8,7 @@ import com.apu.asc.model.Payment;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -22,7 +23,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
-public class CustomerHistoryPanel extends JPanel {
+public class CustomerHistoryPanel extends JPanel implements Refreshable {
 
   private final User user;
   private final AppointmentService apptService = new AppointmentService();
@@ -101,5 +102,10 @@ public class CustomerHistoryPanel extends JPanel {
             amount
           });
     }
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }

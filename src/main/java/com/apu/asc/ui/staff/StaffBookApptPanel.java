@@ -7,6 +7,7 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
@@ -25,7 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public class StaffBookApptPanel extends JPanel {
+public class StaffBookApptPanel extends JPanel implements Refreshable {
 
   private final User staffUser;
   private final AppointmentService apptService = new AppointmentService();
@@ -191,6 +192,12 @@ public class StaffBookApptPanel extends JPanel {
     public String toString() {
       return label;
     }
+  }
+
+  @Override
+  public void refresh() {
+    loadCustomers();
+    loadServices();
   }
 
   private static class ServiceItem {

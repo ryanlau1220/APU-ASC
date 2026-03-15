@@ -6,6 +6,7 @@ import com.apu.asc.model.Appointment;
 import com.apu.asc.model.Feedback;
 import com.apu.asc.model.User;
 import com.apu.asc.service.FeedbackService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -18,7 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-public class ManagerFeedbackPanel extends JPanel {
+public class ManagerFeedbackPanel extends JPanel implements Refreshable {
 
   private final FeedbackService feedbackService = new FeedbackService();
   private final AppointmentDAO appointmentDAO = AppointmentDAO.getInstance();
@@ -91,5 +92,10 @@ public class ManagerFeedbackPanel extends JPanel {
             f.getComments()
           });
     }
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }
