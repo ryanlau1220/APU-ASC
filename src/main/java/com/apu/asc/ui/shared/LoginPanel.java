@@ -15,7 +15,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
-import java.util.concurrent.ExecutionException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -24,7 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 
 public class LoginPanel extends JPanel {
 
@@ -228,31 +226,25 @@ public class LoginPanel extends JPanel {
 
           String otp = otpService.generateOtp(username);
 
-          new SwingWorker<Boolean, Void>() {
-            @Override
-            protected Boolean doInBackground() throws Exception {
-              otpService.sendOtpEmail(user.getEmail(), username, otp);
-              return true;
-            }
-
-            @Override
-            protected void done() {
-              boolean success;
-              try {
-                success = get();
-              } catch (InterruptedException | ExecutionException ex) {
-                success = false;
-              }
-              if (success) {
-                dialog.dispose();
-                showForgotStep2(owner, username, user.getEmail());
-              } else {
-                sendBtn.setEnabled(true);
-                statusLabel.setForeground(Theme.TEXT_ERROR);
-                statusLabel.setText("Failed to send OTP. Check SMTP config.");
-              }
-            }
-          }.execute();
+          otpService
+              .sendOtpEmail(user.getEmail(), username, otp)
+              .thenRun(
+                  () ->
+                      SwingUtilities.invokeLater(
+                          () -> {
+                            dialog.dispose();
+                            showForgotStep2(owner, username, user.getEmail());
+                          }))
+              .exceptionally(
+                  ex -> {
+                    SwingUtilities.invokeLater(
+                        () -> {
+                          sendBtn.setEnabled(true);
+                          statusLabel.setForeground(Theme.TEXT_ERROR);
+                          statusLabel.setText("Failed to send OTP. Check SMTP config.");
+                        });
+                    return null;
+                  });
         });
 
     dialog.setVisible(true);

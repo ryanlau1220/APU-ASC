@@ -19,7 +19,6 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -27,7 +26,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 public class StaffPaymentPanel extends JPanel implements Refreshable {
@@ -174,28 +172,27 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
   }
 
   private void dispatchReceiptAsync(String paymentId, Window owner) {
-    new SwingWorker<Boolean, Void>() {
-      @Override
-      protected Boolean doInBackground() {
-        return paymentService.sendReceipt(paymentId);
-      }
-
-      @Override
-      protected void done() {
-        try {
-          boolean ok = get();
-          if (ok) {
-            loadData();
-            Toast.success(owner, "Receipt emailed to customer.");
-          } else {
-            Toast.error(
-                owner, "Failed to send receipt. Check config.properties for SMTP settings.");
-          }
-        } catch (InterruptedException | ExecutionException e) {
-          Toast.error(owner, "Failed to send receipt: " + e.getMessage());
-        }
-      }
-    }.execute();
+    paymentService
+        .sendReceipt(paymentId)
+        .thenAccept(
+            ok ->
+                SwingUtilities.invokeLater(
+                    () -> {
+                      if (ok) {
+                        loadData();
+                        Toast.success(owner, "Receipt emailed to customer.");
+                      } else {
+                        Toast.error(
+                            owner,
+                            "Failed to send receipt. Check config.properties for SMTP settings.");
+                      }
+                    }))
+        .exceptionally(
+            ex -> {
+              SwingUtilities.invokeLater(
+                  () -> Toast.error(owner, "Failed to send receipt: " + ex.getMessage()));
+              return null;
+            });
   }
 
   @Override
