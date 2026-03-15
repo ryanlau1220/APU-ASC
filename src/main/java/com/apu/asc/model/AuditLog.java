@@ -7,22 +7,22 @@ import java.time.LocalDateTime;
 public class AuditLog {
 
   @NotBlank(message = "Log ID must not be blank")
-  private String logId;
+  private final String logId;
 
   @NotNull(message = "Timestamp must not be null")
-  private LocalDateTime timestamp;
+  private final LocalDateTime timestamp;
 
   @NotBlank(message = "User ID must not be blank")
-  private String userId;
+  private final String userId;
 
   @NotBlank(message = "Action type must not be blank")
-  private String actionType;
+  private final String actionType;
 
   @NotBlank(message = "Target entity ID must not be blank")
-  private String targetEntityId;
+  private final String targetEntityId;
 
   @NotBlank(message = "Description must not be blank")
-  private String description;
+  private final String description;
 
   public AuditLog(
       String logId,

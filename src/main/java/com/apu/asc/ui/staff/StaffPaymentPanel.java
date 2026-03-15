@@ -19,6 +19,7 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -190,7 +191,7 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
             Toast.error(
                 owner, "Failed to send receipt. Check config.properties for SMTP settings.");
           }
-        } catch (Exception e) {
+        } catch (InterruptedException | ExecutionException e) {
           Toast.error(owner, "Failed to send receipt: " + e.getMessage());
         }
       }

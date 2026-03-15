@@ -7,16 +7,16 @@ import jakarta.validation.constraints.Size;
 
 public class Feedback {
 
-  private String feedbackId;
-  private String appointmentId;
+  private final String feedbackId;
+  private final String appointmentId;
 
   @Min(value = 1, message = "Rating must be at least 1")
   @Max(value = 5, message = "Rating must be at most 5")
-  private int rating;
+  private final int rating;
 
   @NotBlank(message = "Comments cannot be empty")
   @Size(max = 500, message = "Comments cannot exceed 500 characters")
-  private String comments;
+  private final String comments;
 
   public Feedback(String feedbackId, String appointmentId, int rating, String comments) {
     this.feedbackId = feedbackId;

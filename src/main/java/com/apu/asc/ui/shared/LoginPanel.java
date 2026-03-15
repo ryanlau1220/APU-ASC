@@ -15,6 +15,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
+import java.util.concurrent.ExecutionException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -239,7 +240,7 @@ public class LoginPanel extends JPanel {
               boolean success;
               try {
                 success = get();
-              } catch (Exception ex) {
+              } catch (InterruptedException | ExecutionException ex) {
                 success = false;
               }
               if (success) {
