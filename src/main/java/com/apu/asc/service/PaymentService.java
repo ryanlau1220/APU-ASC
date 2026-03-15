@@ -41,6 +41,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class PaymentService {
 
@@ -81,34 +82,37 @@ public class PaymentService {
     return Result.success(payment);
   }
 
-  public boolean sendReceipt(String paymentId) {
-    Payment payment = findPaymentById(paymentId);
-    if (payment == null || payment.isReceiptSent()) return false;
+  public CompletableFuture<Boolean> sendReceipt(String paymentId) {
+    return CompletableFuture.supplyAsync(
+        () -> {
+          Payment payment = findPaymentById(paymentId);
+          if (payment == null || payment.isReceiptSent()) return false;
 
-    Appointment appt = appointmentDAO.findById(payment.getAppointmentId());
-    if (appt == null) return false;
+          Appointment appt = appointmentDAO.findById(payment.getAppointmentId());
+          if (appt == null) return false;
 
-    User customer = userDAO.findById(appt.getCustomerId());
-    if (customer == null) return false;
+          User customer = userDAO.findById(appt.getCustomerId());
+          if (customer == null) return false;
 
-    Service service = serviceDAO.findById(appt.getServiceId());
+          Service service = serviceDAO.findById(appt.getServiceId());
 
-    try {
-      Path pdfPath = generateReceiptPdf(payment, appt, customer, service);
-      sendEmail(customer.getEmail(), payment, pdfPath);
-      payment.markReceiptSent();
-      paymentDAO.save(payment);
-      Files.deleteIfExists(pdfPath);
-      SystemLogger.log(
-          actorId(),
-          "SEND_RECEIPT",
-          payment.getPaymentId(),
-          "Receipt emailed to " + customer.getEmail() + ".");
-      return true;
-    } catch (Exception e) {
-      System.err.println("Receipt send failed: " + e.getMessage());
-      return false;
-    }
+          try {
+            Path pdfPath = generateReceiptPdf(payment, appt, customer, service);
+            sendEmail(customer.getEmail(), payment, pdfPath);
+            payment.markReceiptSent();
+            paymentDAO.save(payment);
+            Files.deleteIfExists(pdfPath);
+            SystemLogger.log(
+                actorId(),
+                "SEND_RECEIPT",
+                payment.getPaymentId(),
+                "Receipt emailed to " + customer.getEmail() + ".");
+            return true;
+          } catch (Exception e) {
+            System.err.println("Receipt send failed: " + e.getMessage());
+            return false;
+          }
+        });
   }
 
   public Payment findByAppointment(String appointmentId) {
