@@ -3,6 +3,7 @@ package com.apu.asc.ui.manager;
 import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -30,7 +31,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-public class ManagerUserPanel extends JPanel {
+public class ManagerUserPanel extends JPanel implements Refreshable {
 
   private final UserService userService = new UserService();
 
@@ -148,7 +149,7 @@ public class ManagerUserPanel extends JPanel {
     Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog = new JDialog(owner, "Add User", Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(360, 320);
-    dialog.setLocationRelativeTo(this);
+    dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     JPanel form = new JPanel(new GridLayout(6, 2, 6, 6));
@@ -228,7 +229,7 @@ public class ManagerUserPanel extends JPanel {
 
     JDialog dialog = new JDialog(owner, "Edit User", Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(340, 220);
-    dialog.setLocationRelativeTo(this);
+    dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     JPanel form = new JPanel(new GridLayout(3, 2, 6, 6));
@@ -289,7 +290,7 @@ public class ManagerUserPanel extends JPanel {
     String name = (String) model.getValueAt(row, 2);
     int confirm =
         JOptionPane.showConfirmDialog(
-            this, "Deactivate user \"" + name + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
+            owner, "Deactivate user \"" + name + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
     userService.deactivateUser(id);
     loadData(null);
@@ -307,11 +308,16 @@ public class ManagerUserPanel extends JPanel {
     String name = (String) model.getValueAt(row, 2);
     int confirm =
         JOptionPane.showConfirmDialog(
-            this, "Reactivate user \"" + name + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
+            owner, "Reactivate user \"" + name + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
     userService.reactivateUser(id);
     loadData(null);
     Toast.success(owner, "User reactivated.");
+  }
+
+  @Override
+  public void refresh() {
+    loadData(null);
   }
 
   private void addFormRow(JPanel panel, String labelText, javax.swing.JComponent field) {

@@ -7,12 +7,14 @@ import com.apu.asc.model.ApptStatus;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Window;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -28,7 +30,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-public class TechnicianJobPanel extends JPanel {
+public class TechnicianJobPanel extends JPanel implements Refreshable {
 
   private final User technician;
   private final AppointmentService apptService = new AppointmentService();
@@ -132,7 +134,7 @@ public class TechnicianJobPanel extends JPanel {
 
     int confirm =
         JOptionPane.showConfirmDialog(
-            this,
+            SwingUtilities.getWindowAncestor(this),
             "Mark appointment " + apptId + " as COMPLETED?",
             "Confirm",
             JOptionPane.YES_NO_OPTION);
@@ -158,13 +160,12 @@ public class TechnicianJobPanel extends JPanel {
     String apptId = (String) model.getValueAt(row, 0);
     String currentNotes = (String) model.getValueAt(row, 6);
 
+    Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog =
         new JDialog(
-            SwingUtilities.getWindowAncestor(this),
-            "Technician Notes — " + apptId,
-            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+            owner, "Technician Notes — " + apptId, java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(420, 280);
-    dialog.setLocationRelativeTo(this);
+    dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     JPanel panel = new JPanel(new BorderLayout(8, 8));
@@ -210,5 +211,10 @@ public class TechnicianJobPanel extends JPanel {
         });
 
     dialog.setVisible(true);
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }

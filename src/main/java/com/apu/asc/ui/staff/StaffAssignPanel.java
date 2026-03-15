@@ -7,6 +7,7 @@ import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import java.awt.BorderLayout;
@@ -30,7 +31,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-public class StaffAssignPanel extends JPanel {
+public class StaffAssignPanel extends JPanel implements Refreshable {
 
   private final AppointmentService apptService = new AppointmentService();
   private final UserService userService = new UserService();
@@ -137,7 +138,7 @@ public class StaffAssignPanel extends JPanel {
     Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog = new JDialog(owner, "Assign Technician", Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(320, 260);
-    dialog.setLocationRelativeTo(this);
+    dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     DefaultListModel<String> listModel = new DefaultListModel<>();
@@ -184,5 +185,10 @@ public class StaffAssignPanel extends JPanel {
         });
 
     dialog.setVisible(true);
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }

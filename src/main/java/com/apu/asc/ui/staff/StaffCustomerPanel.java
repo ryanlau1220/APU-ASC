@@ -3,6 +3,7 @@ package com.apu.asc.ui.staff;
 import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.UserService;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -28,7 +29,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-public class StaffCustomerPanel extends JPanel {
+public class StaffCustomerPanel extends JPanel implements Refreshable {
 
   private final UserService userService = new UserService();
 
@@ -140,7 +141,7 @@ public class StaffCustomerPanel extends JPanel {
     JDialog dialog =
         new JDialog(owner, "Add Customer", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(360, 300);
-    dialog.setLocationRelativeTo(this);
+    dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     JPanel form = new JPanel(new GridLayout(5, 2, 6, 6));
@@ -219,7 +220,7 @@ public class StaffCustomerPanel extends JPanel {
     JDialog dialog =
         new JDialog(owner, "Edit Customer", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(340, 220);
-    dialog.setLocationRelativeTo(this);
+    dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     JPanel form = new JPanel(new GridLayout(3, 2, 6, 6));
@@ -281,12 +282,20 @@ public class StaffCustomerPanel extends JPanel {
 
     int confirm =
         JOptionPane.showConfirmDialog(
-            this, "Deactivate customer \"" + name + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
+            SwingUtilities.getWindowAncestor(this),
+            "Deactivate customer \"" + name + "\"?",
+            "Confirm",
+            JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
 
     userService.deactivateUser(id);
     loadData(null);
     Toast.success(SwingUtilities.getWindowAncestor(this), "Customer deactivated.");
+  }
+
+  @Override
+  public void refresh() {
+    loadData(null);
   }
 
   private void addFormRow(JPanel panel, String labelText, javax.swing.JComponent field) {

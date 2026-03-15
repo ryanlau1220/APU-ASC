@@ -2,6 +2,7 @@ package com.apu.asc.ui.manager;
 
 import com.apu.asc.dao.ServiceDAO;
 import com.apu.asc.model.Service;
+import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.ValidationUtil;
@@ -24,7 +25,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-public class ManagerServicePanel extends JPanel {
+public class ManagerServicePanel extends JPanel implements Refreshable {
 
   private final ServiceDAO serviceDAO = ServiceDAO.getInstance();
 
@@ -123,7 +124,7 @@ public class ManagerServicePanel extends JPanel {
         new JDialog(
             owner, "Update Price — " + svc.getServiceName(), Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(300, 160);
-    dialog.setLocationRelativeTo(this);
+    dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -187,7 +188,7 @@ public class ManagerServicePanel extends JPanel {
 
     int confirm =
         JOptionPane.showConfirmDialog(
-            this,
+            owner,
             (svc.isActive() ? "Deactivate" : "Activate")
                 + " service \""
                 + svc.getServiceName()
@@ -200,5 +201,10 @@ public class ManagerServicePanel extends JPanel {
     serviceDAO.save(svc);
     loadData();
     Toast.success(owner, "Service " + (svc.isActive() ? "activated" : "deactivated") + ".");
+  }
+
+  @Override
+  public void refresh() {
+    loadData();
   }
 }
