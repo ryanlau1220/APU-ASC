@@ -21,6 +21,7 @@ import com.apu.asc.ui.technician.TechnicianJobPanel;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -117,6 +118,12 @@ public class AppShell extends JFrame {
   public void showCard(String cardName) {
     cardLayout.show(contentPane, cardName);
     if (sidebarPanel != null) sidebarPanel.setActiveCard(cardName);
+    for (Component c : contentPane.getComponents()) {
+      if (c.isVisible() && c instanceof Refreshable) {
+        ((Refreshable) c).refresh();
+        break;
+      }
+    }
   }
 
   private void registerCards(User user) {
