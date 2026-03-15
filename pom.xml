@@ -47,6 +47,13 @@
             <version>3.4</version>
         </dependency>
 
+        <!-- Data Visualization -->
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.4</version>
+        </dependency>
+
         <!-- Input Validation -->
         <dependency>
             <groupId>org.hibernate.validator</groupId>
