@@ -30,6 +30,10 @@ public class AuditLogDAO {
     return instance;
   }
 
+  public void reload() {
+    load();
+  }
+
   private void load() {
     cache.clear();
     Path path = Path.of(FILE_PATH);

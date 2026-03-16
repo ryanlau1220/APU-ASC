@@ -31,6 +31,10 @@ public class PaymentDAO {
     return instance;
   }
 
+  public void reload() {
+    load();
+  }
+
   private void load() {
     cache.clear();
     Path path = Path.of(FILE_PATH);
@@ -42,13 +46,17 @@ public class PaymentDAO {
         if (line.isBlank()) continue;
         String[] p = line.split("\\|\\|", -1);
         if (p.length < 5) continue;
+        double discount = (p.length >= 6) ? Double.parseDouble(p[3]) : 0.0;
+        int dtIdx = (p.length >= 6) ? 4 : 3;
+        int rcIdx = (p.length >= 6) ? 5 : 4;
         Payment payment =
             new Payment(
                 p[0],
                 p[1],
                 Double.parseDouble(p[2]),
-                LocalDateTime.parse(p[3]),
-                Boolean.parseBoolean(p[4]));
+                discount,
+                LocalDateTime.parse(p[dtIdx]),
+                Boolean.parseBoolean(p[rcIdx]));
         cache.put(payment.getPaymentId(), payment);
       }
     } catch (IOException e) {
