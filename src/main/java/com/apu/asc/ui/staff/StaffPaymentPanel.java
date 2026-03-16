@@ -10,6 +10,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.PaymentService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -38,6 +39,10 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
   private JTable table;
   private DefaultTableModel model;
 
+  private JButton processBtn;
+  private JButton receiptBtn;
+  private JButton refreshBtn;
+
   public StaffPaymentPanel(User staffUser) {
     Objects.requireNonNull(staffUser, "staffUser must not be null");
     setLayout(new BorderLayout(8, 8));
@@ -48,7 +53,16 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    String[] cols = {"Appt ID", "Customer", "Vehicle", "Service", "Amount", "Receipt Sent"};
+    String[] cols = {
+      LanguageManager.t("col.apptId"),
+      LanguageManager.t("col.customer"),
+      LanguageManager.t("col.vehicle"),
+      LanguageManager.t("col.service"),
+      LanguageManager.t("col.originalPrice"),
+      LanguageManager.t("col.discount"),
+      LanguageManager.t("col.amountPaid"),
+      LanguageManager.t("col.receiptSent")
+    };
     model =
         new DefaultTableModel(cols, 0) {
           @Override
@@ -70,9 +84,9 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
     top.setBackground(Theme.BG_PANEL);
 
-    JButton processBtn = makeBtn("Process Payment for Selected", Theme.BTN_SUCCESS);
-    JButton receiptBtn = makeBtn("Send Receipt", Theme.BTN_PRIMARY);
-    JButton refreshBtn = makeBtn("Refresh", Theme.BTN_PRIMARY);
+    processBtn = makeBtn(LanguageManager.t("btn.processPayment"), Theme.BTN_SUCCESS);
+    receiptBtn = makeBtn(LanguageManager.t("btn.sendReceipt"), Theme.BTN_PRIMARY);
+    refreshBtn = makeBtn(LanguageManager.t("btn.refresh"), Theme.BTN_PRIMARY);
 
     top.add(processBtn);
     top.add(receiptBtn);
@@ -107,12 +121,31 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
       String svcName = svc != null ? svc.getServiceName() : a.getServiceId();
 
       Payment p = paymentService.findByAppointment(a.getAppointmentId());
-      String amount = p != null ? String.format("RM %.2f", p.getAmountPaid()) : "UNPAID";
-      String receiptSent = p != null ? p.isReceiptSent() ? "Yes" : "No" : "-";
+      String originalPrice = svc != null ? String.format("RM %.2f", svc.getPrice()) : "-";
+      String discount = "-";
+      String amountPaid = "UNPAID";
+      String receiptSent = "-";
+      if (p != null) {
+        double original = p.getAmountPaid() + p.getDiscountAmount();
+        originalPrice = String.format("RM %.2f", original);
+        discount =
+            p.getDiscountAmount() > 0
+                ? String.format("-RM %.2f", p.getDiscountAmount())
+                : "RM 0.00";
+        amountPaid = String.format("RM %.2f", p.getAmountPaid());
+        receiptSent = p.isReceiptSent() ? "Yes" : "No";
+      }
 
       model.addRow(
           new Object[] {
-            a.getAppointmentId(), custName, a.getVehiclePlate(), svcName, amount, receiptSent
+            a.getAppointmentId(),
+            custName,
+            a.getVehiclePlate(),
+            svcName,
+            originalPrice,
+            discount,
+            amountPaid,
+            receiptSent
           });
     }
   }
@@ -127,7 +160,7 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
 
     String apptId = (String) model.getValueAt(row, 0);
 
-    if (!"UNPAID".equals(model.getValueAt(row, 4))) {
+    if (!"UNPAID".equals(model.getValueAt(row, 6))) {
       Toast.error(owner, "Payment already processed for this appointment.");
       return;
     }
@@ -197,6 +230,25 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    processBtn.setText(LanguageManager.t("btn.processPayment"));
+    receiptBtn.setText(LanguageManager.t("btn.sendReceipt"));
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {
+      "col.apptId",
+      "col.customer",
+      "col.vehicle",
+      "col.service",
+      "col.originalPrice",
+      "col.discount",
+      "col.amountPaid",
+      "col.receiptSent"
+    };
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
     loadData();
   }
 }

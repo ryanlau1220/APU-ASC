@@ -69,8 +69,23 @@ public class PaymentService {
       return Result.failure("Service record not found. Please contact the system administrator.");
 
     String id = "PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+    double originalPrice = service.getPrice();
+    double historicalSpend =
+        appointmentDAO.findByCustomer(appt.getCustomerId()).stream()
+            .map(a -> paymentDAO.findByAppointment(a.getAppointmentId()))
+            .filter(p -> p != null)
+            .mapToDouble(Payment::getAmountPaid)
+            .sum();
+    double discountRate;
+    if (historicalSpend > 5000) discountRate = 0.10;
+    else if (historicalSpend > 1000) discountRate = 0.05;
+    else discountRate = 0.0;
+    double discountAmount = Math.round(originalPrice * discountRate * 100.0) / 100.0;
+    double finalAmount = Math.round((originalPrice - discountAmount) * 100.0) / 100.0;
+
     Payment payment =
-        new Payment(id, appointmentId, service.getPrice(), LocalDateTime.now(), false);
+        new Payment(id, appointmentId, finalAmount, discountAmount, LocalDateTime.now(), false);
     String paymentViolations = ValidationUtil.getViolations(payment);
     if (paymentViolations != null) return Result.failure(paymentViolations);
     paymentDAO.save(payment);
@@ -155,6 +170,11 @@ public class PaymentService {
     addRow(table, "Customer", customer.getFullName());
     addRow(table, "Vehicle Plate", appt.getVehiclePlate());
     addRow(table, "Service", service != null ? service.getServiceName() : appt.getServiceId());
+    double originalPrice = payment.getAmountPaid() + payment.getDiscountAmount();
+    addRow(table, "Original Price", String.format("RM %.2f", originalPrice));
+    if (payment.getDiscountAmount() > 0) {
+      addRow(table, "Loyalty Discount", String.format("-RM %.2f", payment.getDiscountAmount()));
+    }
     addRow(table, "Amount Paid", String.format("RM %.2f", payment.getAmountPaid()));
 
     doc.add(table);
