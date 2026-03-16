@@ -233,7 +233,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     JTextField fullName = new JTextField(16);
     JTextField email = new JTextField(16);
     JTextField contact = new JTextField(16);
-    JLabel errorLabel = new JLabel(" ");
+    JLabel errorLabel = new JLabel(LanguageManager.t("msg.empty"));
     errorLabel.setForeground(Theme.TEXT_ERROR);
     errorLabel.setFont(Theme.FONT_BODY);
 
@@ -319,7 +319,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     JTextField fullName = new JTextField(user.getFullName(), 16);
     JTextField email = new JTextField(user.getEmail(), 16);
     JTextField contact = new JTextField(user.getContactNumber(), 16);
-    JLabel errorLabel = new JLabel(" ");
+    JLabel errorLabel = new JLabel(LanguageManager.t("msg.empty"));
     errorLabel.setForeground(Theme.TEXT_ERROR);
     errorLabel.setFont(Theme.FONT_BODY);
 

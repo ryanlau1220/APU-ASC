@@ -90,7 +90,7 @@ public class RegisterPanel extends JPanel {
       form.add((Component) rows[i][1], gc);
     }
 
-    messageLabel = new JLabel(" ");
+    messageLabel = new JLabel(LanguageManager.t("msg.empty"));
     messageLabel.setForeground(Theme.TEXT_ERROR);
     messageLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
@@ -169,7 +169,7 @@ public class RegisterPanel extends JPanel {
     contactField.setText("");
     passwordField.setText("");
     confirmField.setText("");
-    messageLabel.setText(" ");
+    messageLabel.setText(LanguageManager.t("msg.empty"));
   }
 
   private JLabel styledLabel(String text) {

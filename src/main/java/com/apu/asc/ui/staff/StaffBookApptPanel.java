@@ -95,7 +95,7 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
     gc.gridwidth = 1;
     form.add(hintLabel, gc);
 
-    messageLabel = new JLabel(" ");
+    messageLabel = new JLabel(LanguageManager.t("msg.empty"));
     messageLabel.setForeground(Theme.TEXT_ERROR);
     messageLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;

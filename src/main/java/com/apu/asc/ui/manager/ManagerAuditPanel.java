@@ -114,7 +114,7 @@ public class ManagerAuditPanel extends JPanel implements Refreshable {
     add(top, BorderLayout.NORTH);
     add(new JScrollPane(table), BorderLayout.CENTER);
 
-    JLabel statusLabel = new JLabel(" ");
+    JLabel statusLabel = new JLabel(LanguageManager.t("msg.empty"));
     statusLabel.setForeground(Theme.TEXT_MUTED);
     statusLabel.setFont(Theme.FONT_BODY);
     add(statusLabel, BorderLayout.SOUTH);

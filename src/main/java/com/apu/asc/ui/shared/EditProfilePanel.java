@@ -83,7 +83,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     addFormRow(infoForm, gc, 1, emailLabel, emailField);
     addFormRow(infoForm, gc, 2, contactLabel, contactField);
 
-    profileErrorLabel = new JLabel(" ");
+    profileErrorLabel = new JLabel(LanguageManager.t("msg.empty"));
     profileErrorLabel.setForeground(Theme.TEXT_ERROR);
     profileErrorLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
@@ -120,7 +120,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     addFormRow(passForm, gc2, 1, newPasswordLabel, newPassField);
     addFormRow(passForm, gc2, 2, confirmNewLabel, confirmPassField);
 
-    passErrorLabel = new JLabel(" ");
+    passErrorLabel = new JLabel(LanguageManager.t("msg.empty"));
     passErrorLabel.setForeground(Theme.TEXT_ERROR);
     passErrorLabel.setFont(Theme.FONT_BODY);
     gc2.gridx = 0;
@@ -155,7 +155,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
       return;
     }
 
-    profileErrorLabel.setText(" ");
+    profileErrorLabel.setText(LanguageManager.t("msg.empty"));
     Toast.success(SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.profile.updated"));
   }
 
@@ -186,7 +186,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     currentPassField.setText("");
     newPassField.setText("");
     confirmPassField.setText("");
-    passErrorLabel.setText(" ");
+    passErrorLabel.setText(LanguageManager.t("msg.empty"));
     Toast.success(
         SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.password.changed"));
   }

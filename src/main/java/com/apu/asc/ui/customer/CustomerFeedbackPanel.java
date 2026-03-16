@@ -93,7 +93,7 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
     gc.weightx = 0.7;
     form.add(new JScrollPane(commentsArea), gc);
 
-    messageLabel = new JLabel(" ");
+    messageLabel = new JLabel(LanguageManager.t("msg.empty"));
     messageLabel.setForeground(Theme.TEXT_ERROR);
     gc.gridx = 0;
     gc.gridy = 3;
@@ -158,7 +158,7 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
       return;
     }
 
-    messageLabel.setText(" ");
+    messageLabel.setText(LanguageManager.t("msg.empty"));
     commentsArea.setText("");
     loadEligibleAppointments();
     Toast.success(

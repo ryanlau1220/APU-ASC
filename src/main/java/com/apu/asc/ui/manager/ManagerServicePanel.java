@@ -127,7 +127,7 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
     if (svc == null) return;
 
     JTextField priceField = new JTextField(String.format("%.2f", svc.getPrice()), 12);
-    JLabel errorLabel = new JLabel(" ");
+    JLabel errorLabel = new JLabel(LanguageManager.t("msg.empty"));
     errorLabel.setForeground(Theme.TEXT_ERROR);
     errorLabel.setFont(Theme.FONT_BODY);
 

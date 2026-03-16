@@ -104,7 +104,7 @@ public class LoginPanel extends JPanel {
     pwRow.add(pwToggle, BorderLayout.EAST);
     form.add(pwRow, gc);
 
-    messageLabel = new JLabel(" ");
+    messageLabel = new JLabel(LanguageManager.t("msg.empty"));
     messageLabel.setForeground(Theme.TEXT_ERROR);
     messageLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
@@ -164,7 +164,7 @@ public class LoginPanel extends JPanel {
       return;
     }
 
-    messageLabel.setText(" ");
+    messageLabel.setText(LanguageManager.t("msg.empty"));
     usernameField.setText("");
     passwordField.setText("");
     shell.onLoginSuccess(result.getValue());
@@ -206,7 +206,7 @@ public class LoginPanel extends JPanel {
     JTextField usernameInput = new JTextField(16);
     panel.add(usernameInput, gc);
 
-    JLabel statusLabel = new JLabel(" ");
+    JLabel statusLabel = new JLabel(LanguageManager.t("msg.empty"));
     statusLabel.setForeground(Theme.TEXT_ERROR);
     statusLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
@@ -315,7 +315,7 @@ public class LoginPanel extends JPanel {
     JTextField otpInput = new JTextField(10);
     panel.add(otpInput, gc);
 
-    JLabel statusLabel = new JLabel(" ");
+    JLabel statusLabel = new JLabel(LanguageManager.t("msg.empty"));
     statusLabel.setForeground(Theme.TEXT_ERROR);
     statusLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
@@ -397,7 +397,7 @@ public class LoginPanel extends JPanel {
     JPasswordField confirmPassField = new JPasswordField(16);
     panel.add(confirmPassField, gc);
 
-    JLabel statusLabel = new JLabel(" ");
+    JLabel statusLabel = new JLabel(LanguageManager.t("msg.empty"));
     statusLabel.setForeground(Theme.TEXT_ERROR);
     statusLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 0;
