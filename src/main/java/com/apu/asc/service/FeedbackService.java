@@ -30,13 +30,13 @@ public class FeedbackService {
   public Result<Feedback> submitFeedback(String appointmentId, int rating, String comments) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null || appt.getStatus() != ApptStatus.COMPLETED)
-      return Result.failure("Feedback can only be submitted for completed appointments.");
+      return Result.failure("err.feedback.completedOnly");
     if (paymentDAO.findByAppointment(appointmentId) == null)
-      return Result.failure("Payment must be completed before submitting feedback.");
+      return Result.failure("err.feedback.paymentRequired");
     if (feedbackDAO.findByAppointment(appointmentId) != null)
-      return Result.failure("Feedback has already been submitted for this appointment.");
+      return Result.failure("err.feedback.alreadySubmitted");
 
-    if (rating < 1 || rating > 5) return Result.failure("Rating must be between 1 and 5.");
+    if (rating < 1 || rating > 5) return Result.failure("err.feedback.ratingRange");
 
     String id = "FBK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Feedback feedback = new Feedback(id, appointmentId, rating, DataSanitizer.clean(comments));

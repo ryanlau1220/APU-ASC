@@ -1,5 +1,6 @@
 package com.apu.asc.service;
 
+import com.apu.asc.util.I18n;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -64,20 +65,9 @@ public class OtpService {
             MimeMessage msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(from));
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            msg.setSubject("APU-ASC Password Reset OTP");
+            msg.setSubject(I18n.t("email.otp.subject"));
 
-            String body =
-                "Dear "
-                    + username
-                    + ",\n\n"
-                    + "Your one-time password (OTP) for resetting your APU-ASC account"
-                    + " password is:\n\n"
-                    + "    "
-                    + otp
-                    + "\n\n"
-                    + "This code expires in 5 minutes. Do not share it with anyone.\n\n"
-                    + "If you did not request this, please ignore this email.\n\n"
-                    + "APU Automotive Service Centre";
+            String body = I18n.format("email.otp.body", username, otp);
 
             msg.setText(body);
             Transport.send(msg);

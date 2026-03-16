@@ -38,7 +38,7 @@ public class UserService {
     contactNumber = DataSanitizer.clean(contactNumber).trim();
 
     if (userDAO.findByUsername(username) != null)
-      return Result.failure("Username '" + username + "' is already taken. Choose another.");
+      return Result.failure("err.user.usernameTaken|" + username);
 
     String id = "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     String hash = PasswordUtil.hash(rawPassword);

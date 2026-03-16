@@ -151,7 +151,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
 
     Result<User> result = userService.updateProfile(user, name, email, contact);
     if (!result.isSuccess()) {
-      profileErrorLabel.setText(result.getError());
+      profileErrorLabel.setText(LanguageManager.resolveError(result.getError()));
       return;
     }
 

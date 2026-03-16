@@ -170,7 +170,7 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
         apptService.createAppointment(customer.id, staffUser.getId(), service.id, plate, dt);
     if (!result.isSuccess()) {
       messageLabel.setForeground(Theme.TEXT_ERROR);
-      messageLabel.setText(result.getError());
+      messageLabel.setText(LanguageManager.resolveError(result.getError()));
       return;
     }
 

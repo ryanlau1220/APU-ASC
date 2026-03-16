@@ -153,7 +153,7 @@ public class RegisterPanel extends JPanel {
 
     Result<?> result = authService.register(username, password, fullName, email, contact);
     if (!result.isSuccess()) {
-      messageLabel.setText(result.getError());
+      messageLabel.setText(LanguageManager.resolveError(result.getError()));
       return;
     }
 

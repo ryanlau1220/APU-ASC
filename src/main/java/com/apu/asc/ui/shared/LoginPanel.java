@@ -159,7 +159,7 @@ public class LoginPanel extends JPanel {
 
     Result<User> result = authService.login(username, password);
     if (!result.isSuccess()) {
-      messageLabel.setText(result.getError());
+      messageLabel.setText(LanguageManager.resolveError(result.getError()));
       passwordField.setText("");
       return;
     }

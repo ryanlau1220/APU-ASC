@@ -154,7 +154,7 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
 
     Result<?> result = feedbackService.submitFeedback(selected.id, rating, comments);
     if (!result.isSuccess()) {
-      messageLabel.setText(result.getError());
+      messageLabel.setText(LanguageManager.resolveError(result.getError()));
       return;
     }
 

@@ -38,11 +38,10 @@ public class AppointmentService {
 
     Service service = serviceDAO.findById(serviceId);
     if (service == null || !service.isActive())
-      return Result.failure("The selected service is unavailable or has been deactivated.");
+      return Result.failure("err.appt.serviceUnavailable");
 
     if (hasConflict(null, dateTime, service.getType()))
-      return Result.failure(
-          "The selected time slot conflicts with an existing appointment. Please choose a different time.");
+      return Result.failure("err.appt.timeConflict");
 
     String id = "APT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     Appointment appt =

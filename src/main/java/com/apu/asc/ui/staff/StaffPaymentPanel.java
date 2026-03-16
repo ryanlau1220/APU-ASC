@@ -168,7 +168,7 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
 
     Result<Payment> result = paymentService.processPayment(apptId);
     if (!result.isSuccess()) {
-      Toast.error(owner, result.getError());
+      Toast.error(owner, LanguageManager.resolveError(result.getError()));
     } else {
       Payment p = result.getValue();
       loadData();

@@ -9,6 +9,7 @@ import com.apu.asc.model.ApptStatus;
 import com.apu.asc.model.Payment;
 import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
+import com.apu.asc.util.I18n;
 import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
@@ -60,13 +61,12 @@ public class PaymentService {
   public Result<Payment> processPayment(String appointmentId) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null || appt.getStatus() != ApptStatus.COMPLETED)
-      return Result.failure("Payment can only be processed for completed appointments.");
+      return Result.failure("err.payment.completedOnly");
     if (paymentDAO.findByAppointment(appointmentId) != null)
-      return Result.failure("Payment has already been recorded for this appointment.");
+      return Result.failure("err.payment.alreadyRecorded");
 
     Service service = serviceDAO.findById(appt.getServiceId());
-    if (service == null)
-      return Result.failure("Service record not found. Please contact the system administrator.");
+    if (service == null) return Result.failure("err.payment.serviceMissing");
 
     String id = "PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -156,30 +156,41 @@ public class PaymentService {
     Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
     Font bodyFont = new Font(Font.FontFamily.HELVETICA, 11);
 
-    doc.add(new Paragraph("APU Automotive Service Centre", titleFont));
-    doc.add(new Paragraph("Official Receipt", bodyFont));
+    doc.add(new Paragraph(I18n.t("receipt.title"), titleFont));
+    doc.add(new Paragraph(I18n.t("receipt.subtitle"), bodyFont));
     doc.add(Chunk.NEWLINE);
 
     PdfPTable table = new PdfPTable(2);
     table.setWidthPercentage(100);
-    addRow(table, "Receipt No", payment.getPaymentId());
+    addRow(table, I18n.t("receipt.label.no"), payment.getPaymentId());
     addRow(
         table,
-        "Date",
-        payment.getPaymentDateTime().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm")));
-    addRow(table, "Customer", customer.getFullName());
-    addRow(table, "Vehicle Plate", appt.getVehiclePlate());
-    addRow(table, "Service", service != null ? service.getServiceName() : appt.getServiceId());
+        I18n.t("receipt.label.date"),
+        payment
+            .getPaymentDateTime()
+            .format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", I18n.getLocale())));
+    addRow(table, I18n.t("receipt.label.customer"), customer.getFullName());
+    addRow(table, I18n.t("receipt.label.vehiclePlate"), appt.getVehiclePlate());
+    addRow(
+        table,
+        I18n.t("receipt.label.service"),
+        service != null ? service.getServiceName() : appt.getServiceId());
     double originalPrice = payment.getAmountPaid() + payment.getDiscountAmount();
-    addRow(table, "Original Price", String.format("RM %.2f", originalPrice));
+    addRow(table, I18n.t("receipt.label.originalPrice"), String.format("RM %.2f", originalPrice));
     if (payment.getDiscountAmount() > 0) {
-      addRow(table, "Loyalty Discount", String.format("-RM %.2f", payment.getDiscountAmount()));
+      addRow(
+          table,
+          I18n.t("receipt.label.discount"),
+          String.format("-RM %.2f", payment.getDiscountAmount()));
     }
-    addRow(table, "Amount Paid", String.format("RM %.2f", payment.getAmountPaid()));
+    addRow(
+        table,
+        I18n.t("receipt.label.amountPaid"),
+        String.format("RM %.2f", payment.getAmountPaid()));
 
     doc.add(table);
     doc.add(Chunk.NEWLINE);
-    doc.add(new Paragraph("Thank you for choosing APU-ASC!", bodyFont));
+    doc.add(new Paragraph(I18n.t("receipt.thanks"), bodyFont));
     doc.close();
 
     return path;
@@ -208,11 +219,10 @@ public class PaymentService {
     MimeMessage msg = new MimeMessage(session);
     msg.setFrom(new InternetAddress(from));
     msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-    msg.setSubject("Your APU-ASC Service Receipt - " + payment.getPaymentId());
+    msg.setSubject(I18n.format("email.receipt.subject", payment.getPaymentId()));
 
     MimeBodyPart textPart = new MimeBodyPart();
-    textPart.setText(
-        "Dear Customer,\n\nPlease find your service receipt attached.\n\nThank you,\nAPU-ASC");
+    textPart.setText(I18n.t("email.receipt.body"));
 
     MimeBodyPart attachPart = new MimeBodyPart();
     attachPart.attachFile(pdfPath.toFile());

@@ -292,7 +292,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
                   email.getText(),
                   contact.getText());
           if (!created.isSuccess()) {
-            errorLabel.setText(created.getError());
+            errorLabel.setText(LanguageManager.resolveError(created.getError()));
           } else {
             dialog.dispose();
             loadData(null);
@@ -368,7 +368,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
               userService.updateProfile(
                   user, fullName.getText(), email.getText(), contact.getText());
           if (!result.isSuccess()) {
-            errorLabel.setText(result.getError());
+            errorLabel.setText(LanguageManager.resolveError(result.getError()));
           } else {
             dialog.dispose();
             loadData(null);

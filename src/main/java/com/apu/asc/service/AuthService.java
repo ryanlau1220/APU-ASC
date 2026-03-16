@@ -22,15 +22,13 @@ public class AuthService {
 
   public Result<User> login(String username, String rawPassword) {
     if (username == null || rawPassword == null)
-      return Result.failure("Username and password are required.");
+      return Result.failure("err.auth.credentialsRequired");
 
     User user = userDAO.findByUsername(username.trim());
-    if (user == null) return Result.failure("Invalid username or password.");
-    if (user.getStatus() == UserStatus.DEACTIVATED)
-      return Result.failure(
-          "This account has been deactivated. Please contact staff for assistance.");
+    if (user == null) return Result.failure("err.auth.invalidCredentials");
+    if (user.getStatus() == UserStatus.DEACTIVATED) return Result.failure("err.auth.deactivated");
     if (!PasswordUtil.verify(rawPassword, user.getPasswordHash()))
-      return Result.failure("Invalid username or password.");
+      return Result.failure("err.auth.invalidCredentials");
 
     SessionManager.login(user);
     SystemLogger.log(
@@ -46,7 +44,7 @@ public class AuthService {
     contactNumber = DataSanitizer.clean(contactNumber).trim();
 
     if (userDAO.findByUsername(username) != null)
-      return Result.failure("Username '" + username + "' is already taken. Choose another.");
+      return Result.failure("err.user.usernameTaken|" + username);
 
     String id = "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     String hash = PasswordUtil.hash(rawPassword);
