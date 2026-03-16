@@ -8,6 +8,7 @@ import com.apu.asc.ui.manager.ManagerAuditPanel;
 import com.apu.asc.ui.manager.ManagerFeedbackPanel;
 import com.apu.asc.ui.manager.ManagerReportPanel;
 import com.apu.asc.ui.manager.ManagerServicePanel;
+import com.apu.asc.ui.manager.ManagerSettingsPanel;
 import com.apu.asc.ui.manager.ManagerUserPanel;
 import com.apu.asc.ui.shared.EditProfilePanel;
 import com.apu.asc.ui.shared.LoginPanel;
@@ -47,6 +48,7 @@ public class AppShell extends JFrame {
   public static final String CARD_MGR_FEEDBACK = "MGR_FEEDBACK";
   public static final String CARD_MGR_AUDIT = "MGR_AUDIT";
   public static final String CARD_MGR_REPORTS = "MGR_REPORTS";
+  public static final String CARD_MGR_SETTINGS = "MGR_SETTINGS";
 
   private final AuthService authService = new AuthService();
 
@@ -126,6 +128,17 @@ public class AppShell extends JFrame {
     }
   }
 
+  public void refreshCurrentPanel() {
+    if (headerPanel != null) headerPanel.refreshTexts();
+    if (sidebarPanel != null) sidebarPanel.refreshTexts();
+    for (Component c : contentPane.getComponents()) {
+      if (c.isVisible() && c instanceof Refreshable) {
+        ((Refreshable) c).refresh();
+        break;
+      }
+    }
+  }
+
   private void registerCards(User user) {
     contentPane.add(new EditProfilePanel(user), CARD_PROFILE);
 
@@ -154,6 +167,7 @@ public class AppShell extends JFrame {
         contentPane.add(new ManagerFeedbackPanel(), CARD_MGR_FEEDBACK);
         contentPane.add(new ManagerAuditPanel(), CARD_MGR_AUDIT);
         contentPane.add(new ManagerReportPanel(), CARD_MGR_REPORTS);
+        contentPane.add(new ManagerSettingsPanel(), CARD_MGR_SETTINGS);
         break;
     }
   }
