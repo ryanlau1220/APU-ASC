@@ -7,13 +7,14 @@ import java.util.ResourceBundle;
 
 public final class I18n {
 
-  private static Locale locale = Locale.ENGLISH;
-  private static ResourceBundle bundle = ResourceBundle.getBundle("lang/messages", locale);
+  private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
+  private static Locale locale = DEFAULT_LOCALE;
+  private static ResourceBundle bundle = ResourceBundle.getBundle("lang/messages", DEFAULT_LOCALE);
 
   private I18n() {}
 
   public static void setLocale(Locale newLocale) {
-    locale = newLocale == null ? Locale.ENGLISH : newLocale;
+    locale = newLocale == null ? DEFAULT_LOCALE : newLocale;
     bundle = ResourceBundle.getBundle("lang/messages", locale);
   }
 
