@@ -1,5 +1,6 @@
 package com.apu.asc.util;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -29,6 +30,15 @@ public final class I18n {
   }
 
   public static String format(String key, Object... args) {
+    return String.format(locale, t(key), args);
+  }
+
+  public static String resolveError(String error) {
+    if (error == null || !error.startsWith("err.")) return error;
+    String[] parts = error.split("\\|", -1);
+    String key = parts[0];
+    if (parts.length == 1) return t(key);
+    Object[] args = Arrays.copyOfRange(parts, 1, parts.length);
     return String.format(locale, t(key), args);
   }
 }

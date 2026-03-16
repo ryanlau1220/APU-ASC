@@ -1,7 +1,6 @@
 package com.apu.asc.ui.util;
 
 import com.apu.asc.util.I18n;
-import java.util.Arrays;
 import java.util.Locale;
 
 public final class LanguageManager {
@@ -31,11 +30,6 @@ public final class LanguageManager {
   }
 
   public static String resolveError(String error) {
-    if (error == null || !error.startsWith("err.")) return error;
-    String[] parts = error.split("\\|", -1);
-    String key = parts[0];
-    if (parts.length == 1) return t(key);
-    Object[] args = Arrays.copyOfRange(parts, 1, parts.length);
-    return String.format(I18n.getLocale(), t(key), args);
+    return I18n.resolveError(error);
   }
 }

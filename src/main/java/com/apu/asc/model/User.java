@@ -9,23 +9,23 @@ public abstract class User {
 
   private final String id;
 
-  @NotBlank(message = "Username cannot be empty")
-  @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
+  @NotBlank(message = "err.validation.usernameRequired")
+  @Size(min = 3, max = 30, message = "err.validation.usernameSize|{min}|{max}")
   private final String username;
 
   private String passwordHash;
   private final Role role;
   private UserStatus status;
 
-  @NotBlank(message = "Full name cannot be empty")
+  @NotBlank(message = "err.validation.fullNameRequired")
   private String fullName;
 
-  @NotBlank(message = "Email cannot be empty")
-  @Email(message = "Invalid email format")
+  @NotBlank(message = "err.validation.emailRequired")
+  @Email(message = "err.validation.emailInvalid")
   private String email;
 
-  @NotBlank(message = "Contact number cannot be empty")
-  @Pattern(regexp = "^[0-9+\\-\\s]{7,15}$", message = "Invalid contact number format")
+  @NotBlank(message = "err.validation.contactRequired")
+  @Pattern(regexp = "^[0-9+\\-\\s]{7,15}$", message = "err.validation.contactInvalid")
   private String contactNumber;
 
   public User(

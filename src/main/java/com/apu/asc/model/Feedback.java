@@ -10,12 +10,12 @@ public class Feedback {
   private final String feedbackId;
   private final String appointmentId;
 
-  @Min(value = 1, message = "Rating must be at least 1")
-  @Max(value = 5, message = "Rating must be at most 5")
+  @Min(value = 1, message = "err.validation.ratingMin|{value}")
+  @Max(value = 5, message = "err.validation.ratingMax|{value}")
   private final int rating;
 
-  @NotBlank(message = "Comments cannot be empty")
-  @Size(max = 500, message = "Comments cannot exceed 500 characters")
+  @NotBlank(message = "err.validation.commentsRequired")
+  @Size(max = 500, message = "err.validation.commentsMax|{max}")
   private final String comments;
 
   public Feedback(String feedbackId, String appointmentId, int rating, String comments) {

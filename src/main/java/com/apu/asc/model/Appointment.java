@@ -7,32 +7,32 @@ import java.time.LocalDateTime;
 
 public class Appointment {
 
-  @NotBlank(message = "Appointment ID must not be blank")
+  @NotBlank(message = "err.validation.apptIdRequired")
   private final String appointmentId;
 
-  @NotBlank(message = "Customer ID must not be blank")
+  @NotBlank(message = "err.validation.customerIdRequired")
   private final String customerId;
 
-  @NotBlank(message = "Counter staff ID must not be blank")
+  @NotBlank(message = "err.validation.staffIdRequired")
   private final String counterStaffId;
 
-  @NotBlank(message = "Technician ID must not be blank")
+  @NotBlank(message = "err.validation.technicianIdRequired")
   private String technicianId;
 
-  @NotBlank(message = "Service ID must not be blank")
+  @NotBlank(message = "err.validation.serviceIdRequired")
   private final String serviceId;
 
-  @NotBlank(message = "Vehicle plate must not be blank")
+  @NotBlank(message = "err.validation.vehiclePlateRequired")
   private final String vehiclePlate;
 
-  @NotNull(message = "Appointment date and time must be specified")
+  @NotNull(message = "err.validation.apptDateTimeRequired")
   @FutureOrPresent(message = "Cannot book an appointment in the past")
   private final LocalDateTime appointmentDateTime;
 
-  @NotNull(message = "Appointment status must not be null")
+  @NotNull(message = "err.validation.apptStatusRequired")
   private ApptStatus status;
 
-  @NotNull(message = "Technician notes must not be null")
+  @NotNull(message = "err.validation.techNotesRequired")
   private String technicianNotes;
 
   public Appointment(

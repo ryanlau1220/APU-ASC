@@ -8,7 +8,7 @@ public class Service {
   private final String serviceId;
   private final ServiceType type;
 
-  @NotBlank(message = "Service name cannot be empty")
+  @NotBlank(message = "err.validation.serviceNameRequired")
   private final String serviceName;
 
   @DecimalMin(value = "0.01", message = "Price must be greater than zero")

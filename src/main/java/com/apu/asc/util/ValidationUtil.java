@@ -23,7 +23,7 @@ public class ValidationUtil {
     if (!violations.isEmpty()) {
       String messages =
           violations.stream()
-              .map(ConstraintViolation::getMessage)
+              .map(v -> I18n.resolveError(v.getMessage()))
               .collect(Collectors.joining(", "));
       throw new IllegalArgumentException(messages);
     }
@@ -33,7 +33,7 @@ public class ValidationUtil {
     Set<ConstraintViolation<T>> violations = VALIDATOR.validate(object);
     if (violations.isEmpty()) return null;
     return violations.stream()
-        .map(ConstraintViolation::getMessage)
+        .map(v -> I18n.resolveError(v.getMessage()))
         .collect(Collectors.joining(", "));
   }
 }

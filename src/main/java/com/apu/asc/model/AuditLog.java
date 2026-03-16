@@ -6,22 +6,22 @@ import java.time.LocalDateTime;
 
 public class AuditLog {
 
-  @NotBlank(message = "Log ID must not be blank")
+  @NotBlank(message = "err.validation.logIdRequired")
   private final String logId;
 
-  @NotNull(message = "Timestamp must not be null")
+  @NotNull(message = "err.validation.timestampRequired")
   private final LocalDateTime timestamp;
 
-  @NotBlank(message = "User ID must not be blank")
+  @NotBlank(message = "err.validation.userIdRequired")
   private final String userId;
 
-  @NotBlank(message = "Action type must not be blank")
+  @NotBlank(message = "err.validation.actionTypeRequired")
   private final String actionType;
 
-  @NotBlank(message = "Target entity ID must not be blank")
+  @NotBlank(message = "err.validation.targetEntityRequired")
   private final String targetEntityId;
 
-  @NotBlank(message = "Description must not be blank")
+  @NotBlank(message = "err.validation.descriptionRequired")
   private final String description;
 
   public AuditLog(
