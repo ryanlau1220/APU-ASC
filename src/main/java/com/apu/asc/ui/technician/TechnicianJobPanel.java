@@ -8,6 +8,7 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import java.awt.BorderLayout;
@@ -17,6 +18,7 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -26,9 +28,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 public class TechnicianJobPanel extends JPanel implements Refreshable {
 
@@ -39,6 +46,13 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
 
   private JTable table;
   private DefaultTableModel model;
+  private TableRowSorter<DefaultTableModel> sorter;
+  private JTextField searchField;
+
+  private JLabel searchLabel;
+  private JButton completeBtn;
+  private JButton notesBtn;
+  private JButton refreshBtn;
 
   public TechnicianJobPanel(User technician) {
     this.technician = technician;
@@ -51,7 +65,13 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
 
   private void buildUI() {
     String[] cols = {
-      "Appt ID", "Customer", "Vehicle", "Service", "Date & Time", "Status", "Tech Notes"
+      LanguageManager.t("col.apptId"),
+      LanguageManager.t("col.customer"),
+      LanguageManager.t("col.vehicle"),
+      LanguageManager.t("col.service"),
+      LanguageManager.t("col.dateTime"),
+      LanguageManager.t("col.status"),
+      LanguageManager.t("col.techNotes")
     };
     model =
         new DefaultTableModel(cols, 0) {
@@ -71,17 +91,46 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
     table.setSelectionForeground(Theme.TEXT_PRIMARY);
     table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+    sorter = new TableRowSorter<>(model);
+    table.setRowSorter(sorter);
+
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
     top.setBackground(Theme.BG_PANEL);
 
-    JButton completeBtn = new JButton("Mark as Completed");
-    JButton notesBtn = new JButton("Add/Edit Notes");
-    JButton refreshBtn = new JButton("Refresh");
+    searchLabel = new JLabel(LanguageManager.t("label.search"));
+    searchLabel.setForeground(Theme.TEXT_SECONDARY);
+    searchLabel.setFont(Theme.FONT_BODY);
+    searchField = new JTextField(20);
+    searchField
+        .getDocument()
+        .addDocumentListener(
+            new DocumentListener() {
+              @Override
+              public void insertUpdate(DocumentEvent e) {
+                applySearch();
+              }
+
+              @Override
+              public void removeUpdate(DocumentEvent e) {
+                applySearch();
+              }
+
+              @Override
+              public void changedUpdate(DocumentEvent e) {
+                applySearch();
+              }
+            });
+
+    completeBtn = new JButton(LanguageManager.t("btn.markCompleted"));
+    notesBtn = new JButton(LanguageManager.t("btn.addEditNotes"));
+    refreshBtn = new JButton(LanguageManager.t("btn.refresh"));
 
     completeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     notesBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+    top.add(searchLabel);
+    top.add(searchField);
     top.add(completeBtn);
     top.add(notesBtn);
     top.add(refreshBtn);
@@ -92,6 +141,12 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
     completeBtn.addActionListener(e -> handleComplete());
     notesBtn.addActionListener(e -> handleEditNotes());
     refreshBtn.addActionListener(e -> loadData());
+  }
+
+  private void applySearch() {
+    String text = searchField.getText().trim();
+    if (text.isEmpty()) sorter.setRowFilter(null);
+    else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
   }
 
   private void loadData() {
@@ -129,8 +184,9 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
       return;
     }
 
-    String apptId = (String) model.getValueAt(row, 0);
-    String notes = (String) model.getValueAt(row, 6);
+    int modelRow = table.convertRowIndexToModel(row);
+    String apptId = (String) model.getValueAt(modelRow, 0);
+    String notes = (String) model.getValueAt(modelRow, 6);
 
     int confirm =
         JOptionPane.showConfirmDialog(
@@ -157,8 +213,9 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
       return;
     }
 
-    String apptId = (String) model.getValueAt(row, 0);
-    String currentNotes = (String) model.getValueAt(row, 6);
+    int modelRow = table.convertRowIndexToModel(row);
+    String apptId = (String) model.getValueAt(modelRow, 0);
+    String currentNotes = (String) model.getValueAt(modelRow, 6);
 
     Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog =
@@ -215,6 +272,25 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    searchLabel.setText(LanguageManager.t("label.search"));
+    completeBtn.setText(LanguageManager.t("btn.markCompleted"));
+    notesBtn.setText(LanguageManager.t("btn.addEditNotes"));
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {
+      "col.apptId",
+      "col.customer",
+      "col.vehicle",
+      "col.service",
+      "col.dateTime",
+      "col.status",
+      "col.techNotes"
+    };
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
     loadData();
   }
 }
