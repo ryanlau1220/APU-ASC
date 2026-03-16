@@ -1,6 +1,7 @@
 package com.apu.asc.ui;
 
 import com.apu.asc.model.User;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -48,42 +49,49 @@ public class SidebarPanel extends JPanel {
     }
   }
 
+  public void refreshTexts() {
+    for (NavButton nb : navButtons) {
+      nb.refreshText();
+    }
+  }
+
   private void buildNavItems(JPanel nav, User user) {
     switch (user.getRole()) {
       case CUSTOMER:
-        addNav(nav, "Appointment History", "history", AppShell.CARD_CUST_HISTORY);
-        addNav(nav, "Submit Feedback", "feedback", AppShell.CARD_CUST_FEEDBACK);
-        addNav(nav, "My Profile", "profile", AppShell.CARD_PROFILE);
+        addNav(nav, "nav.cust.history", "history", AppShell.CARD_CUST_HISTORY);
+        addNav(nav, "nav.cust.feedback", "feedback", AppShell.CARD_CUST_FEEDBACK);
+        addNav(nav, "nav.profile", "profile", AppShell.CARD_PROFILE);
         break;
 
       case TECHNICIAN:
-        addNav(nav, "My Job Queue", "jobs", AppShell.CARD_TECH_JOBS);
-        addNav(nav, "Feedback Received", "feedback", AppShell.CARD_TECH_FEEDBACK);
-        addNav(nav, "My Profile", "profile", AppShell.CARD_PROFILE);
+        addNav(nav, "nav.tech.jobs", "jobs", AppShell.CARD_TECH_JOBS);
+        addNav(nav, "nav.tech.feedback", "feedback", AppShell.CARD_TECH_FEEDBACK);
+        addNav(nav, "nav.profile", "profile", AppShell.CARD_PROFILE);
         break;
 
       case STAFF:
-        addNav(nav, "Customer Management", "customers", AppShell.CARD_STAFF_CUSTOMERS);
-        addNav(nav, "Book Appointment", "book", AppShell.CARD_STAFF_BOOK);
-        addNav(nav, "Assign Technician", "assign", AppShell.CARD_STAFF_ASSIGN);
-        addNav(nav, "Process Payment", "payment", AppShell.CARD_STAFF_PAYMENT);
-        addNav(nav, "My Profile", "profile", AppShell.CARD_PROFILE);
+        addNav(nav, "nav.staff.customers", "customers", AppShell.CARD_STAFF_CUSTOMERS);
+        addNav(nav, "nav.staff.book", "book", AppShell.CARD_STAFF_BOOK);
+        addNav(nav, "nav.staff.assign", "assign", AppShell.CARD_STAFF_ASSIGN);
+        addNav(nav, "nav.staff.payment", "payment", AppShell.CARD_STAFF_PAYMENT);
+        addNav(nav, "nav.profile", "profile", AppShell.CARD_PROFILE);
         break;
 
       case MANAGER:
       default:
-        addNav(nav, "User Management", "users", AppShell.CARD_MGR_USERS);
-        addNav(nav, "Service Pricing", "services", AppShell.CARD_MGR_SERVICES);
-        addNav(nav, "All Feedback", "feedback", AppShell.CARD_MGR_FEEDBACK);
-        addNav(nav, "Audit Log", "audit", AppShell.CARD_MGR_AUDIT);
-        addNav(nav, "Reports", "reports", AppShell.CARD_MGR_REPORTS);
-        addNav(nav, "My Profile", "profile", AppShell.CARD_PROFILE);
+        addNav(nav, "nav.mgr.users", "users", AppShell.CARD_MGR_USERS);
+        addNav(nav, "nav.mgr.services", "services", AppShell.CARD_MGR_SERVICES);
+        addNav(nav, "nav.mgr.feedback", "feedback", AppShell.CARD_MGR_FEEDBACK);
+        addNav(nav, "nav.mgr.audit", "audit", AppShell.CARD_MGR_AUDIT);
+        addNav(nav, "nav.mgr.reports", "reports", AppShell.CARD_MGR_REPORTS);
+        addNav(nav, "nav.mgr.settings", "settings", AppShell.CARD_MGR_SETTINGS);
+        addNav(nav, "nav.profile", "profile", AppShell.CARD_PROFILE);
         break;
     }
   }
 
-  private void addNav(JPanel nav, String label, String iconName, String cardName) {
-    NavButton btn = new NavButton(label, iconName, cardName);
+  private void addNav(JPanel nav, String labelKey, String iconName, String cardName) {
+    NavButton btn = new NavButton(labelKey, iconName, cardName);
     navButtons.add(btn);
     nav.add(btn);
     nav.add(Box.createVerticalStrut(2));
@@ -98,10 +106,12 @@ public class SidebarPanel extends JPanel {
 
   private static class NavButton extends JButton {
     final String cardName;
+    final String labelKey;
 
-    NavButton(String text, String iconName, String cardName) {
-      super(text);
+    NavButton(String labelKey, String iconName, String cardName) {
+      super(LanguageManager.t(labelKey));
       this.cardName = cardName;
+      this.labelKey = labelKey;
 
       ImageIcon icon = loadIcon(iconName);
       if (icon != null) setIcon(scaleIcon(icon));
@@ -118,6 +128,10 @@ public class SidebarPanel extends JPanel {
       setPreferredSize(new Dimension(Theme.SIDEBAR_WIDTH, 40));
       setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 8));
       setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    void refreshText() {
+      setText(LanguageManager.t(labelKey));
     }
 
     void setActive(boolean active) {
