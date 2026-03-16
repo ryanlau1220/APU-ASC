@@ -3,11 +3,13 @@ package com.apu.asc.ui.manager;
 import com.apu.asc.dao.AuditLogDAO;
 import com.apu.asc.model.AuditLog;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -27,6 +29,9 @@ public class ManagerAuditPanel extends JPanel implements Refreshable {
   private DefaultTableModel model;
   private JTextField searchField;
 
+  private JLabel searchLabel;
+  private JButton refreshBtn;
+
   public ManagerAuditPanel() {
     setLayout(new BorderLayout(8, 8));
     setBackground(Theme.BG_PANEL);
@@ -37,7 +42,12 @@ public class ManagerAuditPanel extends JPanel implements Refreshable {
 
   private void buildUI() {
     String[] cols = {
-      "Log ID", "Timestamp", "User ID", "Action Type", "Target Entity", "Description"
+      LanguageManager.t("col.logId"),
+      LanguageManager.t("col.timestamp"),
+      LanguageManager.t("col.userId"),
+      LanguageManager.t("col.actionType"),
+      LanguageManager.t("col.targetEntity"),
+      LanguageManager.t("col.description")
     };
     model =
         new DefaultTableModel(cols, 0) {
@@ -86,12 +96,12 @@ public class ManagerAuditPanel extends JPanel implements Refreshable {
               }
             });
 
-    JButton refreshBtn = new JButton("Refresh");
+    refreshBtn = new JButton(LanguageManager.t("btn.refresh"));
     refreshBtn.setFont(Theme.FONT_BODY_BOLD);
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadData());
 
-    JLabel searchLabel = new JLabel("Search:");
+    searchLabel = new JLabel(LanguageManager.t("label.search"));
     searchLabel.setForeground(Theme.TEXT_SECONDARY);
     searchLabel.setFont(Theme.FONT_BODY);
 
@@ -118,7 +128,7 @@ public class ManagerAuditPanel extends JPanel implements Refreshable {
     if (text.isEmpty()) {
       sorter.setRowFilter(null);
     } else {
-      sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+      sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
     }
   }
 
@@ -141,6 +151,22 @@ public class ManagerAuditPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    searchLabel.setText(LanguageManager.t("label.search"));
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {
+      "col.logId",
+      "col.timestamp",
+      "col.userId",
+      "col.actionType",
+      "col.targetEntity",
+      "col.description"
+    };
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
     loadData();
   }
 }

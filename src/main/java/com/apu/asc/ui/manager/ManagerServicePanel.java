@@ -3,6 +3,7 @@ package com.apu.asc.ui.manager;
 import com.apu.asc.dao.ServiceDAO;
 import com.apu.asc.model.Service;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.ValidationUtil;
@@ -32,6 +33,10 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
   private JTable table;
   private DefaultTableModel model;
 
+  private JButton editPriceBtn;
+  private JButton toggleBtn;
+  private JButton refreshBtn;
+
   public ManagerServicePanel() {
     setLayout(new BorderLayout(8, 8));
     setBackground(Theme.BG_PANEL);
@@ -41,7 +46,13 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    String[] cols = {"Service ID", "Type", "Name", "Price (RM)", "Active"};
+    String[] cols = {
+      LanguageManager.t("col.serviceId"),
+      LanguageManager.t("col.type"),
+      LanguageManager.t("col.name"),
+      LanguageManager.t("col.priceRm"),
+      LanguageManager.t("col.active")
+    };
     model =
         new DefaultTableModel(cols, 0) {
           @Override
@@ -60,9 +71,9 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
     table.setSelectionForeground(Theme.TEXT_PRIMARY);
     table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-    JButton editPriceBtn = makeBtn("Update Price", Theme.BTN_PRIMARY);
-    JButton toggleBtn = makeBtn("Toggle Active", Theme.BTN_PRIMARY);
-    JButton refreshBtn = makeBtn("Refresh", Theme.BTN_PRIMARY);
+    editPriceBtn = makeBtn(LanguageManager.t("btn.updatePrice"), Theme.BTN_PRIMARY);
+    toggleBtn = makeBtn(LanguageManager.t("btn.toggleActive"), Theme.BTN_PRIMARY);
+    refreshBtn = makeBtn(LanguageManager.t("btn.refresh"), Theme.BTN_PRIMARY);
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
     top.setBackground(Theme.BG_PANEL);
@@ -205,6 +216,16 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    editPriceBtn.setText(LanguageManager.t("btn.updatePrice"));
+    toggleBtn.setText(LanguageManager.t("btn.toggleActive"));
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {"col.serviceId", "col.type", "col.name", "col.priceRm", "col.active"};
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
     loadData();
   }
 }

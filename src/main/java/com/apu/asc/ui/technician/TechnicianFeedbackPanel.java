@@ -6,6 +6,7 @@ import com.apu.asc.model.Feedback;
 import com.apu.asc.model.User;
 import com.apu.asc.service.FeedbackService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -28,6 +29,8 @@ public class TechnicianFeedbackPanel extends JPanel implements Refreshable {
   private JTable table;
   private DefaultTableModel model;
 
+  private JButton refreshBtn;
+
   public TechnicianFeedbackPanel(User technician) {
     this.technician = technician;
     setLayout(new BorderLayout(8, 8));
@@ -38,7 +41,13 @@ public class TechnicianFeedbackPanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    String[] cols = {"Feedback ID", "Appointment", "Vehicle", "Rating", "Comments"};
+    String[] cols = {
+      LanguageManager.t("col.feedbackId"),
+      LanguageManager.t("col.appointment"),
+      LanguageManager.t("col.vehicle"),
+      LanguageManager.t("col.rating"),
+      LanguageManager.t("col.comments")
+    };
     model =
         new DefaultTableModel(cols, 0) {
           @Override
@@ -56,7 +65,7 @@ public class TechnicianFeedbackPanel extends JPanel implements Refreshable {
     table.setSelectionForeground(Theme.TEXT_PRIMARY);
     table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-    JButton refreshBtn = new JButton("Refresh");
+    refreshBtn = new JButton(LanguageManager.t("btn.refresh"));
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadData());
 
@@ -88,6 +97,16 @@ public class TechnicianFeedbackPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {
+      "col.feedbackId", "col.appointment", "col.vehicle", "col.rating", "col.comments"
+    };
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
     loadData();
   }
 }

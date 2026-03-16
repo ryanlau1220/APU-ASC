@@ -8,6 +8,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.FeedbackService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -42,6 +43,13 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
   private JTextArea commentsArea;
   private JLabel messageLabel;
 
+  private JLabel titleLabel;
+  private JLabel appointmentLabel;
+  private JLabel ratingLabel;
+  private JLabel commentsLabel;
+  private JButton submitBtn;
+  private JButton refreshBtn;
+
   public CustomerFeedbackPanel(User user) {
     this.user = user;
     setLayout(new BorderLayout(8, 8));
@@ -51,10 +59,10 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    JLabel title = new JLabel("Submit Feedback");
-    title.setFont(Theme.FONT_TITLE);
-    title.setForeground(Theme.TEXT_PRIMARY);
-    add(title, BorderLayout.NORTH);
+    titleLabel = new JLabel(LanguageManager.t("title.submitFeedback"));
+    titleLabel.setFont(Theme.FONT_TITLE);
+    titleLabel.setForeground(Theme.TEXT_PRIMARY);
+    add(titleLabel, BorderLayout.NORTH);
 
     JPanel form = new JPanel(new GridBagLayout());
     form.setBackground(Theme.BG_PANEL);
@@ -70,13 +78,17 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
     commentsArea.setLineWrap(true);
     commentsArea.setWrapStyleWord(true);
 
-    addRow(form, gc, 0, "Appointment:", apptCombo);
-    addRow(form, gc, 1, "Rating (1-5):", ratingSpinner);
+    appointmentLabel = styledLabel(LanguageManager.t("label.appointment"));
+    ratingLabel = styledLabel(LanguageManager.t("label.rating"));
+    commentsLabel = styledLabel(LanguageManager.t("label.comments"));
+
+    addRow(form, gc, 0, appointmentLabel, apptCombo);
+    addRow(form, gc, 1, ratingLabel, ratingSpinner);
 
     gc.gridx = 0;
     gc.gridy = 2;
     gc.weightx = 0.3;
-    form.add(styledLabel("Comments:"), gc);
+    form.add(commentsLabel, gc);
     gc.gridx = 1;
     gc.weightx = 0.7;
     form.add(new JScrollPane(commentsArea), gc);
@@ -88,7 +100,7 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
     gc.gridwidth = 2;
     form.add(messageLabel, gc);
 
-    JButton submitBtn = new JButton("Submit Feedback");
+    submitBtn = new JButton(LanguageManager.t("btn.submitFeedback"));
     submitBtn.setBackground(Theme.BTN_SUCCESS);
     submitBtn.setForeground(Theme.TEXT_PRIMARY);
     submitBtn.setFocusPainted(false);
@@ -96,7 +108,7 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
     gc.gridy = 4;
     form.add(submitBtn, gc);
 
-    JButton refreshBtn = new JButton("Refresh Appointments");
+    refreshBtn = new JButton(LanguageManager.t("btn.refreshAppointments"));
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadEligibleAppointments());
     gc.gridy = 5;
@@ -153,12 +165,12 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
   }
 
   private void addRow(
-      JPanel panel, GridBagConstraints gc, int row, String label, JComponent field) {
+      JPanel panel, GridBagConstraints gc, int row, JLabel label, JComponent field) {
     gc.gridx = 0;
     gc.gridy = row;
     gc.weightx = 0.3;
     gc.gridwidth = 1;
-    panel.add(styledLabel(label), gc);
+    panel.add(label, gc);
     gc.gridx = 1;
     gc.weightx = 0.7;
     panel.add(field, gc);
@@ -172,6 +184,12 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    titleLabel.setText(LanguageManager.t("title.submitFeedback"));
+    appointmentLabel.setText(LanguageManager.t("label.appointment"));
+    ratingLabel.setText(LanguageManager.t("label.rating"));
+    commentsLabel.setText(LanguageManager.t("label.comments"));
+    submitBtn.setText(LanguageManager.t("btn.submitFeedback"));
+    refreshBtn.setText(LanguageManager.t("btn.refreshAppointments"));
     loadEligibleAppointments();
   }
 

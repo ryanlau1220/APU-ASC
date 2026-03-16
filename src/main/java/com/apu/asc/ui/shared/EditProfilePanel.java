@@ -4,6 +4,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.service.AuthService;
 import com.apu.asc.service.UserService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -40,6 +41,17 @@ public class EditProfilePanel extends JPanel implements Refreshable {
   private JLabel profileErrorLabel;
   private JLabel passErrorLabel;
 
+  private JLabel profileInfoTitle;
+  private JLabel changePasswordTitle;
+  private JLabel fullNameLabel;
+  private JLabel emailLabel;
+  private JLabel contactLabel;
+  private JLabel currentPasswordLabel;
+  private JLabel newPasswordLabel;
+  private JLabel confirmNewLabel;
+  private JButton saveBtn;
+  private JButton changeBtn;
+
   public EditProfilePanel(User user) {
     this.user = user;
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -49,7 +61,8 @@ public class EditProfilePanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    add(sectionTitle("Profile Information"));
+    profileInfoTitle = sectionTitle(LanguageManager.t("title.profileInfo"));
+    add(profileInfoTitle);
     add(Box.createVerticalStrut(8));
 
     JPanel infoForm = new JPanel(new GridBagLayout());
@@ -62,9 +75,13 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     emailField = new JTextField(user.getEmail(), 22);
     contactField = new JTextField(user.getContactNumber(), 22);
 
-    addFormRow(infoForm, gc, 0, "Full Name:", fullNameField);
-    addFormRow(infoForm, gc, 1, "Email:", emailField);
-    addFormRow(infoForm, gc, 2, "Contact:", contactField);
+    fullNameLabel = styledLabel(LanguageManager.t("label.fullName"));
+    emailLabel = styledLabel(LanguageManager.t("label.email"));
+    contactLabel = styledLabel(LanguageManager.t("label.contact"));
+
+    addFormRow(infoForm, gc, 0, fullNameLabel, fullNameField);
+    addFormRow(infoForm, gc, 1, emailLabel, emailField);
+    addFormRow(infoForm, gc, 2, contactLabel, contactField);
 
     profileErrorLabel = new JLabel(" ");
     profileErrorLabel.setForeground(Theme.TEXT_ERROR);
@@ -74,14 +91,15 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     gc.gridwidth = 2;
     infoForm.add(profileErrorLabel, gc);
 
-    JButton saveBtn = new JButton("Save Profile");
+    saveBtn = new JButton(LanguageManager.t("btn.saveProfile"));
     styleButton(saveBtn, Theme.BTN_PRIMARY);
     gc.gridy = 4;
     infoForm.add(saveBtn, gc);
 
     add(infoForm);
     add(Box.createVerticalStrut(20));
-    add(sectionTitle("Change Password"));
+    changePasswordTitle = sectionTitle(LanguageManager.t("title.changePassword"));
+    add(changePasswordTitle);
     add(Box.createVerticalStrut(8));
 
     JPanel passForm = new JPanel(new GridBagLayout());
@@ -94,9 +112,13 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     newPassField = new JPasswordField(22);
     confirmPassField = new JPasswordField(22);
 
-    addFormRow(passForm, gc2, 0, "Current Password:", currentPassField);
-    addFormRow(passForm, gc2, 1, "New Password:", newPassField);
-    addFormRow(passForm, gc2, 2, "Confirm New:", confirmPassField);
+    currentPasswordLabel = styledLabel(LanguageManager.t("label.currentPassword"));
+    newPasswordLabel = styledLabel(LanguageManager.t("label.newPassword"));
+    confirmNewLabel = styledLabel(LanguageManager.t("label.confirmNew"));
+
+    addFormRow(passForm, gc2, 0, currentPasswordLabel, currentPassField);
+    addFormRow(passForm, gc2, 1, newPasswordLabel, newPassField);
+    addFormRow(passForm, gc2, 2, confirmNewLabel, confirmPassField);
 
     passErrorLabel = new JLabel(" ");
     passErrorLabel.setForeground(Theme.TEXT_ERROR);
@@ -106,7 +128,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     gc2.gridwidth = 2;
     passForm.add(passErrorLabel, gc2);
 
-    JButton changeBtn = new JButton("Change Password");
+    changeBtn = new JButton(LanguageManager.t("btn.changePassword"));
     styleButton(changeBtn, Theme.BTN_DANGER);
     gc2.gridy = 4;
     passForm.add(changeBtn, gc2);
@@ -169,12 +191,12 @@ public class EditProfilePanel extends JPanel implements Refreshable {
   }
 
   private void addFormRow(
-      JPanel panel, GridBagConstraints gc, int row, String label, JComponent field) {
+      JPanel panel, GridBagConstraints gc, int row, JLabel label, JComponent field) {
     gc.gridx = 0;
     gc.gridy = row;
     gc.weightx = 0.35;
     gc.gridwidth = 1;
-    panel.add(styledLabel(label), gc);
+    panel.add(label, gc);
     gc.gridx = 1;
     gc.weightx = 0.65;
     panel.add(field, gc);
@@ -195,7 +217,18 @@ public class EditProfilePanel extends JPanel implements Refreshable {
   }
 
   @Override
-  public void refresh() {}
+  public void refresh() {
+    profileInfoTitle.setText(LanguageManager.t("title.profileInfo"));
+    changePasswordTitle.setText(LanguageManager.t("title.changePassword"));
+    fullNameLabel.setText(LanguageManager.t("label.fullName"));
+    emailLabel.setText(LanguageManager.t("label.email"));
+    contactLabel.setText(LanguageManager.t("label.contact"));
+    currentPasswordLabel.setText(LanguageManager.t("label.currentPassword"));
+    newPasswordLabel.setText(LanguageManager.t("label.newPassword"));
+    confirmNewLabel.setText(LanguageManager.t("label.confirmNew"));
+    saveBtn.setText(LanguageManager.t("btn.saveProfile"));
+    changeBtn.setText(LanguageManager.t("btn.changePassword"));
+  }
 
   private void styleButton(JButton btn, java.awt.Color bg) {
     btn.setBackground(bg);

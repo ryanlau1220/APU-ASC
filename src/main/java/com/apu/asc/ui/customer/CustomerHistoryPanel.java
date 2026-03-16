@@ -9,6 +9,7 @@ import com.apu.asc.model.Service;
 import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -33,6 +34,8 @@ public class CustomerHistoryPanel extends JPanel implements Refreshable {
   private JTable table;
   private DefaultTableModel model;
 
+  private JButton refreshBtn;
+
   public CustomerHistoryPanel(User user) {
     this.user = user;
     setLayout(new BorderLayout(8, 8));
@@ -43,7 +46,14 @@ public class CustomerHistoryPanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    String[] cols = {"Appt ID", "Vehicle Plate", "Service", "Date & Time", "Status", "Amount Paid"};
+    String[] cols = {
+      LanguageManager.t("col.apptId"),
+      LanguageManager.t("col.vehiclePlate"),
+      LanguageManager.t("col.service"),
+      LanguageManager.t("col.dateTime"),
+      LanguageManager.t("col.status"),
+      LanguageManager.t("col.amountPaid")
+    };
     model =
         new DefaultTableModel(cols, 0) {
           @Override
@@ -65,7 +75,7 @@ public class CustomerHistoryPanel extends JPanel implements Refreshable {
 
     JScrollPane scroll = new JScrollPane(table);
 
-    JButton refreshBtn = new JButton("Refresh");
+    refreshBtn = new JButton(LanguageManager.t("btn.refresh"));
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadData());
 
@@ -106,6 +116,21 @@ public class CustomerHistoryPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {
+      "col.apptId",
+      "col.vehiclePlate",
+      "col.service",
+      "col.dateTime",
+      "col.status",
+      "col.amountPaid"
+    };
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
     loadData();
   }
 }

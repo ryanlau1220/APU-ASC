@@ -8,6 +8,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.service.AppointmentService;
 import com.apu.asc.service.UserService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.util.Result;
 import java.awt.BorderLayout;
@@ -39,6 +40,15 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
   private JTextField dateTimeField;
   private JLabel messageLabel;
 
+  private JLabel titleLabel;
+  private JLabel customerLabel;
+  private JLabel serviceLabel;
+  private JLabel vehiclePlateLabel;
+  private JLabel dateTimeIsoLabel;
+  private JLabel hintLabel;
+  private JButton bookBtn;
+  private JButton refreshBtn;
+
   public StaffBookApptPanel(User staffUser) {
     this.staffUser = staffUser;
     setLayout(new BorderLayout(8, 8));
@@ -48,10 +58,10 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    JLabel title = new JLabel("Book New Appointment");
-    title.setFont(Theme.FONT_TITLE);
-    title.setForeground(Theme.TEXT_PRIMARY);
-    add(title, BorderLayout.NORTH);
+    titleLabel = new JLabel(LanguageManager.t("title.bookAppt"));
+    titleLabel.setFont(Theme.FONT_TITLE);
+    titleLabel.setForeground(Theme.TEXT_PRIMARY);
+    add(titleLabel, BorderLayout.NORTH);
 
     JPanel form = new JPanel(new GridBagLayout());
     form.setBackground(Theme.BG_PANEL);
@@ -67,18 +77,23 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
     loadCustomers();
     loadServices();
 
-    addRow(form, gc, 0, "Customer:", customerCombo);
-    addRow(form, gc, 1, "Service:", serviceCombo);
-    addRow(form, gc, 2, "Vehicle Plate:", vehicleField);
-    addRow(form, gc, 3, "Date & Time (ISO):", dateTimeField);
+    customerLabel = styledLabel(LanguageManager.t("label.customer"));
+    serviceLabel = styledLabel(LanguageManager.t("label.service"));
+    vehiclePlateLabel = styledLabel(LanguageManager.t("label.vehiclePlate"));
+    dateTimeIsoLabel = styledLabel(LanguageManager.t("label.dateTimeIso"));
 
-    JLabel hint = new JLabel("Format: yyyy-MM-ddTHH:mm  (e.g. 2026-06-01T09:00)");
-    hint.setForeground(Theme.TEXT_MUTED);
-    hint.setFont(Theme.FONT_BODY);
+    addRow(form, gc, 0, customerLabel, customerCombo);
+    addRow(form, gc, 1, serviceLabel, serviceCombo);
+    addRow(form, gc, 2, vehiclePlateLabel, vehicleField);
+    addRow(form, gc, 3, dateTimeIsoLabel, dateTimeField);
+
+    hintLabel = new JLabel(LanguageManager.t("hint.dateFormat"));
+    hintLabel.setForeground(Theme.TEXT_MUTED);
+    hintLabel.setFont(Theme.FONT_BODY);
     gc.gridx = 1;
     gc.gridy = 4;
     gc.gridwidth = 1;
-    form.add(hint, gc);
+    form.add(hintLabel, gc);
 
     messageLabel = new JLabel(" ");
     messageLabel.setForeground(Theme.TEXT_ERROR);
@@ -88,7 +103,7 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
     gc.gridwidth = 2;
     form.add(messageLabel, gc);
 
-    JButton bookBtn = new JButton("Book Appointment");
+    bookBtn = new JButton(LanguageManager.t("btn.bookAppt"));
     bookBtn.setBackground(Theme.BTN_PRIMARY);
     bookBtn.setForeground(Theme.TEXT_PRIMARY);
     bookBtn.setFocusPainted(false);
@@ -97,7 +112,7 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
     gc.gridy = 6;
     form.add(bookBtn, gc);
 
-    JButton refreshBtn = new JButton("Refresh Customers");
+    refreshBtn = new JButton(LanguageManager.t("btn.refreshCustomers"));
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadCustomers());
     gc.gridy = 7;
@@ -162,12 +177,12 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
   }
 
   private void addRow(
-      JPanel panel, GridBagConstraints gc, int row, String label, JComponent field) {
+      JPanel panel, GridBagConstraints gc, int row, JLabel label, JComponent field) {
     gc.gridx = 0;
     gc.gridy = row;
     gc.weightx = 0.35;
     gc.gridwidth = 1;
-    panel.add(styledLabel(label), gc);
+    panel.add(label, gc);
     gc.gridx = 1;
     gc.weightx = 0.65;
     panel.add(field, gc);
@@ -196,6 +211,14 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    titleLabel.setText(LanguageManager.t("title.bookAppt"));
+    customerLabel.setText(LanguageManager.t("label.customer"));
+    serviceLabel.setText(LanguageManager.t("label.service"));
+    vehiclePlateLabel.setText(LanguageManager.t("label.vehiclePlate"));
+    dateTimeIsoLabel.setText(LanguageManager.t("label.dateTimeIso"));
+    hintLabel.setText(LanguageManager.t("hint.dateFormat"));
+    bookBtn.setText(LanguageManager.t("btn.bookAppt"));
+    refreshBtn.setText(LanguageManager.t("btn.refreshCustomers"));
     loadCustomers();
     loadServices();
   }

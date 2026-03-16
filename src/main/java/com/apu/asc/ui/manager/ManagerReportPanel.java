@@ -3,6 +3,7 @@ package com.apu.asc.ui.manager;
 import com.apu.asc.service.ReportService;
 import com.apu.asc.service.ReportService.TechnicianStats;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -34,6 +35,10 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
   private JLabel kpiTopTech;
   private JLabel kpiTopRating;
 
+  private JLabel revenueTitleLabel;
+  private JLabel techTitleLabel;
+  private JButton refreshBtn;
+
   private DefaultCategoryDataset revenueDataset;
   private DefaultCategoryDataset techDataset;
 
@@ -50,22 +55,22 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
     JPanel panel = new JPanel(new BorderLayout(6, 6));
     panel.setBackground(Theme.BG_PANEL);
 
-    JLabel title = new JLabel("Revenue by Month");
-    title.setForeground(Theme.TEXT_PRIMARY);
-    title.setFont(Theme.FONT_HEADING);
+    revenueTitleLabel = new JLabel(LanguageManager.t("title.revenueByMonth"));
+    revenueTitleLabel.setForeground(Theme.TEXT_PRIMARY);
+    revenueTitleLabel.setFont(Theme.FONT_HEADING);
 
-    JButton refreshBtn = new JButton("Refresh");
+    refreshBtn = new JButton(LanguageManager.t("btn.refresh"));
     refreshBtn.setFont(Theme.FONT_BODY_BOLD);
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadData());
 
     JPanel titleRow = new JPanel(new BorderLayout());
     titleRow.setBackground(Theme.BG_PANEL);
-    titleRow.add(title, BorderLayout.WEST);
+    titleRow.add(revenueTitleLabel, BorderLayout.WEST);
     titleRow.add(refreshBtn, BorderLayout.EAST);
 
-    kpiTotalRevenue = kpiLabel("Total Revenue: —");
-    kpiBestMonth = kpiLabel("Best Month: —");
+    kpiTotalRevenue = kpiLabel(LanguageManager.t("kpi.totalRevenue") + " —");
+    kpiBestMonth = kpiLabel(LanguageManager.t("kpi.bestMonth") + " —");
 
     JPanel kpiRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 24, 4));
     kpiRow.setBackground(Theme.BG_PANEL);
@@ -102,12 +107,12 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
     JPanel panel = new JPanel(new BorderLayout(6, 6));
     panel.setBackground(Theme.BG_PANEL);
 
-    JLabel title = new JLabel("Technician Performance");
-    title.setForeground(Theme.TEXT_PRIMARY);
-    title.setFont(Theme.FONT_HEADING);
+    techTitleLabel = new JLabel(LanguageManager.t("title.techPerformance"));
+    techTitleLabel.setForeground(Theme.TEXT_PRIMARY);
+    techTitleLabel.setFont(Theme.FONT_HEADING);
 
-    kpiTopTech = kpiLabel("Top Technician: —");
-    kpiTopRating = kpiLabel("Highest Avg Rating: —");
+    kpiTopTech = kpiLabel(LanguageManager.t("kpi.topTechnician") + " —");
+    kpiTopRating = kpiLabel(LanguageManager.t("kpi.highestAvgRating") + " —");
 
     JPanel kpiRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 24, 4));
     kpiRow.setBackground(Theme.BG_PANEL);
@@ -116,7 +121,7 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
 
     JPanel header = new JPanel(new BorderLayout());
     header.setBackground(Theme.BG_PANEL);
-    header.add(title, BorderLayout.NORTH);
+    header.add(techTitleLabel, BorderLayout.NORTH);
     header.add(kpiRow, BorderLayout.SOUTH);
 
     techDataset = new DefaultCategoryDataset();
@@ -194,8 +199,9 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
       }
     }
 
-    kpiTotalRevenue.setText("Total Revenue: RM " + String.format("%.2f", total));
-    kpiBestMonth.setText("Best Month: " + bestMonth);
+    kpiTotalRevenue.setText(
+        LanguageManager.t("kpi.totalRevenue") + " RM " + String.format("%.2f", total));
+    kpiBestMonth.setText(LanguageManager.t("kpi.bestMonth") + " " + bestMonth);
 
     techDataset.clear();
     List<TechnicianStats> stats = reportService.technicianPerformance();
@@ -216,12 +222,15 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
       }
     }
 
-    kpiTopTech.setText("Top Technician: " + topTech);
-    kpiTopRating.setText("Highest Avg Rating: " + topRating);
+    kpiTopTech.setText(LanguageManager.t("kpi.topTechnician") + " " + topTech);
+    kpiTopRating.setText(LanguageManager.t("kpi.highestAvgRating") + " " + topRating);
   }
 
   @Override
   public void refresh() {
+    revenueTitleLabel.setText(LanguageManager.t("title.revenueByMonth"));
+    techTitleLabel.setText(LanguageManager.t("title.techPerformance"));
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
     loadData();
   }
 }

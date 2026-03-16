@@ -7,6 +7,7 @@ import com.apu.asc.model.Feedback;
 import com.apu.asc.model.User;
 import com.apu.asc.service.FeedbackService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -27,6 +28,7 @@ public class ManagerFeedbackPanel extends JPanel implements Refreshable {
 
   private JTable table;
   private DefaultTableModel model;
+  private JButton refreshBtn;
 
   public ManagerFeedbackPanel() {
     setLayout(new BorderLayout(8, 8));
@@ -37,7 +39,14 @@ public class ManagerFeedbackPanel extends JPanel implements Refreshable {
   }
 
   private void buildUI() {
-    String[] cols = {"Feedback ID", "Appt ID", "Customer", "Technician", "Rating", "Comments"};
+    String[] cols = {
+      LanguageManager.t("col.feedbackId"),
+      LanguageManager.t("col.apptId"),
+      LanguageManager.t("col.customer"),
+      LanguageManager.t("col.technician"),
+      LanguageManager.t("col.rating"),
+      LanguageManager.t("col.comments")
+    };
     model =
         new DefaultTableModel(cols, 0) {
           @Override
@@ -55,7 +64,7 @@ public class ManagerFeedbackPanel extends JPanel implements Refreshable {
     table.setSelectionForeground(Theme.TEXT_PRIMARY);
     table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-    JButton refreshBtn = new JButton("Refresh");
+    refreshBtn = new JButton(LanguageManager.t("btn.refresh"));
     refreshBtn.setFont(Theme.FONT_BODY_BOLD);
     refreshBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     refreshBtn.addActionListener(e -> loadData());
@@ -96,6 +105,16 @@ public class ManagerFeedbackPanel extends JPanel implements Refreshable {
 
   @Override
   public void refresh() {
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {
+      "col.feedbackId", "col.apptId", "col.customer", "col.technician", "col.rating", "col.comments"
+    };
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
     loadData();
   }
 }

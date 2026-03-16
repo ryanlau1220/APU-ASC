@@ -4,6 +4,7 @@ import com.apu.asc.model.Role;
 import com.apu.asc.model.User;
 import com.apu.asc.service.UserService;
 import com.apu.asc.ui.Refreshable;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -13,6 +14,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Window;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -26,8 +28,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 public class StaffCustomerPanel extends JPanel implements Refreshable {
 
@@ -35,18 +41,32 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
 
   private JTable table;
   private DefaultTableModel model;
+  private TableRowSorter<DefaultTableModel> sorter;
   private JTextField searchField;
+
+  private JLabel searchLabel;
+  private JButton addBtn;
+  private JButton editBtn;
+  private JButton deactBtn;
+  private JButton refreshBtn;
 
   public StaffCustomerPanel() {
     setLayout(new BorderLayout(8, 8));
     setBackground(Theme.BG_PANEL);
     setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     buildUI();
-    loadData(null);
+    loadData();
   }
 
   private void buildUI() {
-    String[] cols = {"ID", "Username", "Full Name", "Email", "Contact", "Status"};
+    String[] cols = {
+      LanguageManager.t("col.id"),
+      LanguageManager.t("col.username"),
+      LanguageManager.t("col.fullName"),
+      LanguageManager.t("col.email"),
+      LanguageManager.t("col.contact"),
+      LanguageManager.t("col.status")
+    };
     model =
         new DefaultTableModel(cols, 0) {
           @Override
@@ -65,25 +85,46 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
     table.setSelectionForeground(Theme.TEXT_PRIMARY);
     table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+    sorter = new TableRowSorter<>(model);
+    table.setRowSorter(sorter);
+
     JScrollPane scroll = new JScrollPane(table);
 
     JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
     top.setBackground(Theme.BG_PANEL);
 
     searchField = new JTextField(20);
-    JButton searchBtn = makeBtn("Search", Theme.BTN_PRIMARY);
-    JButton addBtn = makeBtn("Add Customer", Theme.BTN_SUCCESS);
-    JButton editBtn = makeBtn("Edit Selected", Theme.BTN_PRIMARY);
-    JButton deactBtn = makeBtn("Deactivate", Theme.BTN_DANGER);
-    JButton refreshBtn = makeBtn("Refresh", Theme.BTN_PRIMARY);
+    searchField
+        .getDocument()
+        .addDocumentListener(
+            new DocumentListener() {
+              @Override
+              public void insertUpdate(DocumentEvent e) {
+                applySearch();
+              }
 
-    JLabel searchLabel = new JLabel("Search:");
+              @Override
+              public void removeUpdate(DocumentEvent e) {
+                applySearch();
+              }
+
+              @Override
+              public void changedUpdate(DocumentEvent e) {
+                applySearch();
+              }
+            });
+
+    addBtn = makeBtn(LanguageManager.t("btn.addCustomer"), Theme.BTN_SUCCESS);
+    editBtn = makeBtn(LanguageManager.t("btn.editSelected"), Theme.BTN_PRIMARY);
+    deactBtn = makeBtn(LanguageManager.t("btn.deactivate"), Theme.BTN_DANGER);
+    refreshBtn = makeBtn(LanguageManager.t("btn.refresh"), Theme.BTN_PRIMARY);
+
+    searchLabel = new JLabel(LanguageManager.t("label.search"));
     searchLabel.setForeground(Theme.TEXT_SECONDARY);
     searchLabel.setFont(Theme.FONT_BODY);
 
     top.add(searchLabel);
     top.add(searchField);
-    top.add(searchBtn);
     top.add(addBtn);
     top.add(editBtn);
     top.add(deactBtn);
@@ -92,8 +133,7 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
     add(top, BorderLayout.NORTH);
     add(scroll, BorderLayout.CENTER);
 
-    searchBtn.addActionListener(e -> loadData(searchField.getText().trim()));
-    refreshBtn.addActionListener(e -> loadData(null));
+    refreshBtn.addActionListener(e -> loadData());
     addBtn.addActionListener(e -> openAddDialog());
     editBtn.addActionListener(e -> openEditDialog());
     deactBtn.addActionListener(e -> handleDeactivate());
@@ -109,16 +149,19 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
     return btn;
   }
 
-  private void loadData(String filter) {
+  private void applySearch() {
+    String text = searchField.getText().trim();
+    if (text.isEmpty()) {
+      sorter.setRowFilter(null);
+    } else {
+      sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
+    }
+  }
+
+  private void loadData() {
     model.setRowCount(0);
     List<User> customers = userService.getAllByRole(Role.CUSTOMER);
     for (User u : customers) {
-      if (filter != null && !filter.isEmpty()) {
-        String fl = filter.toLowerCase();
-        if (!u.getFullName().toLowerCase().contains(fl)
-            && !u.getUsername().toLowerCase().contains(fl)
-            && !u.getEmail().toLowerCase().contains(fl)) continue;
-      }
       model.addRow(
           new Object[] {
             u.getId(), u.getUsername(), u.getFullName(),
@@ -190,7 +233,7 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
             errorLabel.setText(created.getError());
           } else {
             dialog.dispose();
-            loadData(null);
+            loadData();
             Toast.success(owner, "Customer added successfully.");
           }
         });
@@ -205,7 +248,8 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
       return;
     }
 
-    String id = (String) model.getValueAt(row, 0);
+    int modelRow = table.convertRowIndexToModel(row);
+    String id = (String) model.getValueAt(modelRow, 0);
     User user = userService.findById(id);
     if (user == null) return;
 
@@ -262,7 +306,7 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
             errorLabel.setText(result.getError());
           } else {
             dialog.dispose();
-            loadData(null);
+            loadData();
             Toast.success(owner, "Customer updated successfully.");
           }
         });
@@ -277,8 +321,9 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
       return;
     }
 
-    String id = (String) model.getValueAt(row, 0);
-    String name = (String) model.getValueAt(row, 2);
+    int modelRow = table.convertRowIndexToModel(row);
+    String id = (String) model.getValueAt(modelRow, 0);
+    String name = (String) model.getValueAt(modelRow, 2);
 
     int confirm =
         JOptionPane.showConfirmDialog(
@@ -289,13 +334,27 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
     if (confirm != JOptionPane.YES_OPTION) return;
 
     userService.deactivateUser(id);
-    loadData(null);
+    loadData();
     Toast.success(SwingUtilities.getWindowAncestor(this), "Customer deactivated.");
   }
 
   @Override
   public void refresh() {
-    loadData(null);
+    searchLabel.setText(LanguageManager.t("label.search"));
+    addBtn.setText(LanguageManager.t("btn.addCustomer"));
+    editBtn.setText(LanguageManager.t("btn.editSelected"));
+    deactBtn.setText(LanguageManager.t("btn.deactivate"));
+    refreshBtn.setText(LanguageManager.t("btn.refresh"));
+
+    String[] colKeys = {
+      "col.id", "col.username", "col.fullName", "col.email", "col.contact", "col.status"
+    };
+    for (int i = 0; i < colKeys.length; i++) {
+      table.getColumnModel().getColumn(i).setHeaderValue(LanguageManager.t(colKeys[i]));
+    }
+    table.getTableHeader().repaint();
+
+    loadData();
   }
 
   private void addFormRow(JPanel panel, String labelText, javax.swing.JComponent field) {
