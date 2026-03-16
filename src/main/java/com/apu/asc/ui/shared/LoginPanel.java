@@ -22,6 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
 public class LoginPanel extends JPanel {
@@ -82,7 +83,25 @@ public class LoginPanel extends JPanel {
     gc.gridx = 1;
     gc.weightx = 0.7;
     passwordField = new JPasswordField(18);
-    form.add(passwordField, gc);
+    JPanel pwRow = new JPanel(new BorderLayout(4, 0));
+    pwRow.setBackground(Theme.BG_PANEL);
+    JToggleButton pwToggle = new JToggleButton("Show");
+    pwToggle.setFocusPainted(false);
+    pwToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    pwToggle.setFont(Theme.FONT_BODY);
+    pwToggle.addActionListener(
+        e -> {
+          if (pwToggle.isSelected()) {
+            passwordField.setEchoChar((char) 0);
+            pwToggle.setText("Hide");
+          } else {
+            passwordField.setEchoChar('\u2022');
+            pwToggle.setText("Show");
+          }
+        });
+    pwRow.add(passwordField, BorderLayout.CENTER);
+    pwRow.add(pwToggle, BorderLayout.EAST);
+    form.add(pwRow, gc);
 
     messageLabel = new JLabel(" ");
     messageLabel.setForeground(Theme.TEXT_ERROR);

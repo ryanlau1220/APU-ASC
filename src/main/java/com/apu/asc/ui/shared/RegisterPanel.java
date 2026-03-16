@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
 public class RegisterPanel extends JPanel {
@@ -66,13 +67,16 @@ public class RegisterPanel extends JPanel {
     passwordField = new JPasswordField(18);
     confirmField = new JPasswordField(18);
 
+    JPanel pwRow = buildPasswordRow(passwordField, "Show");
+    JPanel confirmRow = buildPasswordRow(confirmField, "Show");
+
     Object[][] rows = {
       {"Username:", usernameField},
       {"Full Name:", fullNameField},
       {"Email:", emailField},
       {"Contact No:", contactField},
-      {"Password:", passwordField},
-      {"Confirm Password:", confirmField}
+      {"Password:", pwRow},
+      {"Confirm Password:", confirmRow}
     };
 
     for (int i = 0; i < rows.length; i++) {
@@ -171,5 +175,27 @@ public class RegisterPanel extends JPanel {
     JLabel lbl = new JLabel(text);
     lbl.setForeground(Theme.TEXT_SECONDARY);
     return lbl;
+  }
+
+  private JPanel buildPasswordRow(JPasswordField field, String initialLabel) {
+    JPanel row = new JPanel(new BorderLayout(4, 0));
+    row.setBackground(Theme.BG_PANEL);
+    JToggleButton toggle = new JToggleButton(initialLabel);
+    toggle.setFocusPainted(false);
+    toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    toggle.setFont(Theme.FONT_BODY);
+    toggle.addActionListener(
+        e -> {
+          if (toggle.isSelected()) {
+            field.setEchoChar((char) 0);
+            toggle.setText("Hide");
+          } else {
+            field.setEchoChar('\u2022');
+            toggle.setText("Show");
+          }
+        });
+    row.add(field, BorderLayout.CENTER);
+    row.add(toggle, BorderLayout.EAST);
+    return row;
   }
 }
