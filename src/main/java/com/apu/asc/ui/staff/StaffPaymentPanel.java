@@ -123,7 +123,7 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
       Payment p = paymentService.findByAppointment(a.getAppointmentId());
       String originalPrice = svc != null ? String.format("RM %.2f", svc.getPrice()) : "-";
       String discount = "-";
-      String amountPaid = "UNPAID";
+      String amountPaid = LanguageManager.t("status.unpaid");
       String receiptSent = "-";
       if (p != null) {
         double original = p.getAmountPaid() + p.getDiscountAmount();
@@ -133,7 +133,8 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
                 ? String.format("-RM %.2f", p.getDiscountAmount())
                 : "RM 0.00";
         amountPaid = String.format("RM %.2f", p.getAmountPaid());
-        receiptSent = p.isReceiptSent() ? "Yes" : "No";
+        receiptSent =
+            p.isReceiptSent() ? LanguageManager.t("label.yes") : LanguageManager.t("label.no");
       }
 
       model.addRow(
@@ -154,14 +155,14 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
     int row = table.getSelectedRow();
     Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      Toast.error(owner, "Select an appointment first.");
+      Toast.error(owner, LanguageManager.t("msg.appt.selectFirst"));
       return;
     }
 
     String apptId = (String) model.getValueAt(row, 0);
 
-    if (!"UNPAID".equals(model.getValueAt(row, 6))) {
-      Toast.error(owner, "Payment already processed for this appointment.");
+    if (!LanguageManager.t("status.unpaid").equals(model.getValueAt(row, 6))) {
+      Toast.error(owner, LanguageManager.t("msg.payment.alreadyProcessed"));
       return;
     }
 
@@ -173,10 +174,10 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
       loadData();
       Toast.success(
           owner,
-          "Payment recorded: "
-              + p.getPaymentId()
-              + "  RM "
-              + String.format("%.2f", p.getAmountPaid()));
+          String.format(
+              LanguageManager.t("msg.payment.recorded"),
+              p.getPaymentId(),
+              String.format("%.2f", p.getAmountPaid())));
       dispatchReceiptAsync(p.getPaymentId(), owner);
     }
   }
@@ -185,7 +186,7 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
     int row = table.getSelectedRow();
     Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      Toast.error(owner, "Select an appointment first.");
+      Toast.error(owner, LanguageManager.t("msg.appt.selectFirst"));
       return;
     }
 
@@ -193,11 +194,11 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
     Payment p = paymentService.findByAppointment(apptId);
 
     if (p == null) {
-      Toast.error(owner, "Process payment first before sending receipt.");
+      Toast.error(owner, LanguageManager.t("msg.receipt.processFirst"));
       return;
     }
     if (p.isReceiptSent()) {
-      Toast.error(owner, "Receipt already sent for this appointment.");
+      Toast.error(owner, LanguageManager.t("msg.receipt.alreadySent"));
       return;
     }
 
@@ -213,17 +214,19 @@ public class StaffPaymentPanel extends JPanel implements Refreshable {
                     () -> {
                       if (ok) {
                         loadData();
-                        Toast.success(owner, "Receipt emailed to customer.");
+                        Toast.success(owner, LanguageManager.t("msg.receipt.emailed"));
                       } else {
-                        Toast.error(
-                            owner,
-                            "Failed to send receipt. Check config.properties for SMTP settings.");
+                        Toast.error(owner, LanguageManager.t("msg.receipt.sendFailedConfig"));
                       }
                     }))
         .exceptionally(
             ex -> {
               SwingUtilities.invokeLater(
-                  () -> Toast.error(owner, "Failed to send receipt: " + ex.getMessage()));
+                  () ->
+                      Toast.error(
+                          owner,
+                          String.format(
+                              LanguageManager.t("msg.receipt.sendFailed"), ex.getMessage())));
               return null;
             });
   }

@@ -120,7 +120,9 @@ public class ManagerAuditPanel extends JPanel implements Refreshable {
     add(statusLabel, BorderLayout.SOUTH);
 
     model.addTableModelListener(
-        e -> statusLabel.setText("  Total entries: " + model.getRowCount()));
+        e ->
+            statusLabel.setText(
+                String.format(LanguageManager.t("label.totalEntries"), model.getRowCount())));
   }
 
   private void filterTable(TableRowSorter<DefaultTableModel> sorter) {

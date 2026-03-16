@@ -138,7 +138,10 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
       serviceCombo.addItem(
           new ServiceItem(
               s.getServiceId(),
-              s.getServiceName() + " — RM " + String.format("%.2f", s.getPrice())));
+              String.format(
+                  LanguageManager.t("fmt.serviceItem"),
+                  s.getServiceName(),
+                  String.format("%.2f", s.getPrice()))));
     }
   }
 
@@ -150,7 +153,7 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
 
     if (customer == null || service == null || plate.isEmpty() || dtStr.isEmpty()) {
       messageLabel.setForeground(Theme.TEXT_ERROR);
-      messageLabel.setText("All fields are required.");
+      messageLabel.setText(LanguageManager.t("msg.fieldsRequired"));
       return;
     }
 
@@ -159,7 +162,7 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
       dt = LocalDateTime.parse(dtStr);
     } catch (DateTimeParseException ex) {
       messageLabel.setForeground(Theme.TEXT_ERROR);
-      messageLabel.setText("Invalid date format. Use yyyy-MM-ddTHH:mm.");
+      messageLabel.setText(LanguageManager.t("msg.date.invalidFormat"));
       return;
     }
 
@@ -172,7 +175,8 @@ public class StaffBookApptPanel extends JPanel implements Refreshable {
     }
 
     messageLabel.setForeground(Theme.TEXT_SUCCESS);
-    messageLabel.setText("Appointment " + result.getValue().getAppointmentId() + " created!");
+    messageLabel.setText(
+        String.format(LanguageManager.t("msg.appt.created"), result.getValue().getAppointmentId()));
     vehicleField.setText("");
   }
 

@@ -69,9 +69,9 @@ public class ManagerSettingsPanel extends JPanel implements Refreshable {
     Window owner = SwingUtilities.getWindowAncestor(this);
     try {
       Path zip = backupService.backup();
-      Toast.success(owner, "Backup saved: " + zip.getFileName());
+      Toast.success(owner, String.format(LanguageManager.t("msg.backup.saved"), zip.getFileName()));
     } catch (IOException ex) {
-      Toast.error(owner, "Backup failed: " + ex.getMessage());
+      Toast.error(owner, String.format(LanguageManager.t("msg.backup.failed"), ex.getMessage()));
     }
   }
 
@@ -80,8 +80,8 @@ public class ManagerSettingsPanel extends JPanel implements Refreshable {
     int confirm =
         JOptionPane.showConfirmDialog(
             owner,
-            "This will overwrite all current data. Continue?",
-            "Confirm Restore",
+            LanguageManager.t("msg.restore.confirm"),
+            LanguageManager.t("dialog.restore.title"),
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE);
     if (confirm != JOptionPane.YES_OPTION) return;
@@ -90,9 +90,9 @@ public class ManagerSettingsPanel extends JPanel implements Refreshable {
     if (fc.showOpenDialog(owner) != JFileChooser.APPROVE_OPTION) return;
     try {
       backupService.restore(fc.getSelectedFile().toPath());
-      Toast.success(owner, "Restore complete. All data refreshed.");
+      Toast.success(owner, LanguageManager.t("msg.restore.complete"));
     } catch (IOException ex) {
-      Toast.error(owner, "Restore failed: " + ex.getMessage());
+      Toast.error(owner, String.format(LanguageManager.t("msg.restore.failed"), ex.getMessage()));
     }
   }
 

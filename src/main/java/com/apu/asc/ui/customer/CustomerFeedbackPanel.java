@@ -131,18 +131,18 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
     for (Appointment a : completed) {
       Service svc = serviceDAO.findById(a.getServiceId());
       String label =
-          a.getAppointmentId()
-              + " \u2014 "
-              + a.getVehiclePlate()
-              + " \u2014 "
-              + (svc != null ? svc.getServiceName() : a.getServiceId());
+          String.format(
+              LanguageManager.t("fmt.apptItem"),
+              a.getAppointmentId(),
+              a.getVehiclePlate(),
+              svc != null ? svc.getServiceName() : a.getServiceId());
       apptCombo.addItem(new AppointmentItem(a.getAppointmentId(), label));
     }
   }
 
   private void handleSubmit() {
     if (apptCombo.getItemCount() == 0) {
-      messageLabel.setText("No eligible appointments to review.");
+      messageLabel.setText(LanguageManager.t("msg.feedback.noEligible"));
       return;
     }
 
@@ -161,7 +161,8 @@ public class CustomerFeedbackPanel extends JPanel implements Refreshable {
     messageLabel.setText(" ");
     commentsArea.setText("");
     loadEligibleAppointments();
-    Toast.success(SwingUtilities.getWindowAncestor(this), "Feedback submitted! Thank you.");
+    Toast.success(
+        SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.feedback.submitted"));
   }
 
   private void addRow(

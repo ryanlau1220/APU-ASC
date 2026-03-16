@@ -5,6 +5,7 @@ import com.apu.asc.model.User;
 import com.apu.asc.service.AuthService;
 import com.apu.asc.service.OtpService;
 import com.apu.asc.ui.AppShell;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.util.PasswordUtil;
 import com.apu.asc.util.Result;
@@ -52,7 +53,7 @@ public class LoginPanel extends JPanel {
 
     JPanel header = new JPanel(new FlowLayout(FlowLayout.CENTER));
     header.setBackground(Theme.BG_ROOT);
-    JLabel title = new JLabel("APU-ASC");
+    JLabel title = new JLabel(LanguageManager.t("app.shortTitle"));
     title.setFont(Theme.FONT_DISPLAY);
     title.setForeground(Theme.TEXT_PRIMARY);
     header.add(title);
@@ -70,7 +71,7 @@ public class LoginPanel extends JPanel {
     gc.gridx = 0;
     gc.gridy = 0;
     gc.weightx = 0.3;
-    form.add(styledLabel("Username:"), gc);
+    form.add(styledLabel(LanguageManager.t("label.username")), gc);
     gc.gridx = 1;
     gc.weightx = 0.7;
     usernameField = new JTextField(18);
@@ -79,13 +80,13 @@ public class LoginPanel extends JPanel {
     gc.gridx = 0;
     gc.gridy = 1;
     gc.weightx = 0.3;
-    form.add(styledLabel("Password:"), gc);
+    form.add(styledLabel(LanguageManager.t("label.password")), gc);
     gc.gridx = 1;
     gc.weightx = 0.7;
     passwordField = new JPasswordField(18);
     JPanel pwRow = new JPanel(new BorderLayout(4, 0));
     pwRow.setBackground(Theme.BG_PANEL);
-    JToggleButton pwToggle = new JToggleButton("Show");
+    JToggleButton pwToggle = new JToggleButton(LanguageManager.t("toggle.show"));
     pwToggle.setFocusPainted(false);
     pwToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     pwToggle.setFont(Theme.FONT_BODY);
@@ -93,10 +94,10 @@ public class LoginPanel extends JPanel {
         e -> {
           if (pwToggle.isSelected()) {
             passwordField.setEchoChar((char) 0);
-            pwToggle.setText("Hide");
+            pwToggle.setText(LanguageManager.t("toggle.hide"));
           } else {
             passwordField.setEchoChar('\u2022');
-            pwToggle.setText("Show");
+            pwToggle.setText(LanguageManager.t("toggle.show"));
           }
         });
     pwRow.add(passwordField, BorderLayout.CENTER);
@@ -111,7 +112,7 @@ public class LoginPanel extends JPanel {
     gc.gridwidth = 2;
     form.add(messageLabel, gc);
 
-    JButton loginBtn = new JButton("Login");
+    JButton loginBtn = new JButton(LanguageManager.t("btn.login"));
     loginBtn.setBackground(Theme.BTN_PRIMARY);
     loginBtn.setForeground(Theme.TEXT_PRIMARY);
     loginBtn.setFocusPainted(false);
@@ -119,7 +120,7 @@ public class LoginPanel extends JPanel {
     gc.gridy = 3;
     form.add(loginBtn, gc);
 
-    JButton registerBtn = new JButton("Register as Customer");
+    JButton registerBtn = new JButton(LanguageManager.t("btn.registerCustomer"));
     registerBtn.setForeground(Theme.TEXT_LINK);
     registerBtn.setBorderPainted(false);
     registerBtn.setContentAreaFilled(false);
@@ -127,7 +128,7 @@ public class LoginPanel extends JPanel {
     gc.gridy = 4;
     form.add(registerBtn, gc);
 
-    JButton forgotBtn = new JButton("Forgot Password?");
+    JButton forgotBtn = new JButton(LanguageManager.t("btn.forgotPassword"));
     forgotBtn.setForeground(Theme.TEXT_LINK);
     forgotBtn.setBorderPainted(false);
     forgotBtn.setContentAreaFilled(false);
@@ -152,7 +153,7 @@ public class LoginPanel extends JPanel {
     String password = new String(passwordField.getPassword());
 
     if (username.isEmpty() || password.isEmpty()) {
-      messageLabel.setText("Username and password are required.");
+      messageLabel.setText(LanguageManager.t("msg.login.required"));
       return;
     }
 
@@ -172,7 +173,10 @@ public class LoginPanel extends JPanel {
   private void showForgotStep1() {
     Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog =
-        new JDialog(owner, "Forgot Password", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.forgotPassword.title"),
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(400, 220);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -186,7 +190,7 @@ public class LoginPanel extends JPanel {
     gc.fill = GridBagConstraints.HORIZONTAL;
     gc.gridwidth = 2;
 
-    JLabel instruction = new JLabel("Enter your username to receive a reset OTP.");
+    JLabel instruction = new JLabel(LanguageManager.t("msg.otp.usernamePrompt"));
     instruction.setForeground(Theme.TEXT_SECONDARY);
     instruction.setFont(Theme.FONT_BODY);
     gc.gridy = 0;
@@ -196,7 +200,7 @@ public class LoginPanel extends JPanel {
     gc.weightx = 0.35;
     gc.gridx = 0;
     gc.gridy = 1;
-    panel.add(styledLabel("Username:"), gc);
+    panel.add(styledLabel(LanguageManager.t("label.username")), gc);
     gc.gridx = 1;
     gc.weightx = 0.65;
     JTextField usernameInput = new JTextField(16);
@@ -210,7 +214,7 @@ public class LoginPanel extends JPanel {
     gc.gridwidth = 2;
     panel.add(statusLabel, gc);
 
-    JButton sendBtn = new JButton("Send OTP");
+    JButton sendBtn = new JButton(LanguageManager.t("btn.sendOtp"));
     sendBtn.setBackground(Theme.BTN_PRIMARY);
     sendBtn.setForeground(Theme.TEXT_PRIMARY);
     sendBtn.setFocusPainted(false);
@@ -225,23 +229,23 @@ public class LoginPanel extends JPanel {
         e -> {
           String username = usernameInput.getText().trim();
           if (username.isEmpty()) {
-            statusLabel.setText("Username is required.");
+            statusLabel.setText(LanguageManager.t("msg.otp.usernameRequired"));
             return;
           }
 
           User user = userDAO.findByUsername(username);
           if (user == null) {
-            statusLabel.setText("No account found with that username.");
+            statusLabel.setText(LanguageManager.t("msg.otp.noAccount"));
             return;
           }
           if (user.getEmail() == null || user.getEmail().isBlank()) {
-            statusLabel.setText("No email address on file for this account.");
+            statusLabel.setText(LanguageManager.t("msg.otp.noEmail"));
             return;
           }
 
           sendBtn.setEnabled(false);
           statusLabel.setForeground(Theme.TEXT_MUTED);
-          statusLabel.setText("Sending OTP...");
+          statusLabel.setText(LanguageManager.t("msg.otp.sending"));
 
           String otp = otpService.generateOtp(username);
 
@@ -260,7 +264,7 @@ public class LoginPanel extends JPanel {
                         () -> {
                           sendBtn.setEnabled(true);
                           statusLabel.setForeground(Theme.TEXT_ERROR);
-                          statusLabel.setText("Failed to send OTP. Check SMTP config.");
+                          statusLabel.setText(LanguageManager.t("msg.otp.sendFailed"));
                         });
                     return null;
                   });
@@ -271,7 +275,10 @@ public class LoginPanel extends JPanel {
 
   private void showForgotStep2(Window owner, String username, String maskedEmail) {
     JDialog dialog =
-        new JDialog(owner, "Enter OTP", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.otp.title"),
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(400, 240);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -285,13 +292,14 @@ public class LoginPanel extends JPanel {
     gc.fill = GridBagConstraints.HORIZONTAL;
     gc.gridwidth = 2;
 
-    JLabel instruction = new JLabel("Enter the 6-digit OTP sent to " + maskedEmail + ".");
+    JLabel instruction =
+        new JLabel(String.format(LanguageManager.t("msg.otp.sentTo"), maskedEmail));
     instruction.setForeground(Theme.TEXT_SECONDARY);
     instruction.setFont(Theme.FONT_BODY);
     gc.gridy = 0;
     panel.add(instruction, gc);
 
-    JLabel expiry = new JLabel("The code expires in 5 minutes.");
+    JLabel expiry = new JLabel(LanguageManager.t("msg.otp.expires"));
     expiry.setForeground(Theme.TEXT_MUTED);
     expiry.setFont(Theme.FONT_BODY);
     gc.gridy = 1;
@@ -301,7 +309,7 @@ public class LoginPanel extends JPanel {
     gc.weightx = 0.35;
     gc.gridx = 0;
     gc.gridy = 2;
-    panel.add(styledLabel("OTP Code:"), gc);
+    panel.add(styledLabel(LanguageManager.t("label.otpCode")), gc);
     gc.gridx = 1;
     gc.weightx = 0.65;
     JTextField otpInput = new JTextField(10);
@@ -315,7 +323,7 @@ public class LoginPanel extends JPanel {
     gc.gridwidth = 2;
     panel.add(statusLabel, gc);
 
-    JButton verifyBtn = new JButton("Verify OTP");
+    JButton verifyBtn = new JButton(LanguageManager.t("btn.verifyOtp"));
     verifyBtn.setBackground(Theme.BTN_PRIMARY);
     verifyBtn.setForeground(Theme.TEXT_PRIMARY);
     verifyBtn.setFocusPainted(false);
@@ -329,11 +337,11 @@ public class LoginPanel extends JPanel {
         e -> {
           String code = otpInput.getText().trim();
           if (code.isEmpty()) {
-            statusLabel.setText("OTP code is required.");
+            statusLabel.setText(LanguageManager.t("msg.otp.codeRequired"));
             return;
           }
           if (!otpService.validateOtp(username, code)) {
-            statusLabel.setText("Invalid or expired OTP. Please try again.");
+            statusLabel.setText(LanguageManager.t("msg.otp.invalid"));
             return;
           }
           otpService.clearOtp(username);
@@ -346,7 +354,10 @@ public class LoginPanel extends JPanel {
 
   private void showForgotStep3(Window owner, String username) {
     JDialog dialog =
-        new JDialog(owner, "Set New Password", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.resetPassword.title"),
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(420, 270);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -360,7 +371,8 @@ public class LoginPanel extends JPanel {
     gc.fill = GridBagConstraints.HORIZONTAL;
     gc.gridwidth = 2;
 
-    JLabel instruction = new JLabel("Enter a new password for \"" + username + "\".");
+    JLabel instruction =
+        new JLabel(String.format(LanguageManager.t("msg.resetPassword.prompt"), username));
     instruction.setForeground(Theme.TEXT_SECONDARY);
     instruction.setFont(Theme.FONT_BODY);
     gc.gridy = 0;
@@ -370,7 +382,7 @@ public class LoginPanel extends JPanel {
     gc.weightx = 0.4;
     gc.gridx = 0;
     gc.gridy = 1;
-    panel.add(styledLabel("New Password:"), gc);
+    panel.add(styledLabel(LanguageManager.t("label.newPassword")), gc);
     gc.gridx = 1;
     gc.weightx = 0.6;
     JPasswordField newPassField = new JPasswordField(16);
@@ -379,7 +391,7 @@ public class LoginPanel extends JPanel {
     gc.gridx = 0;
     gc.gridy = 2;
     gc.weightx = 0.4;
-    panel.add(styledLabel("Confirm Password:"), gc);
+    panel.add(styledLabel(LanguageManager.t("label.confirmPassword")), gc);
     gc.gridx = 1;
     gc.weightx = 0.6;
     JPasswordField confirmPassField = new JPasswordField(16);
@@ -393,7 +405,7 @@ public class LoginPanel extends JPanel {
     gc.gridwidth = 2;
     panel.add(statusLabel, gc);
 
-    JButton resetBtn = new JButton("Reset Password");
+    JButton resetBtn = new JButton(LanguageManager.t("btn.resetPassword"));
     resetBtn.setBackground(Theme.BTN_PRIMARY);
     resetBtn.setForeground(Theme.TEXT_PRIMARY);
     resetBtn.setFocusPainted(false);
@@ -409,21 +421,21 @@ public class LoginPanel extends JPanel {
           String confirmPass = new String(confirmPassField.getPassword());
 
           if (newPass.isEmpty()) {
-            statusLabel.setText("New password is required.");
+            statusLabel.setText(LanguageManager.t("msg.resetPassword.required"));
             return;
           }
           if (newPass.length() < 6) {
-            statusLabel.setText("Password must be at least 6 characters.");
+            statusLabel.setText(LanguageManager.t("msg.password.minLength"));
             return;
           }
           if (!newPass.equals(confirmPass)) {
-            statusLabel.setText("Passwords do not match.");
+            statusLabel.setText(LanguageManager.t("msg.password.mismatch"));
             return;
           }
 
           User user = userDAO.findByUsername(username);
           if (user == null) {
-            statusLabel.setText("Account not found. Please try again.");
+            statusLabel.setText(LanguageManager.t("msg.account.notFound"));
             return;
           }
 
@@ -432,7 +444,7 @@ public class LoginPanel extends JPanel {
 
           dialog.dispose();
           messageLabel.setForeground(Theme.TEXT_SUCCESS);
-          messageLabel.setText("Password reset successfully. Please log in.");
+          messageLabel.setText(LanguageManager.t("msg.password.resetSuccess"));
         });
 
     dialog.setVisible(true);

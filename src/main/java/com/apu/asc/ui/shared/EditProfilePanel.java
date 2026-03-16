@@ -145,7 +145,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     String contact = contactField.getText().trim();
 
     if (name.isEmpty() || email.isEmpty() || contact.isEmpty()) {
-      profileErrorLabel.setText("All fields are required.");
+      profileErrorLabel.setText(LanguageManager.t("msg.fieldsRequired"));
       return;
     }
 
@@ -156,7 +156,7 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     }
 
     profileErrorLabel.setText(" ");
-    Toast.success(SwingUtilities.getWindowAncestor(this), "Profile updated successfully.");
+    Toast.success(SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.profile.updated"));
   }
 
   private void handleChangePassword() {
@@ -165,21 +165,21 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     String confirm = new String(confirmPassField.getPassword());
 
     if (current.isEmpty() || newPass.isEmpty() || confirm.isEmpty()) {
-      passErrorLabel.setText("All password fields are required.");
+      passErrorLabel.setText(LanguageManager.t("msg.password.fieldsRequired"));
       return;
     }
     if (!newPass.equals(confirm)) {
-      passErrorLabel.setText("New passwords do not match.");
+      passErrorLabel.setText(LanguageManager.t("msg.password.mismatch"));
       return;
     }
     if (newPass.length() < 6) {
-      passErrorLabel.setText("New password must be at least 6 characters.");
+      passErrorLabel.setText(LanguageManager.t("msg.password.minLength"));
       return;
     }
 
     boolean ok = authService.changePassword(user, current, newPass);
     if (!ok) {
-      passErrorLabel.setText("Current password is incorrect.");
+      passErrorLabel.setText(LanguageManager.t("msg.password.currentIncorrect"));
       return;
     }
 
@@ -187,7 +187,8 @@ public class EditProfilePanel extends JPanel implements Refreshable {
     newPassField.setText("");
     confirmPassField.setText("");
     passErrorLabel.setText(" ");
-    Toast.success(SwingUtilities.getWindowAncestor(this), "Password changed successfully.");
+    Toast.success(
+        SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.password.changed"));
   }
 
   private void addFormRow(

@@ -188,7 +188,8 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
   private void handleAssign(boolean withSuggestion) {
     int row = table.getSelectedRow();
     if (row < 0) {
-      Toast.error(SwingUtilities.getWindowAncestor(this), "Select an appointment first.");
+      Toast.error(
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.appt.selectFirst"));
       return;
     }
 
@@ -201,7 +202,8 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
             .filter(u -> u.getStatus() == UserStatus.ACTIVE)
             .toList();
     if (technicians.isEmpty()) {
-      Toast.error(SwingUtilities.getWindowAncestor(this), "No active technicians available.");
+      Toast.error(
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.tech.noneAvailable"));
       return;
     }
 
@@ -217,7 +219,7 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
       if (available.isEmpty()) {
         Toast.error(
             SwingUtilities.getWindowAncestor(this),
-            "No available technicians without schedule conflicts.");
+            LanguageManager.t("msg.tech.noneAvailableNoConflicts"));
         return;
       }
 
@@ -247,8 +249,10 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
       TechScore best = scores.get(0);
       toastMessage =
           String.format(
-              "Recommended Tech: %s (%d jobs today, %.1f\u2605)",
-              best.tech().getFullName(), best.workload(), best.avgRating());
+              LanguageManager.t("msg.tech.recommended"),
+              best.tech().getFullName(),
+              best.workload(),
+              best.avgRating());
       technicians = scores.stream().map(TechScore::tech).toList();
     }
 
@@ -258,7 +262,11 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
             .toArray(String[]::new);
 
     Window owner = SwingUtilities.getWindowAncestor(this);
-    JDialog dialog = new JDialog(owner, "Assign Technician", Dialog.ModalityType.APPLICATION_MODAL);
+    JDialog dialog =
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.assignTech.title"),
+            Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(320, 260);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -270,15 +278,15 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
     techList.setSelectedIndex(0);
     techList.setFont(Theme.FONT_BODY);
 
-    JButton assignBtn = makeBtn("Assign", Theme.BTN_SUCCESS);
-    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+    JButton assignBtn = makeBtn(LanguageManager.t("btn.assign"), Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn(LanguageManager.t("btn.cancel"), Theme.BTN_DANGER);
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
     btnRow.setBackground(Theme.BG_PANEL);
     btnRow.add(cancelBtn);
     btnRow.add(assignBtn);
 
-    JLabel label = new JLabel("Select Technician:");
+    JLabel label = new JLabel(LanguageManager.t("label.selectTechnician"));
     label.setForeground(Theme.TEXT_SECONDARY);
     label.setFont(Theme.FONT_BODY);
     label.setBorder(BorderFactory.createEmptyBorder(8, 8, 4, 8));
@@ -304,10 +312,10 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
           dialog.dispose();
           boolean ok = apptService.assignTechnician(apptId, techId);
           if (!ok) {
-            Toast.error(owner, "Assignment failed: technician has a schedule conflict.");
+            Toast.error(owner, LanguageManager.t("msg.assign.conflict"));
           } else {
             loadData();
-            Toast.success(owner, "Technician assigned successfully.");
+            Toast.success(owner, LanguageManager.t("msg.assign.success"));
           }
         });
 

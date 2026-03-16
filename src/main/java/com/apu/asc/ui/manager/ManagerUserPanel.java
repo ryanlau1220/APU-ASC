@@ -238,7 +238,11 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     errorLabel.setFont(Theme.FONT_BODY);
 
     Window owner = SwingUtilities.getWindowAncestor(this);
-    JDialog dialog = new JDialog(owner, "Add User", Dialog.ModalityType.APPLICATION_MODAL);
+    JDialog dialog =
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.user.add.title"),
+            Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(360, 320);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -246,15 +250,15 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     JPanel form = new JPanel(new GridLayout(6, 2, 6, 6));
     form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
     form.setBackground(Theme.BG_PANEL);
-    addFormRow(form, "Role:", roleCombo);
-    addFormRow(form, "Username:", username);
-    addFormRow(form, "Password:", pass);
-    addFormRow(form, "Full Name:", fullName);
-    addFormRow(form, "Email:", email);
-    addFormRow(form, "Contact:", contact);
+    addFormRow(form, LanguageManager.t("label.role"), roleCombo);
+    addFormRow(form, LanguageManager.t("label.username"), username);
+    addFormRow(form, LanguageManager.t("label.password"), pass);
+    addFormRow(form, LanguageManager.t("label.fullName"), fullName);
+    addFormRow(form, LanguageManager.t("label.email"), email);
+    addFormRow(form, LanguageManager.t("label.contact"), contact);
 
-    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
-    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+    JButton saveBtn = makeBtn(LanguageManager.t("btn.save"), Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn(LanguageManager.t("btn.cancel"), Theme.BTN_DANGER);
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     btnRow.setBackground(Theme.BG_PANEL);
@@ -292,7 +296,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
           } else {
             dialog.dispose();
             loadData(null);
-            Toast.success(owner, "User created successfully.");
+            Toast.success(owner, LanguageManager.t("msg.user.created"));
           }
         });
 
@@ -303,7 +307,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     int row = table.getSelectedRow();
     Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      Toast.error(owner, "Select a user first.");
+      Toast.error(owner, LanguageManager.t("msg.user.selectFirst"));
       return;
     }
 
@@ -319,7 +323,11 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     errorLabel.setForeground(Theme.TEXT_ERROR);
     errorLabel.setFont(Theme.FONT_BODY);
 
-    JDialog dialog = new JDialog(owner, "Edit User", Dialog.ModalityType.APPLICATION_MODAL);
+    JDialog dialog =
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.user.edit.title"),
+            Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(340, 220);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -327,12 +335,12 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     JPanel form = new JPanel(new GridLayout(3, 2, 6, 6));
     form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
     form.setBackground(Theme.BG_PANEL);
-    addFormRow(form, "Full Name:", fullName);
-    addFormRow(form, "Email:", email);
-    addFormRow(form, "Contact:", contact);
+    addFormRow(form, LanguageManager.t("label.fullName"), fullName);
+    addFormRow(form, LanguageManager.t("label.email"), email);
+    addFormRow(form, LanguageManager.t("label.contact"), contact);
 
-    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
-    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+    JButton saveBtn = makeBtn(LanguageManager.t("btn.save"), Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn(LanguageManager.t("btn.cancel"), Theme.BTN_DANGER);
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     btnRow.setBackground(Theme.BG_PANEL);
@@ -364,7 +372,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
           } else {
             dialog.dispose();
             loadData(null);
-            Toast.success(owner, "User updated successfully.");
+            Toast.success(owner, LanguageManager.t("msg.user.updated"));
           }
         });
 
@@ -375,36 +383,42 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
     int row = table.getSelectedRow();
     Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      Toast.error(owner, "Select a user first.");
+      Toast.error(owner, LanguageManager.t("msg.user.selectFirst"));
       return;
     }
     String id = (String) model.getValueAt(table.convertRowIndexToModel(row), 0);
     String name = (String) model.getValueAt(table.convertRowIndexToModel(row), 2);
     int confirm =
         JOptionPane.showConfirmDialog(
-            owner, "Deactivate user \"" + name + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
+            owner,
+            String.format(LanguageManager.t("msg.user.deactivateConfirm"), name),
+            LanguageManager.t("dialog.confirm.title"),
+            JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
     userService.deactivateUser(id);
     loadData(null);
-    Toast.success(owner, "User deactivated.");
+    Toast.success(owner, LanguageManager.t("msg.user.deactivated"));
   }
 
   private void handleReactivate() {
     int row = table.getSelectedRow();
     Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      Toast.error(owner, "Select a user first.");
+      Toast.error(owner, LanguageManager.t("msg.user.selectFirst"));
       return;
     }
     String id = (String) model.getValueAt(table.convertRowIndexToModel(row), 0);
     String name = (String) model.getValueAt(table.convertRowIndexToModel(row), 2);
     int confirm =
         JOptionPane.showConfirmDialog(
-            owner, "Reactivate user \"" + name + "\"?", "Confirm", JOptionPane.YES_NO_OPTION);
+            owner,
+            String.format(LanguageManager.t("msg.user.reactivateConfirm"), name),
+            LanguageManager.t("dialog.confirm.title"),
+            JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
     userService.reactivateUser(id);
     loadData(null);
-    Toast.success(owner, "User reactivated.");
+    Toast.success(owner, LanguageManager.t("msg.user.reactivated"));
   }
 
   @Override
@@ -464,9 +478,9 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
                 toCsvField(user.getStatus().name())));
         w.newLine();
       }
-      Toast.success(owner, "Exported " + users.size() + " users to CSV.");
+      Toast.success(owner, String.format(LanguageManager.t("msg.csv.exported"), users.size()));
     } catch (IOException ex) {
-      Toast.error(owner, "Export failed: " + ex.getMessage());
+      Toast.error(owner, String.format(LanguageManager.t("msg.csv.exportFailed"), ex.getMessage()));
     }
   }
 
@@ -488,16 +502,13 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
         }
         List<String> fields = parseCsvLine(line);
         if (fields == null || fields.size() != 8) {
-          Toast.error(
-              owner,
-              "Invalid row (need 8 columns: ID,Username,PasswordHash,Role,FullName,Email,Contact,Status): "
-                  + line);
+          Toast.error(owner, String.format(LanguageManager.t("msg.csv.invalidRow"), line));
           return;
         }
         rows.add(fields.toArray(String[]::new));
       }
     } catch (IOException ex) {
-      Toast.error(owner, "Import failed: " + ex.getMessage());
+      Toast.error(owner, String.format(LanguageManager.t("msg.csv.importFailed"), ex.getMessage()));
       return;
     }
     List<User> toImport = new ArrayList<>();
@@ -520,7 +531,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
       String statusRaw = p[7].trim().toUpperCase();
 
       if (id.isBlank() || username.isBlank() || passwordHash.isBlank()) {
-        Toast.error(owner, "Row " + rowIndex + ": ID, username, and password hash are required.");
+        Toast.error(owner, String.format(LanguageManager.t("msg.csv.rowRequired"), rowIndex));
         return;
       }
 
@@ -529,35 +540,43 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
       try {
         role = Role.valueOf(roleRaw);
       } catch (IllegalArgumentException ex) {
-        Toast.error(owner, "Row " + rowIndex + ": invalid role '" + roleRaw + "'.");
+        Toast.error(
+            owner, String.format(LanguageManager.t("msg.csv.rowInvalidRole"), rowIndex, roleRaw));
         return;
       }
       try {
         status = UserStatus.valueOf(statusRaw);
       } catch (IllegalArgumentException ex) {
-        Toast.error(owner, "Row " + rowIndex + ": invalid status '" + statusRaw + "'.");
+        Toast.error(
+            owner,
+            String.format(LanguageManager.t("msg.csv.rowInvalidStatus"), rowIndex, statusRaw));
         return;
       }
 
       if (userDAO.findById(id) != null || ids.contains(id)) {
-        Toast.error(owner, "Row " + rowIndex + ": duplicate user ID '" + id + "'.");
+        Toast.error(
+            owner, String.format(LanguageManager.t("msg.csv.rowDuplicateId"), rowIndex, id));
         return;
       }
       if (userDAO.findByUsername(username) != null || usernames.contains(username)) {
-        Toast.error(owner, "Row " + rowIndex + ": duplicate username '" + username + "'.");
+        Toast.error(
+            owner,
+            String.format(LanguageManager.t("msg.csv.rowDuplicateUsername"), rowIndex, username));
         return;
       }
 
       String emailKey = email.toLowerCase();
       if (emails.contains(emailKey)) {
-        Toast.error(owner, "Row " + rowIndex + ": duplicate email '" + email + "'.");
+        Toast.error(
+            owner, String.format(LanguageManager.t("msg.csv.rowDuplicateEmail"), rowIndex, email));
         return;
       }
 
       User user = buildUser(role, id, username, passwordHash, status, fullName, email, contact);
       String violations = ValidationUtil.getViolations(user);
       if (violations != null) {
-        Toast.error(owner, "Row " + rowIndex + ": " + violations);
+        Toast.error(
+            owner, String.format(LanguageManager.t("msg.csv.rowViolations"), rowIndex, violations));
         return;
       }
 
@@ -571,7 +590,7 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
       userDAO.save(user);
     }
     loadData(null);
-    Toast.success(owner, "Imported " + toImport.size() + " users from CSV.");
+    Toast.success(owner, String.format(LanguageManager.t("msg.csv.imported"), toImport.size()));
   }
 
   private User buildUser(

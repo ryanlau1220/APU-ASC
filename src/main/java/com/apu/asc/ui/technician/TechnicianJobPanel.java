@@ -180,7 +180,8 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
   private void handleComplete() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      Toast.error(SwingUtilities.getWindowAncestor(this), "Select an appointment first.");
+      Toast.error(
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.appt.selectFirst"));
       return;
     }
 
@@ -191,25 +192,27 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
     int confirm =
         JOptionPane.showConfirmDialog(
             SwingUtilities.getWindowAncestor(this),
-            "Mark appointment " + apptId + " as COMPLETED?",
-            "Confirm",
+            String.format(LanguageManager.t("msg.appt.completeConfirm"), apptId),
+            LanguageManager.t("dialog.confirm.title"),
             JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
 
     boolean ok = apptService.completeAppointment(apptId, notes == null ? "" : notes);
     if (!ok) {
       Toast.error(
-          SwingUtilities.getWindowAncestor(this), "Failed to complete. Check appointment status.");
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.appt.completeFailed"));
     } else {
       loadData();
-      Toast.success(SwingUtilities.getWindowAncestor(this), "Appointment marked as COMPLETED.");
+      Toast.success(
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.appt.completed"));
     }
   }
 
   private void handleEditNotes() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      Toast.error(SwingUtilities.getWindowAncestor(this), "Select an appointment first.");
+      Toast.error(
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.appt.selectFirst"));
       return;
     }
 
@@ -220,7 +223,9 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
     Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog =
         new JDialog(
-            owner, "Technician Notes — " + apptId, java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+            owner,
+            String.format(LanguageManager.t("dialog.techNotes.title"), apptId),
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(420, 280);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -229,7 +234,7 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
     panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
     panel.setBackground(Theme.BG_PANEL);
 
-    JLabel lbl = new JLabel("Notes for " + apptId + ":");
+    JLabel lbl = new JLabel(String.format(LanguageManager.t("label.notesFor"), apptId));
     lbl.setForeground(Theme.TEXT_SECONDARY);
     lbl.setFont(Theme.FONT_LABEL);
     panel.add(lbl, BorderLayout.NORTH);
@@ -241,8 +246,8 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     btnRow.setBackground(Theme.BG_PANEL);
-    JButton saveBtn = new JButton("Save");
-    JButton cancelBtn = new JButton("Cancel");
+    JButton saveBtn = new JButton(LanguageManager.t("btn.save"));
+    JButton cancelBtn = new JButton(LanguageManager.t("btn.cancel"));
     saveBtn.setBackground(Theme.BTN_PRIMARY);
     saveBtn.setForeground(Theme.TEXT_PRIMARY);
     saveBtn.setFocusPainted(false);
@@ -260,10 +265,12 @@ public class TechnicianJobPanel extends JPanel implements Refreshable {
           boolean ok = apptService.updateNotes(apptId, area.getText().trim());
           dialog.dispose();
           if (!ok) {
-            Toast.error(SwingUtilities.getWindowAncestor(this), "Failed to save notes.");
+            Toast.error(
+                SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.notes.saveFailed"));
           } else {
             loadData();
-            Toast.success(SwingUtilities.getWindowAncestor(this), "Notes saved.");
+            Toast.success(
+                SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.notes.saved"));
           }
         });
 

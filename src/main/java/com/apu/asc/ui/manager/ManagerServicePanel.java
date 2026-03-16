@@ -109,7 +109,7 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
             s.getType().name(),
             s.getServiceName(),
             String.format("%.2f", s.getPrice()),
-            s.isActive() ? "Yes" : "No"
+            s.isActive() ? LanguageManager.t("label.yes") : LanguageManager.t("label.no")
           });
     }
   }
@@ -118,7 +118,7 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
     int row = table.getSelectedRow();
     Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      Toast.error(owner, "Select a service first.");
+      Toast.error(owner, LanguageManager.t("msg.service.selectFirst"));
       return;
     }
 
@@ -133,21 +133,23 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
 
     JDialog dialog =
         new JDialog(
-            owner, "Update Price — " + svc.getServiceName(), Dialog.ModalityType.APPLICATION_MODAL);
+            owner,
+            String.format(LanguageManager.t("dialog.updatePrice.title"), svc.getServiceName()),
+            Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(300, 160);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
 
     JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
     form.setBackground(Theme.BG_PANEL);
-    JLabel lbl = new JLabel("New Price (RM):");
+    JLabel lbl = new JLabel(LanguageManager.t("label.newPriceRm"));
     lbl.setForeground(Theme.TEXT_SECONDARY);
     lbl.setFont(Theme.FONT_BODY);
     form.add(lbl);
     form.add(priceField);
 
-    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
-    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+    JButton saveBtn = makeBtn(LanguageManager.t("btn.save"), Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn(LanguageManager.t("btn.cancel"), Theme.BTN_DANGER);
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
     btnRow.setBackground(Theme.BG_PANEL);
@@ -176,9 +178,11 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
             serviceDAO.save(svc);
             dialog.dispose();
             loadData();
-            Toast.success(owner, "Price updated for " + svc.getServiceName() + ".");
+            Toast.success(
+                owner,
+                String.format(LanguageManager.t("msg.service.priceUpdated"), svc.getServiceName()));
           } catch (NumberFormatException ex) {
-            errorLabel.setText("Enter a valid positive number.");
+            errorLabel.setText(LanguageManager.t("msg.service.priceInvalid"));
           }
         });
 
@@ -189,7 +193,7 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
     int row = table.getSelectedRow();
     Window owner = SwingUtilities.getWindowAncestor(this);
     if (row < 0) {
-      Toast.error(owner, "Select a service first.");
+      Toast.error(owner, LanguageManager.t("msg.service.selectFirst"));
       return;
     }
 
@@ -200,18 +204,24 @@ public class ManagerServicePanel extends JPanel implements Refreshable {
     int confirm =
         JOptionPane.showConfirmDialog(
             owner,
-            (svc.isActive() ? "Deactivate" : "Activate")
-                + " service \""
-                + svc.getServiceName()
-                + "\"?",
-            "Confirm",
+            String.format(
+                LanguageManager.t("msg.service.toggleConfirm"),
+                svc.isActive()
+                    ? LanguageManager.t("action.deactivate")
+                    : LanguageManager.t("action.activate"),
+                svc.getServiceName()),
+            LanguageManager.t("dialog.confirm.title"),
             JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
 
     svc.setActive(!svc.isActive());
     serviceDAO.save(svc);
     loadData();
-    Toast.success(owner, "Service " + (svc.isActive() ? "activated" : "deactivated") + ".");
+    Toast.success(
+        owner,
+        svc.isActive()
+            ? LanguageManager.t("msg.service.activated")
+            : LanguageManager.t("msg.service.deactivated"));
   }
 
   @Override

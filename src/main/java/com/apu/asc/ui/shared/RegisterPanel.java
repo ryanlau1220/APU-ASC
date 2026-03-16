@@ -2,6 +2,7 @@ package com.apu.asc.ui.shared;
 
 import com.apu.asc.service.AuthService;
 import com.apu.asc.ui.AppShell;
+import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import com.apu.asc.ui.util.Toast;
 import com.apu.asc.util.Result;
@@ -48,7 +49,7 @@ public class RegisterPanel extends JPanel {
     card.setBackground(Theme.BG_PANEL);
     card.setBorder(BorderFactory.createEmptyBorder(16, 32, 16, 32));
 
-    JLabel title = new JLabel("Create Customer Account");
+    JLabel title = new JLabel(LanguageManager.t("title.registerAccount"));
     title.setFont(Theme.FONT_TITLE);
     title.setForeground(Theme.TEXT_PRIMARY);
     title.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
@@ -67,16 +68,16 @@ public class RegisterPanel extends JPanel {
     passwordField = new JPasswordField(18);
     confirmField = new JPasswordField(18);
 
-    JPanel pwRow = buildPasswordRow(passwordField, "Show");
-    JPanel confirmRow = buildPasswordRow(confirmField, "Show");
+    JPanel pwRow = buildPasswordRow(passwordField, LanguageManager.t("toggle.show"));
+    JPanel confirmRow = buildPasswordRow(confirmField, LanguageManager.t("toggle.show"));
 
     Object[][] rows = {
-      {"Username:", usernameField},
-      {"Full Name:", fullNameField},
-      {"Email:", emailField},
-      {"Contact No:", contactField},
-      {"Password:", pwRow},
-      {"Confirm Password:", confirmRow}
+      {LanguageManager.t("label.username"), usernameField},
+      {LanguageManager.t("label.fullName"), fullNameField},
+      {LanguageManager.t("label.email"), emailField},
+      {LanguageManager.t("label.contactNo"), contactField},
+      {LanguageManager.t("label.password"), pwRow},
+      {LanguageManager.t("label.confirmPassword"), confirmRow}
     };
 
     for (int i = 0; i < rows.length; i++) {
@@ -97,7 +98,7 @@ public class RegisterPanel extends JPanel {
     gc.gridwidth = 2;
     form.add(messageLabel, gc);
 
-    JButton submitBtn = new JButton("Register");
+    JButton submitBtn = new JButton(LanguageManager.t("btn.register"));
     submitBtn.setBackground(Theme.BTN_SUCCESS);
     submitBtn.setForeground(Theme.TEXT_PRIMARY);
     submitBtn.setFocusPainted(false);
@@ -105,7 +106,7 @@ public class RegisterPanel extends JPanel {
     gc.gridy = rows.length + 1;
     form.add(submitBtn, gc);
 
-    JButton backBtn = new JButton("Back to Login");
+    JButton backBtn = new JButton(LanguageManager.t("btn.backToLogin"));
     backBtn.setForeground(Theme.TEXT_LINK);
     backBtn.setBorderPainted(false);
     backBtn.setContentAreaFilled(false);
@@ -136,17 +137,17 @@ public class RegisterPanel extends JPanel {
         || email.isEmpty()
         || contact.isEmpty()
         || password.isEmpty()) {
-      messageLabel.setText("All fields are required.");
+      messageLabel.setText(LanguageManager.t("msg.fieldsRequired"));
       return;
     }
 
     if (!password.equals(confirm)) {
-      messageLabel.setText("Passwords do not match.");
+      messageLabel.setText(LanguageManager.t("msg.password.mismatch"));
       return;
     }
 
     if (password.length() < 6) {
-      messageLabel.setText("Password must be at least 6 characters.");
+      messageLabel.setText(LanguageManager.t("msg.password.minLength"));
       return;
     }
 
@@ -157,7 +158,7 @@ public class RegisterPanel extends JPanel {
     }
 
     clearFields();
-    Toast.success(SwingUtilities.getWindowAncestor(this), "Account created! You can now log in.");
+    Toast.success(SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.account.created"));
     shell.showCard(AppShell.CARD_LOGIN);
   }
 
@@ -188,10 +189,10 @@ public class RegisterPanel extends JPanel {
         e -> {
           if (toggle.isSelected()) {
             field.setEchoChar((char) 0);
-            toggle.setText("Hide");
+            toggle.setText(LanguageManager.t("toggle.hide"));
           } else {
             field.setEchoChar('\u2022');
-            toggle.setText("Show");
+            toggle.setText(LanguageManager.t("toggle.show"));
           }
         });
     row.add(field, BorderLayout.CENTER);

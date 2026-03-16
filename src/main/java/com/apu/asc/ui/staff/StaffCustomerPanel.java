@@ -182,7 +182,10 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
 
     Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog =
-        new JDialog(owner, "Add Customer", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.customer.add.title"),
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(360, 300);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -190,14 +193,14 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
     JPanel form = new JPanel(new GridLayout(5, 2, 6, 6));
     form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
     form.setBackground(Theme.BG_PANEL);
-    addFormRow(form, "Username:", username);
-    addFormRow(form, "Password:", pass);
-    addFormRow(form, "Full Name:", fullName);
-    addFormRow(form, "Email:", email);
-    addFormRow(form, "Contact:", contact);
+    addFormRow(form, LanguageManager.t("label.username"), username);
+    addFormRow(form, LanguageManager.t("label.password"), pass);
+    addFormRow(form, LanguageManager.t("label.fullName"), fullName);
+    addFormRow(form, LanguageManager.t("label.email"), email);
+    addFormRow(form, LanguageManager.t("label.contact"), contact);
 
-    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
-    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+    JButton saveBtn = makeBtn(LanguageManager.t("btn.save"), Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn(LanguageManager.t("btn.cancel"), Theme.BTN_DANGER);
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     btnRow.setBackground(Theme.BG_PANEL);
@@ -234,7 +237,7 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
           } else {
             dialog.dispose();
             loadData();
-            Toast.success(owner, "Customer added successfully.");
+            Toast.success(owner, LanguageManager.t("msg.customer.added"));
           }
         });
 
@@ -244,7 +247,8 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
   private void openEditDialog() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      Toast.error(SwingUtilities.getWindowAncestor(this), "Select a customer first.");
+      Toast.error(
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.customer.selectFirst"));
       return;
     }
 
@@ -262,7 +266,10 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
 
     Window owner = SwingUtilities.getWindowAncestor(this);
     JDialog dialog =
-        new JDialog(owner, "Edit Customer", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        new JDialog(
+            owner,
+            LanguageManager.t("dialog.customer.edit.title"),
+            java.awt.Dialog.ModalityType.APPLICATION_MODAL);
     dialog.setSize(340, 220);
     dialog.setLocationRelativeTo(owner);
     dialog.setResizable(false);
@@ -270,12 +277,12 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
     JPanel form = new JPanel(new GridLayout(3, 2, 6, 6));
     form.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
     form.setBackground(Theme.BG_PANEL);
-    addFormRow(form, "Full Name:", fullName);
-    addFormRow(form, "Email:", email);
-    addFormRow(form, "Contact:", contact);
+    addFormRow(form, LanguageManager.t("label.fullName"), fullName);
+    addFormRow(form, LanguageManager.t("label.email"), email);
+    addFormRow(form, LanguageManager.t("label.contact"), contact);
 
-    JButton saveBtn = makeBtn("Save", Theme.BTN_SUCCESS);
-    JButton cancelBtn = makeBtn("Cancel", Theme.BTN_DANGER);
+    JButton saveBtn = makeBtn(LanguageManager.t("btn.save"), Theme.BTN_SUCCESS);
+    JButton cancelBtn = makeBtn(LanguageManager.t("btn.cancel"), Theme.BTN_DANGER);
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
     btnRow.setBackground(Theme.BG_PANEL);
@@ -307,7 +314,7 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
           } else {
             dialog.dispose();
             loadData();
-            Toast.success(owner, "Customer updated successfully.");
+            Toast.success(owner, LanguageManager.t("msg.customer.updated"));
           }
         });
 
@@ -317,7 +324,8 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
   private void handleDeactivate() {
     int row = table.getSelectedRow();
     if (row < 0) {
-      Toast.error(SwingUtilities.getWindowAncestor(this), "Select a customer first.");
+      Toast.error(
+          SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.customer.selectFirst"));
       return;
     }
 
@@ -328,14 +336,15 @@ public class StaffCustomerPanel extends JPanel implements Refreshable {
     int confirm =
         JOptionPane.showConfirmDialog(
             SwingUtilities.getWindowAncestor(this),
-            "Deactivate customer \"" + name + "\"?",
-            "Confirm",
+            String.format(LanguageManager.t("msg.customer.deactivateConfirm"), name),
+            LanguageManager.t("dialog.confirm.title"),
             JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) return;
 
     userService.deactivateUser(id);
     loadData();
-    Toast.success(SwingUtilities.getWindowAncestor(this), "Customer deactivated.");
+    Toast.success(
+        SwingUtilities.getWindowAncestor(this), LanguageManager.t("msg.customer.deactivated"));
   }
 
   @Override
