@@ -16,6 +16,8 @@ public class Payment {
   @DecimalMin(value = "0.01", message = "Amount paid must be at least RM 0.01")
   private final double amountPaid;
 
+  private final double discountAmount;
+
   @NotNull(message = "Payment date and time must not be null")
   private final LocalDateTime paymentDateTime;
 
@@ -25,11 +27,13 @@ public class Payment {
       String paymentId,
       String appointmentId,
       double amountPaid,
+      double discountAmount,
       LocalDateTime paymentDateTime,
       boolean receiptSent) {
     this.paymentId = paymentId;
     this.appointmentId = appointmentId;
     this.amountPaid = amountPaid;
+    this.discountAmount = discountAmount;
     this.paymentDateTime = paymentDateTime;
     this.receiptSent = receiptSent;
   }
@@ -44,6 +48,10 @@ public class Payment {
 
   public double getAmountPaid() {
     return amountPaid;
+  }
+
+  public double getDiscountAmount() {
+    return discountAmount;
   }
 
   public LocalDateTime getPaymentDateTime() {
@@ -64,6 +72,7 @@ public class Payment {
         paymentId,
         appointmentId,
         String.valueOf(amountPaid),
+        String.valueOf(discountAmount),
         paymentDateTime.toString(),
         String.valueOf(receiptSent));
   }
