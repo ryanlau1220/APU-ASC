@@ -136,6 +136,14 @@ public class AppointmentService {
     return appointmentDAO.getAll();
   }
 
+  public boolean hasTechnicianConflict(String technicianId, Appointment appt) {
+    if (appt == null) return false;
+    Service service = serviceDAO.findById(appt.getServiceId());
+    if (service == null) return false;
+    return technicianHasConflict(
+        technicianId, appt.getAppointmentId(), appt.getAppointmentDateTime(), service.getType());
+  }
+
   private boolean hasConflict(String excludeApptId, LocalDateTime dateTime, ServiceType type) {
     int duration = type == ServiceType.MAJOR ? MAJOR_DURATION_HOURS : NORMAL_DURATION_HOURS;
     LocalDateTime newEnd = dateTime.plusHours(duration);
