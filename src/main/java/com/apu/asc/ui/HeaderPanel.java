@@ -64,7 +64,7 @@ public class HeaderPanel extends JPanel {
     langCombo.addActionListener(
         e -> {
           String selected = (String) langCombo.getSelectedItem();
-          Locale locale = "Malay".equals(selected) ? new Locale("ms") : Locale.ENGLISH;
+          Locale locale = "Malay".equals(selected) ? Locale.forLanguageTag("ms") : Locale.ENGLISH;
           LanguageManager.getInstance().setLocale(locale);
           shell.refreshCurrentPanel();
         });
