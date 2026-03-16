@@ -278,13 +278,13 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
     techList.setSelectedIndex(0);
     techList.setFont(Theme.FONT_BODY);
 
-    JButton assignBtn = makeBtn(LanguageManager.t("btn.assign"), Theme.BTN_SUCCESS);
+    JButton dialogAssignBtn = makeBtn(LanguageManager.t("btn.assign"), Theme.BTN_SUCCESS);
     JButton cancelBtn = makeBtn(LanguageManager.t("btn.cancel"), Theme.BTN_DANGER);
 
     JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
     btnRow.setBackground(Theme.BG_PANEL);
     btnRow.add(cancelBtn);
-    btnRow.add(assignBtn);
+    btnRow.add(dialogAssignBtn);
 
     JLabel label = new JLabel(LanguageManager.t("label.selectTechnician"));
     label.setForeground(Theme.TEXT_SECONDARY);
@@ -304,7 +304,7 @@ public class StaffAssignPanel extends JPanel implements Refreshable {
 
     final List<User> finalTechnicians = technicians;
     cancelBtn.addActionListener(e -> dialog.dispose());
-    assignBtn.addActionListener(
+    dialogAssignBtn.addActionListener(
         e -> {
           int idx = techList.getSelectedIndex();
           if (idx < 0) return;

@@ -637,13 +637,13 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
           current.append(c);
         }
       } else {
-        if (c == '"') {
-          inQuotes = true;
-        } else if (c == ',') {
-          fields.add(current.toString());
-          current.setLength(0);
-        } else {
-          current.append(c);
+        switch (c) {
+          case '"' -> inQuotes = true;
+          case ',' -> {
+            fields.add(current.toString());
+            current.setLength(0);
+          }
+          default -> current.append(c);
         }
       }
     }
