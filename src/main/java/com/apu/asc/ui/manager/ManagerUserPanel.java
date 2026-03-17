@@ -152,23 +152,34 @@ public class ManagerUserPanel extends JPanel implements Refreshable {
               }
             });
 
-    JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JPanel top = new JPanel();
     top.setBackground(Theme.BG_PANEL);
+    top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
+
+    JPanel filterRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    filterRow.setBackground(Theme.BG_PANEL);
     roleLabel = new JLabel(LanguageManager.t("label.role"));
     roleLabel.setForeground(Theme.TEXT_SECONDARY);
     roleLabel.setFont(Theme.FONT_BODY);
-    top.add(searchLabel);
-    top.add(searchField);
-    top.add(roleLabel);
-    top.add(roleFilter);
-    top.add(filterBtn);
-    top.add(addBtn);
-    top.add(editBtn);
-    top.add(deactBtn);
-    top.add(reactivateBtn);
-    top.add(refreshBtn);
-    top.add(exportBtn);
-    top.add(importBtn);
+    filterRow.add(searchLabel);
+    filterRow.add(searchField);
+    filterRow.add(roleLabel);
+    filterRow.add(roleFilter);
+    filterRow.add(filterBtn);
+
+    JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    actionRow.setBackground(Theme.BG_PANEL);
+    actionRow.add(addBtn);
+    actionRow.add(editBtn);
+    actionRow.add(deactBtn);
+    actionRow.add(reactivateBtn);
+    actionRow.add(refreshBtn);
+    actionRow.add(exportBtn);
+    actionRow.add(importBtn);
+
+    top.add(filterRow);
+    top.add(Box.createVerticalStrut(6));
+    top.add(actionRow);
 
     add(top, BorderLayout.NORTH);
     add(new JScrollPane(table), BorderLayout.CENTER);
