@@ -26,7 +26,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
-public class LoginPanel extends JPanel {
+public final class LoginPanel extends JPanel {
 
   private final AuthService authService = new AuthService();
   private final OtpService otpService = new OtpService();

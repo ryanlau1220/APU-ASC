@@ -56,7 +56,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-public class ManagerUserPanel extends JPanel implements Refreshable {
+public final class ManagerUserPanel extends JPanel implements Refreshable {
 
   private final UserService userService = new UserService();
   private final UserDAO userDAO = UserDAO.getInstance();

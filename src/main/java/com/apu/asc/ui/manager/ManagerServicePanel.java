@@ -26,7 +26,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-public class ManagerServicePanel extends JPanel implements Refreshable {
+public final class ManagerServicePanel extends JPanel implements Refreshable {
 
   private final ServiceDAO serviceDAO = ServiceDAO.getInstance();
 

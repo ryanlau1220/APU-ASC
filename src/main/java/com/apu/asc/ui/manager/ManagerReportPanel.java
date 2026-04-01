@@ -17,7 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class ManagerReportPanel extends JPanel implements Refreshable {
+public final class ManagerReportPanel extends JPanel implements Refreshable {
 
   private final ReportService reportService = new ReportService();
 

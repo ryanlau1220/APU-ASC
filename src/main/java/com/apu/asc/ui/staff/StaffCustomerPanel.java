@@ -35,7 +35,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-public class StaffCustomerPanel extends JPanel implements Refreshable {
+public final class StaffCustomerPanel extends JPanel implements Refreshable {
 
   private final UserService userService = new UserService();
 

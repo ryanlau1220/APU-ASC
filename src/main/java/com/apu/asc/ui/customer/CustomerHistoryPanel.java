@@ -24,7 +24,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
-public class CustomerHistoryPanel extends JPanel implements Refreshable {
+public final class CustomerHistoryPanel extends JPanel implements Refreshable {
 
   private final User user;
   private final AppointmentService apptService = new AppointmentService();

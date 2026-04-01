@@ -20,7 +20,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-public class ManagerFeedbackPanel extends JPanel implements Refreshable {
+public final class ManagerFeedbackPanel extends JPanel implements Refreshable {
 
   private final FeedbackService feedbackService = new FeedbackService();
   private final AppointmentDAO appointmentDAO = AppointmentDAO.getInstance();

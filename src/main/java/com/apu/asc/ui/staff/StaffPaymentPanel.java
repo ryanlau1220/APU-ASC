@@ -29,7 +29,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-public class StaffPaymentPanel extends JPanel implements Refreshable {
+public final class StaffPaymentPanel extends JPanel implements Refreshable {
 
   private final AppointmentService apptService = new AppointmentService();
   private final PaymentService paymentService = new PaymentService();

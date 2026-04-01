@@ -31,7 +31,7 @@ import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 
-public class CustomerFeedbackPanel extends JPanel implements Refreshable {
+public final class CustomerFeedbackPanel extends JPanel implements Refreshable {
 
   private final User user;
   private final AppointmentService apptService = new AppointmentService();

@@ -43,7 +43,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-public class StaffAssignPanel extends JPanel implements Refreshable {
+public final class StaffAssignPanel extends JPanel implements Refreshable {
 
   private final AppointmentService apptService = new AppointmentService();
   private final UserService userService = new UserService();

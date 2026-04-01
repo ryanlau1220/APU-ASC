@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.swing.JPanel;
 
-public class SimpleBarChart extends JPanel {
+public final class SimpleBarChart extends JPanel {
 
   private Map<String, Double> data = new LinkedHashMap<>();
   private Color barColor;

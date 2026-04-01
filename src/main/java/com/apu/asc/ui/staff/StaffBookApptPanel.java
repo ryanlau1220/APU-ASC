@@ -27,7 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-public class StaffBookApptPanel extends JPanel implements Refreshable {
+public final class StaffBookApptPanel extends JPanel implements Refreshable {
 
   private final User staffUser;
   private final AppointmentService apptService = new AppointmentService();

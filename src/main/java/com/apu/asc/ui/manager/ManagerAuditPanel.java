@@ -21,7 +21,7 @@ import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-public class ManagerAuditPanel extends JPanel implements Refreshable {
+public final class ManagerAuditPanel extends JPanel implements Refreshable {
 
   private final AuditLogDAO auditLogDAO = AuditLogDAO.getInstance();
 

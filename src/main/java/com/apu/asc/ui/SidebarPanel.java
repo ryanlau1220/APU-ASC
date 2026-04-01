@@ -19,7 +19,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-public class SidebarPanel extends JPanel {
+public final class SidebarPanel extends JPanel {
 
   private static final int ICON_SIZE = 18;
 

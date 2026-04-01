@@ -24,7 +24,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-public class EditProfilePanel extends JPanel implements Refreshable {
+public final class EditProfilePanel extends JPanel implements Refreshable {
 
   private final User user;
   private final UserService userService = new UserService();

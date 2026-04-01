@@ -16,7 +16,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class HeaderPanel extends JPanel {
+public final class HeaderPanel extends JPanel {
 
   private final AppShell shell;
 

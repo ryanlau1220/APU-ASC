@@ -21,7 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class ManagerSettingsPanel extends JPanel implements Refreshable {
+public final class ManagerSettingsPanel extends JPanel implements Refreshable {
 
   private final BackupService backupService = new BackupService();
 

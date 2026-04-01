@@ -20,7 +20,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-public class TechnicianFeedbackPanel extends JPanel implements Refreshable {
+public final class TechnicianFeedbackPanel extends JPanel implements Refreshable {
 
   private final User technician;
   private final FeedbackService feedbackService = new FeedbackService();

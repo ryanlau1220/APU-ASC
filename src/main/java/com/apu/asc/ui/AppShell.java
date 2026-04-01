@@ -26,7 +26,7 @@ import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-public class AppShell extends JFrame {
+public final class AppShell extends JFrame {
 
   public static final String CARD_LOGIN = "LOGIN";
   public static final String CARD_REGISTER = "REGISTER";

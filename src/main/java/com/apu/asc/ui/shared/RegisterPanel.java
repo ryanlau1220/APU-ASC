@@ -21,7 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
-public class RegisterPanel extends JPanel {
+public final class RegisterPanel extends JPanel {
 
   private final AuthService authService = new AuthService();
   private final AppShell shell;
