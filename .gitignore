@@ -57,3 +57,4 @@ tmp/
 logs/
 *.log
 *.tmp
+scripts/
