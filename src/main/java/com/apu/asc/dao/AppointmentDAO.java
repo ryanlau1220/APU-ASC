@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class AppointmentDAO {
@@ -20,6 +21,7 @@ public class AppointmentDAO {
   private static final String FILE_PATH = "data/appointments.txt";
   private static final Path DATA_DIR = Path.of("data");
   private static AppointmentDAO instance;
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   private final Map<String, Appointment> cache = new LinkedHashMap<>();
 
   private AppointmentDAO() {
@@ -38,7 +40,9 @@ public class AppointmentDAO {
   }
 
   private void load() {
-    cache.clear();
+    lock.writeLock().lock();
+    try {
+      cache.clear();
     Path path = Path.of(FILE_PATH);
     if (!Files.exists(path)) return;
 
@@ -64,6 +68,9 @@ public class AppointmentDAO {
     } catch (IOException e) {
       System.err.println("AppointmentDAO load failed: " + e.getMessage());
     }
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   private void persist() {
@@ -84,33 +91,63 @@ public class AppointmentDAO {
   }
 
   public void save(Appointment appointment) {
-    cache.put(appointment.getAppointmentId(), appointment);
+    lock.writeLock().lock();
+    try {
+      cache.put(appointment.getAppointmentId(), appointment);
     persist();
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   public Appointment findById(String id) {
-    return cache.get(id);
+    lock.readLock().lock();
+    try {
+      return cache.get(id);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Appointment> findByCustomer(String customerId) {
-    return cache.values().stream()
+    lock.readLock().lock();
+    try {
+      return cache.values().stream()
         .filter(a -> a.getCustomerId().equals(customerId))
         .collect(Collectors.toList());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Appointment> findByTechnician(String technicianId) {
-    return cache.values().stream()
+    lock.readLock().lock();
+    try {
+      return cache.values().stream()
         .filter(a -> a.getTechnicianId().equals(technicianId))
         .collect(Collectors.toList());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Appointment> findByStatus(ApptStatus status) {
-    return cache.values().stream()
+    lock.readLock().lock();
+    try {
+      return cache.values().stream()
         .filter(a -> a.getStatus() == status)
         .collect(Collectors.toList());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Appointment> getAll() {
-    return new ArrayList<>(cache.values());
+    lock.readLock().lock();
+    try {
+      return new ArrayList<>(cache.values());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 }

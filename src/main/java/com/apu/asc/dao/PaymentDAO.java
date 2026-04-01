@@ -12,12 +12,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class PaymentDAO {
 
   private static final String FILE_PATH = "data/payments.txt";
   private static final Path DATA_DIR = Path.of("data");
   private static PaymentDAO instance;
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   private final Map<String, Payment> cache = new LinkedHashMap<>();
 
   private PaymentDAO() {
@@ -36,7 +38,9 @@ public class PaymentDAO {
   }
 
   private void load() {
-    cache.clear();
+    lock.writeLock().lock();
+    try {
+      cache.clear();
     Path path = Path.of(FILE_PATH);
     if (!Files.exists(path)) return;
 
@@ -62,6 +66,9 @@ public class PaymentDAO {
     } catch (IOException e) {
       System.err.println("PaymentDAO load failed: " + e.getMessage());
     }
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   private void persist() {
@@ -82,18 +89,33 @@ public class PaymentDAO {
   }
 
   public void save(Payment payment) {
-    cache.put(payment.getPaymentId(), payment);
+    lock.writeLock().lock();
+    try {
+      cache.put(payment.getPaymentId(), payment);
     persist();
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   public Payment findByAppointment(String appointmentId) {
-    return cache.values().stream()
+    lock.readLock().lock();
+    try {
+      return cache.values().stream()
         .filter(p -> p.getAppointmentId().equals(appointmentId))
         .findFirst()
         .orElse(null);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Payment> getAll() {
-    return new ArrayList<>(cache.values());
+    lock.readLock().lock();
+    try {
+      return new ArrayList<>(cache.values());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 }

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class ServiceDAO {
@@ -19,6 +20,7 @@ public class ServiceDAO {
   private static final String FILE_PATH = "data/services.txt";
   private static final Path DATA_DIR = Path.of("data");
   private static ServiceDAO instance;
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   private final Map<String, Service> cache = new LinkedHashMap<>();
 
   private ServiceDAO() {
@@ -37,7 +39,9 @@ public class ServiceDAO {
   }
 
   private void load() {
-    cache.clear();
+    lock.writeLock().lock();
+    try {
+      cache.clear();
     Path path = Path.of(FILE_PATH);
     if (!Files.exists(path)) return;
 
@@ -59,6 +63,9 @@ public class ServiceDAO {
     } catch (IOException e) {
       System.err.println("ServiceDAO load failed: " + e.getMessage());
     }
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   private void persist() {
@@ -79,19 +86,39 @@ public class ServiceDAO {
   }
 
   public void save(Service service) {
-    cache.put(service.getServiceId(), service);
+    lock.writeLock().lock();
+    try {
+      cache.put(service.getServiceId(), service);
     persist();
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   public Service findById(String id) {
-    return cache.get(id);
+    lock.readLock().lock();
+    try {
+      return cache.get(id);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Service> getActiveServices() {
-    return cache.values().stream().filter(Service::isActive).collect(Collectors.toList());
+    lock.readLock().lock();
+    try {
+      return cache.values().stream().filter(Service::isActive).collect(Collectors.toList());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Service> getAll() {
-    return new ArrayList<>(cache.values());
+    lock.readLock().lock();
+    try {
+      return new ArrayList<>(cache.values());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 }

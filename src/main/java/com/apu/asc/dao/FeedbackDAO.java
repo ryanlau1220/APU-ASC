@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class FeedbackDAO {
@@ -18,6 +19,7 @@ public class FeedbackDAO {
   private static final String FILE_PATH = "data/feedbacks.txt";
   private static final Path DATA_DIR = Path.of("data");
   private static FeedbackDAO instance;
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   private final Map<String, Feedback> cache = new LinkedHashMap<>();
 
   private FeedbackDAO() {
@@ -36,7 +38,9 @@ public class FeedbackDAO {
   }
 
   private void load() {
-    cache.clear();
+    lock.writeLock().lock();
+    try {
+      cache.clear();
     Path path = Path.of(FILE_PATH);
     if (!Files.exists(path)) return;
 
@@ -51,6 +55,9 @@ public class FeedbackDAO {
       }
     } catch (IOException e) {
       System.err.println("FeedbackDAO load failed: " + e.getMessage());
+    }
+    } finally {
+      lock.writeLock().unlock();
     }
   }
 
@@ -72,28 +79,48 @@ public class FeedbackDAO {
   }
 
   public void save(Feedback feedback) {
-    cache.put(feedback.getFeedbackId(), feedback);
+    lock.writeLock().lock();
+    try {
+      cache.put(feedback.getFeedbackId(), feedback);
     persist();
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   public Feedback findByAppointment(String appointmentId) {
-    return cache.values().stream()
+    lock.readLock().lock();
+    try {
+      return cache.values().stream()
         .filter(f -> f.getAppointmentId().equals(appointmentId))
         .findFirst()
         .orElse(null);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Feedback> findByTechnician(String technicianId, AppointmentDAO appointmentDAO) {
-    return cache.values().stream()
+    lock.readLock().lock();
+    try {
+      return cache.values().stream()
         .filter(
             f -> {
               var appt = appointmentDAO.findById(f.getAppointmentId());
               return appt != null && appt.getTechnicianId().equals(technicianId);
             })
         .collect(Collectors.toList());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<Feedback> getAll() {
-    return new ArrayList<>(cache.values());
+    lock.readLock().lock();
+    try {
+      return new ArrayList<>(cache.values());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 }

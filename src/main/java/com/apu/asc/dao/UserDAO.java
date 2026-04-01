@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class UserDAO {
@@ -21,6 +22,7 @@ public class UserDAO {
   private static final String FILE_PATH = "data/users.txt";
   private static final Path DATA_DIR = Path.of("data");
   private static UserDAO instance;
+  private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   private final Map<String, User> cache = new LinkedHashMap<>();
 
   private UserDAO() {
@@ -39,7 +41,9 @@ public class UserDAO {
   }
 
   private void load() {
-    cache.clear();
+    lock.writeLock().lock();
+    try {
+      cache.clear();
     Path path = Path.of(FILE_PATH);
     if (!Files.exists(path)) return;
 
@@ -52,6 +56,9 @@ public class UserDAO {
       }
     } catch (IOException e) {
       System.err.println("UserDAO load failed: " + e.getMessage());
+    }
+    } finally {
+      lock.writeLock().unlock();
     }
   }
 
@@ -73,34 +80,64 @@ public class UserDAO {
   }
 
   public void save(User user) {
-    cache.put(user.getId(), user);
+    lock.writeLock().lock();
+    try {
+      cache.put(user.getId(), user);
     persist();
+    } finally {
+      lock.writeLock().unlock();
+    }
   }
 
   public User findById(String id) {
-    return cache.get(id);
+    lock.readLock().lock();
+    try {
+      return cache.get(id);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public User findByUsername(String username) {
-    return cache.values().stream()
+    lock.readLock().lock();
+    try {
+      return cache.values().stream()
         .filter(u -> u.getUsername().equalsIgnoreCase(username))
         .findFirst()
         .orElse(null);
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<User> getAll() {
-    return new ArrayList<>(cache.values());
+    lock.readLock().lock();
+    try {
+      return new ArrayList<>(cache.values());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public List<User> getAllByRole(Role role) {
-    return cache.values().stream().filter(u -> u.getRole() == role).collect(Collectors.toList());
+    lock.readLock().lock();
+    try {
+      return cache.values().stream().filter(u -> u.getRole() == role).collect(Collectors.toList());
+    } finally {
+      lock.readLock().unlock();
+    }
   }
 
   public void deactivate(String id) {
-    User user = cache.get(id);
+    lock.writeLock().lock();
+    try {
+      User user = cache.get(id);
     if (user != null) {
       user.setStatus(UserStatus.DEACTIVATED);
       persist();
+    }
+    } finally {
+      lock.writeLock().unlock();
     }
   }
 }
