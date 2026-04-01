@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-public class ServiceDAO {
+public class ServiceDAO implements IServiceDAO {
 
   private static final String FILE_PATH = "data/services.txt";
   private static final Path DATA_DIR = Path.of("data");

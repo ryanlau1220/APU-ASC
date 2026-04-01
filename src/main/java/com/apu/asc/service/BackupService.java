@@ -17,7 +17,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class BackupService {
+public class BackupService implements IBackupService {
 
   private static final Path DATA_DIR = Path.of("data");
   private static final Path BACKUP_DIR = Path.of("backups");

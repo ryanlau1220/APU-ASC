@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-public class AppointmentDAO {
+public class AppointmentDAO implements IAppointmentDAO {
 
   private static final String FILE_PATH = "data/appointments.txt";
   private static final Path DATA_DIR = Path.of("data");

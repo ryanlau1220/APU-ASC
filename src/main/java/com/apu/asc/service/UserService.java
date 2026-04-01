@@ -17,7 +17,7 @@ import com.apu.asc.util.ValidationUtil;
 import java.util.List;
 import java.util.UUID;
 
-public class UserService {
+public class UserService implements IUserService {
 
   private final UserDAO userDAO;
 

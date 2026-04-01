@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class PaymentService {
+public class PaymentService implements IPaymentService {
 
   private final PaymentDAO paymentDAO;
   private final AppointmentDAO appointmentDAO;

@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
-public class OtpService {
+public class OtpService implements IOtpService {
 
   private static final Map<String, OtpEntry> store = new HashMap<>();
   private static final Random RANDOM = new Random();

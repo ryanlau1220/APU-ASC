@@ -12,7 +12,7 @@ import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
 import java.util.UUID;
 
-public class AuthService {
+public class AuthService implements IAuthService {
 
   private final UserDAO userDAO;
 

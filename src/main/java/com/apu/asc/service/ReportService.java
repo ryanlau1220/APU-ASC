@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ReportService {
+public class ReportService implements IReportService {
 
   private final AppointmentDAO appointmentDAO;
   private final PaymentDAO paymentDAO;

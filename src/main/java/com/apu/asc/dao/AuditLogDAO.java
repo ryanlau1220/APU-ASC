@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class AuditLogDAO {
+public class AuditLogDAO implements IAuditLogDAO {
 
   private static final String FILE_PATH = "data/audit_logs.txt";
   private static final Path DATA_DIR = Path.of("data");

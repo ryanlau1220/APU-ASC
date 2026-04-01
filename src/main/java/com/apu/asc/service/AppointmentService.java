@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public class AppointmentService {
+public class AppointmentService implements IAppointmentService {
 
   private static final int NORMAL_DURATION_HOURS = 1;
   private static final int MAJOR_DURATION_HOURS = 3;

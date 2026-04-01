@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class PaymentDAO {
+public class PaymentDAO implements IPaymentDAO {
 
   private static final String FILE_PATH = "data/payments.txt";
   private static final Path DATA_DIR = Path.of("data");

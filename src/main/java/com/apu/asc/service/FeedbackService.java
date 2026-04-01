@@ -15,7 +15,7 @@ import com.apu.asc.util.ValidationUtil;
 import java.util.List;
 import java.util.UUID;
 
-public class FeedbackService {
+public class FeedbackService implements IFeedbackService {
 
   private final FeedbackDAO feedbackDAO;
   private final AppointmentDAO appointmentDAO;
