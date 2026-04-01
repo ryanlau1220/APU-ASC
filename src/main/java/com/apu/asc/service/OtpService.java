@@ -1,21 +1,13 @@
 package com.apu.asc.service;
 
 import com.apu.asc.util.I18n;
-import jakarta.mail.Authenticator;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
-import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,6 +15,7 @@ public class OtpService {
 
   private static final Map<String, OtpEntry> store = new HashMap<>();
   private static final Random RANDOM = new Random();
+  private static final String NOTIFICATION_LOG = "data/notifications.txt";
 
   public String generateOtp(String username) {
     String code = String.format("%06d", RANDOM.nextInt(1_000_000));
@@ -47,42 +40,23 @@ public class OtpService {
   public CompletableFuture<Void> sendOtpEmail(String toEmail, String username, String otp) {
     return CompletableFuture.runAsync(
         () -> {
-          try {
-            Properties mailProps = loadMailConfig();
-            String from = mailProps.getProperty("mail.from");
-            String password = mailProps.getProperty("mail.password");
-
-            Session session =
-                Session.getInstance(
-                    mailProps,
-                    new Authenticator() {
-                      @Override
-                      protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(from, password);
-                      }
-                    });
-
-            MimeMessage msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(from));
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            msg.setSubject(I18n.t("email.otp.subject"));
-
+          try (FileWriter fw = new FileWriter(NOTIFICATION_LOG, true);
+               PrintWriter pw = new PrintWriter(fw)) {
+            
+            String subject = I18n.t("email.otp.subject");
             String body = I18n.format("email.otp.body", username, otp);
-
-            msg.setText(body);
-            Transport.send(msg);
-          } catch (MessagingException | IOException e) {
-            throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            
+            String logEntry = String.format("[%s] TO: %s | SUBJECT: %s | BODY: %s", 
+                                          timestamp, toEmail, subject, body.replace("\n", " "));
+                                          
+            pw.println(logEntry);
+            System.out.println("OTP Simulated Email Sent: " + logEntry);
+            
+          } catch (IOException e) {
+            throw new RuntimeException("Failed to log OTP email: " + e.getMessage(), e);
           }
         });
-  }
-
-  private Properties loadMailConfig() throws IOException {
-    Properties props = new Properties();
-    try (InputStream in = new FileInputStream("src/main/resources/config.properties")) {
-      props.load(in);
-    }
-    return props;
   }
 
   private static class OtpEntry {
