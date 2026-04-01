@@ -1,6 +1,5 @@
 package com.apu.asc.ui.manager;
 
-import com.apu.asc.ui.util.Theme;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -8,17 +7,18 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
 import javax.swing.JPanel;
+
+import com.apu.asc.ui.util.Theme;
 
 public final class SimpleBarChart extends JPanel {
 
   private Map<String, Double> data = new LinkedHashMap<>();
-  private Color barColor;
-  private String yAxisLabel;
+  private final Color barColor;
 
   public SimpleBarChart(Color barColor, String yAxisLabel) {
     this.barColor = barColor;
-    this.yAxisLabel = yAxisLabel;
     setBackground(Theme.BG_ROOT);
   }
 

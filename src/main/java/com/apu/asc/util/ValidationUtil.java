@@ -1,12 +1,21 @@
 package com.apu.asc.util;
 
-import com.apu.asc.util.validation.*;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.apu.asc.util.validation.DecimalMin;
+import com.apu.asc.util.validation.Email;
+import com.apu.asc.util.validation.FutureOrPresent;
+import com.apu.asc.util.validation.Max;
+import com.apu.asc.util.validation.Min;
+import com.apu.asc.util.validation.NotBlank;
+import com.apu.asc.util.validation.NotNull;
+import com.apu.asc.util.validation.Pattern;
+import com.apu.asc.util.validation.Size;
 
 public class ValidationUtil {
 
@@ -74,7 +83,7 @@ public class ValidationUtil {
             DecimalMin min = field.getAnnotation(DecimalMin.class);
             BigDecimal minVal = new BigDecimal(min.value());
             BigDecimal actualVal = null;
-            if (value instanceof BigDecimal) actualVal = (BigDecimal) value;
+            if (value instanceof BigDecimal bigDecimal) actualVal = bigDecimal;
             else if (value instanceof Number) actualVal = new BigDecimal(value.toString());
             
             if (actualVal != null && actualVal.compareTo(minVal) < 0) {
@@ -83,15 +92,18 @@ public class ValidationUtil {
           }
 
           if (field.isAnnotationPresent(FutureOrPresent.class) && value != null) {
-            if (value instanceof LocalDateTime) {
-              if (((LocalDateTime) value).isBefore(LocalDateTime.now())) {
-                violations.add(I18n.resolveError(field.getAnnotation(FutureOrPresent.class).message()));
+              switch (value) {
+                  case LocalDateTime localDateTime -> {
+                      if (localDateTime.isBefore(LocalDateTime.now())) {
+                          violations.add(I18n.resolveError(field.getAnnotation(FutureOrPresent.class).message()));
+                      }
+                  }     case LocalDate localDate -> {
+                      if (localDate.isBefore(LocalDate.now())) {
+                          violations.add(I18n.resolveError(field.getAnnotation(FutureOrPresent.class).message()));
+                      }
+                  }     default -> {
+                  }
               }
-            } else if (value instanceof LocalDate) {
-              if (((LocalDate) value).isBefore(LocalDate.now())) {
-                violations.add(I18n.resolveError(field.getAnnotation(FutureOrPresent.class).message()));
-              }
-            }
           }
 
           if (field.isAnnotationPresent(Min.class) && value != null) {

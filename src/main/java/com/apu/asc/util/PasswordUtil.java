@@ -4,6 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
@@ -47,7 +48,7 @@ public class PasswordUtil {
         if (hash[i] != testHash[i]) return false;
       }
       return true;
-    } catch (Exception e) {
+    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       return false;
     }
   }

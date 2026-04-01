@@ -1,7 +1,5 @@
 package com.apu.asc.dao;
 
-import com.apu.asc.model.Appointment;
-import com.apu.asc.model.ApptStatus;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -15,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+
+import com.apu.asc.model.Appointment;
+import com.apu.asc.model.ApptStatus;
 
 public class AppointmentDAO implements IAppointmentDAO {
 
@@ -112,6 +113,7 @@ public class AppointmentDAO implements IAppointmentDAO {
     }
   }
 
+  @Override
   public List<Appointment> findByCustomer(String customerId) {
     lock.readLock().lock();
     try {
@@ -123,6 +125,7 @@ public class AppointmentDAO implements IAppointmentDAO {
     }
   }
 
+  @Override
   public List<Appointment> findByTechnician(String technicianId) {
     lock.readLock().lock();
     try {
@@ -134,6 +137,7 @@ public class AppointmentDAO implements IAppointmentDAO {
     }
   }
 
+  @Override
   public List<Appointment> findByStatus(ApptStatus status) {
     lock.readLock().lock();
     try {
