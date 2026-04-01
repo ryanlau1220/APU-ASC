@@ -1,7 +1,6 @@
 package com.apu.asc.ui.manager;
 
 import com.apu.asc.ui.util.Theme;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;

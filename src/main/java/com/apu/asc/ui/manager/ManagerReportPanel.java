@@ -6,7 +6,6 @@ import com.apu.asc.ui.Refreshable;
 import com.apu.asc.ui.util.LanguageManager;
 import com.apu.asc.ui.util.Theme;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
