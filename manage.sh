@@ -53,8 +53,8 @@ case "$1" in
         ;;
     format)
         echo "Removing unused imports..."
-        if [ -f "$SCRIPTS_DIR/remove_unused_imports.py" ]; then
-            python3 $SCRIPTS_DIR/remove_unused_imports.py
+        if [ -f "$SCRIPTS_DIR/format.py" ]; then
+            python3 $SCRIPTS_DIR/format.py
             echo "Unused imports removed."
         else
             echo "Format script not found."
