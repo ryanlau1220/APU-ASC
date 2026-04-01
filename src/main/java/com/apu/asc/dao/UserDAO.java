@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-public class UserDAO {
+public class UserDAO implements IUserDAO {
 
   private static final String FILE_PATH = "data/users.txt";
   private static final Path DATA_DIR = Path.of("data");
@@ -36,6 +36,7 @@ public class UserDAO {
     return instance;
   }
 
+  @Override
   public void reload() {
     load();
   }
@@ -79,6 +80,7 @@ public class UserDAO {
     }
   }
 
+  @Override
   public void save(User user) {
     lock.writeLock().lock();
     try {
@@ -89,6 +91,7 @@ public class UserDAO {
     }
   }
 
+  @Override
   public User findById(String id) {
     lock.readLock().lock();
     try {
@@ -98,6 +101,7 @@ public class UserDAO {
     }
   }
 
+  @Override
   public User findByUsername(String username) {
     lock.readLock().lock();
     try {
@@ -110,6 +114,7 @@ public class UserDAO {
     }
   }
 
+  @Override
   public List<User> getAll() {
     lock.readLock().lock();
     try {
@@ -119,6 +124,7 @@ public class UserDAO {
     }
   }
 
+  @Override
   public List<User> getAllByRole(Role role) {
     lock.readLock().lock();
     try {
@@ -128,6 +134,7 @@ public class UserDAO {
     }
   }
 
+  @Override
   public void deactivate(String id) {
     lock.writeLock().lock();
     try {

@@ -1,6 +1,5 @@
 package com.apu.asc.dao;
 
-import com.apu.asc.model.AuditLog;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,6 +11,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.apu.asc.model.AuditLog;
 
 public class AuditLogDAO implements IAuditLogDAO {
 
@@ -32,6 +33,7 @@ public class AuditLogDAO implements IAuditLogDAO {
     return instance;
   }
 
+  @Override
   public void reload() {
     load();
   }
@@ -59,6 +61,7 @@ public class AuditLogDAO implements IAuditLogDAO {
     }
   }
 
+  @Override
   public void append(AuditLog log) {
     lock.writeLock().lock();
     try {
@@ -82,6 +85,7 @@ public class AuditLogDAO implements IAuditLogDAO {
     }
   }
 
+  @Override
   public List<AuditLog> getAll() {
     lock.readLock().lock();
     try {

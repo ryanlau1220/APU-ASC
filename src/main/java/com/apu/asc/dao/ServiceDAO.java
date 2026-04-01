@@ -34,6 +34,7 @@ public class ServiceDAO implements IServiceDAO {
     return instance;
   }
 
+  @Override
   public void reload() {
     load();
   }
@@ -85,6 +86,7 @@ public class ServiceDAO implements IServiceDAO {
     }
   }
 
+  @Override
   public void save(Service service) {
     lock.writeLock().lock();
     try {
@@ -95,6 +97,7 @@ public class ServiceDAO implements IServiceDAO {
     }
   }
 
+  @Override
   public Service findById(String id) {
     lock.readLock().lock();
     try {
@@ -104,6 +107,7 @@ public class ServiceDAO implements IServiceDAO {
     }
   }
 
+  @Override
   public List<Service> getActiveServices() {
     lock.readLock().lock();
     try {
@@ -113,6 +117,7 @@ public class ServiceDAO implements IServiceDAO {
     }
   }
 
+  @Override
   public List<Service> getAll() {
     lock.readLock().lock();
     try {

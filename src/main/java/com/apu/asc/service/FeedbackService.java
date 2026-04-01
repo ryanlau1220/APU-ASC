@@ -1,5 +1,8 @@
 package com.apu.asc.service;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.apu.asc.dao.AppointmentDAO;
 import com.apu.asc.dao.FeedbackDAO;
 import com.apu.asc.dao.PaymentDAO;
@@ -12,8 +15,6 @@ import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
-import java.util.List;
-import java.util.UUID;
 
 public class FeedbackService implements IFeedbackService {
 
@@ -27,6 +28,7 @@ public class FeedbackService implements IFeedbackService {
     this.paymentDAO = PaymentDAO.getInstance();
   }
 
+  @Override
   public Result<Feedback> submitFeedback(String appointmentId, int rating, String comments) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null || appt.getStatus() != ApptStatus.COMPLETED)
@@ -53,14 +55,17 @@ public class FeedbackService implements IFeedbackService {
     return Result.success(feedback);
   }
 
+  @Override
   public Feedback findByAppointment(String appointmentId) {
     return feedbackDAO.findByAppointment(appointmentId);
   }
 
+  @Override
   public List<Feedback> getByTechnician(String technicianId) {
     return feedbackDAO.findByTechnician(technicianId, appointmentDAO);
   }
 
+  @Override
   public List<Feedback> getAll() {
     return feedbackDAO.getAll();
   }

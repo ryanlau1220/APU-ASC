@@ -1,5 +1,9 @@
 package com.apu.asc.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import com.apu.asc.dao.AppointmentDAO;
 import com.apu.asc.dao.ServiceDAO;
 import com.apu.asc.model.Appointment;
@@ -11,9 +15,6 @@ import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 public class AppointmentService implements IAppointmentService {
 
@@ -66,6 +67,7 @@ public class AppointmentService implements IAppointmentService {
     return Result.success(appt);
   }
 
+  @Override
   public boolean assignTechnician(String appointmentId, String technicianId) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null || appt.getStatus() != ApptStatus.PENDING) return false;
@@ -87,6 +89,7 @@ public class AppointmentService implements IAppointmentService {
     return true;
   }
 
+  @Override
   public boolean updateNotes(String appointmentId, String technicianNotes) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null) return false;
@@ -100,6 +103,7 @@ public class AppointmentService implements IAppointmentService {
     return true;
   }
 
+  @Override
   public boolean completeAppointment(String appointmentId, String technicianNotes) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null || appt.getStatus() != ApptStatus.ASSIGNED) return false;
@@ -115,26 +119,32 @@ public class AppointmentService implements IAppointmentService {
     return true;
   }
 
+  @Override
   public List<Appointment> getByCustomer(String customerId) {
     return appointmentDAO.findByCustomer(customerId);
   }
 
+  @Override
   public List<Appointment> getByTechnician(String technicianId) {
     return appointmentDAO.findByTechnician(technicianId);
   }
 
+  @Override
   public List<Appointment> getByStatus(ApptStatus status) {
     return appointmentDAO.findByStatus(status);
   }
 
+  @Override
   public Appointment findById(String id) {
     return appointmentDAO.findById(id);
   }
 
+  @Override
   public List<Appointment> getAll() {
     return appointmentDAO.getAll();
   }
 
+  @Override
   public boolean hasTechnicianConflict(String technicianId, Appointment appt) {
     if (appt == null) return false;
     Service service = serviceDAO.findById(appt.getServiceId());

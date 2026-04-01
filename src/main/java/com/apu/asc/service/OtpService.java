@@ -1,6 +1,5 @@
 package com.apu.asc.service;
 
-import com.apu.asc.util.I18n;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,18 +10,22 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
+import com.apu.asc.util.I18n;
+
 public class OtpService implements IOtpService {
 
   private static final Map<String, OtpEntry> store = new HashMap<>();
   private static final Random RANDOM = new Random();
   private static final String NOTIFICATION_LOG = "data/notifications.txt";
 
+  @Override
   public String generateOtp(String username) {
     String code = String.format("%06d", RANDOM.nextInt(1_000_000));
     store.put(username, new OtpEntry(code, LocalDateTime.now().plusMinutes(5)));
     return code;
   }
 
+  @Override
   public boolean validateOtp(String username, String code) {
     OtpEntry entry = store.get(username);
     if (entry == null) return false;
@@ -33,10 +36,12 @@ public class OtpService implements IOtpService {
     return entry.code.equals(code);
   }
 
+  @Override
   public void clearOtp(String username) {
     store.remove(username);
   }
 
+  @Override
   public CompletableFuture<Void> sendOtpEmail(String toEmail, String username, String otp) {
     return CompletableFuture.runAsync(
         () -> {

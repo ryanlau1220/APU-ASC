@@ -20,6 +20,7 @@ public class AuthService implements IAuthService {
     this.userDAO = UserDAO.getInstance();
   }
 
+  @Override
   public Result<User> login(String username, String rawPassword) {
     if (username == null || rawPassword == null)
       return Result.failure("err.auth.credentialsRequired");
@@ -36,6 +37,7 @@ public class AuthService implements IAuthService {
     return Result.success(user);
   }
 
+  @Override
   public Result<Customer> register(
       String username, String rawPassword, String fullName, String email, String contactNumber) {
     username = DataSanitizer.clean(username).trim();
@@ -60,6 +62,7 @@ public class AuthService implements IAuthService {
     return Result.success(customer);
   }
 
+  @Override
   public boolean changePassword(User user, String currentRaw, String newRaw) {
     if (!PasswordUtil.verify(currentRaw, user.getPasswordHash())) return false;
     user.setPasswordHash(PasswordUtil.hash(newRaw));
@@ -72,6 +75,7 @@ public class AuthService implements IAuthService {
     return true;
   }
 
+  @Override
   public void logout() {
     User user = SessionManager.getCurrentUser();
     if (user != null) {

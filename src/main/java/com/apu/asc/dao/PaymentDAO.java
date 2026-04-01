@@ -1,6 +1,5 @@
 package com.apu.asc.dao;
 
-import com.apu.asc.model.Payment;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -13,6 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.apu.asc.model.Payment;
 
 public class PaymentDAO implements IPaymentDAO {
 
@@ -33,6 +34,7 @@ public class PaymentDAO implements IPaymentDAO {
     return instance;
   }
 
+  @Override
   public void reload() {
     load();
   }
@@ -88,6 +90,7 @@ public class PaymentDAO implements IPaymentDAO {
     }
   }
 
+  @Override
   public void save(Payment payment) {
     lock.writeLock().lock();
     try {
@@ -98,6 +101,7 @@ public class PaymentDAO implements IPaymentDAO {
     }
   }
 
+  @Override
   public Payment findByAppointment(String appointmentId) {
     lock.readLock().lock();
     try {
@@ -110,6 +114,7 @@ public class PaymentDAO implements IPaymentDAO {
     }
   }
 
+  @Override
   public List<Payment> getAll() {
     lock.readLock().lock();
     try {

@@ -35,6 +35,7 @@ public class AppointmentDAO implements IAppointmentDAO {
     return instance;
   }
 
+  @Override
   public void reload() {
     load();
   }
@@ -90,6 +91,7 @@ public class AppointmentDAO implements IAppointmentDAO {
     }
   }
 
+  @Override
   public void save(Appointment appointment) {
     lock.writeLock().lock();
     try {
@@ -100,6 +102,7 @@ public class AppointmentDAO implements IAppointmentDAO {
     }
   }
 
+  @Override
   public Appointment findById(String id) {
     lock.readLock().lock();
     try {
@@ -142,6 +145,7 @@ public class AppointmentDAO implements IAppointmentDAO {
     }
   }
 
+  @Override
   public List<Appointment> getAll() {
     lock.readLock().lock();
     try {

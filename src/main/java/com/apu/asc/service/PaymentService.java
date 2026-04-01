@@ -1,5 +1,14 @@
 package com.apu.asc.service;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
 import com.apu.asc.dao.AppointmentDAO;
 import com.apu.asc.dao.PaymentDAO;
 import com.apu.asc.dao.ServiceDAO;
@@ -14,14 +23,6 @@ import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class PaymentService implements IPaymentService {
 
@@ -38,6 +39,7 @@ public class PaymentService implements IPaymentService {
     this.userDAO = UserDAO.getInstance();
   }
 
+  @Override
   public Result<Payment> processPayment(String appointmentId) {
     Appointment appt = appointmentDAO.findById(appointmentId);
     if (appt == null || appt.getStatus() != ApptStatus.COMPLETED)
@@ -77,6 +79,7 @@ public class PaymentService implements IPaymentService {
     return Result.success(payment);
   }
 
+  @Override
   public CompletableFuture<Boolean> sendReceipt(String paymentId) {
     return CompletableFuture.supplyAsync(
         () -> {
@@ -109,6 +112,7 @@ public class PaymentService implements IPaymentService {
         });
   }
 
+  @Override
   public Payment findByAppointment(String appointmentId) {
     return paymentDAO.findByAppointment(appointmentId);
   }

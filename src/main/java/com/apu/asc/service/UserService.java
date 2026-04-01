@@ -25,6 +25,7 @@ public class UserService implements IUserService {
     this.userDAO = UserDAO.getInstance();
   }
 
+  @Override
   public Result<User> createUser(
       Role role,
       String username,
@@ -53,6 +54,7 @@ public class UserService implements IUserService {
     return Result.success(user);
   }
 
+  @Override
   public Result<User> updateProfile(
       User user, String fullName, String email, String contactNumber) {
     user.setFullName(DataSanitizer.clean(fullName).trim());
@@ -71,6 +73,7 @@ public class UserService implements IUserService {
     return Result.success(user);
   }
 
+  @Override
   public boolean deactivateUser(String userId) {
     User user = userDAO.findById(userId);
     if (user == null || user.getStatus() == UserStatus.DEACTIVATED) return false;
@@ -80,6 +83,7 @@ public class UserService implements IUserService {
     return true;
   }
 
+  @Override
   public boolean reactivateUser(String userId) {
     User user = userDAO.findById(userId);
     if (user == null || user.getStatus() == UserStatus.ACTIVE) return false;
@@ -90,14 +94,17 @@ public class UserService implements IUserService {
     return true;
   }
 
+  @Override
   public User findById(String id) {
     return userDAO.findById(id);
   }
 
+  @Override
   public List<User> getAllByRole(Role role) {
     return userDAO.getAllByRole(role);
   }
 
+  @Override
   public List<User> getAll() {
     return userDAO.getAll();
   }
