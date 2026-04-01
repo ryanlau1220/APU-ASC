@@ -14,33 +14,13 @@ import com.apu.asc.util.Result;
 import com.apu.asc.util.SessionManager;
 import com.apu.asc.util.SystemLogger;
 import com.apu.asc.util.ValidationUtil;
-import com.itextpdf.text.Chunk;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
-import jakarta.mail.Authenticator;
-import jakarta.mail.Message;
-import jakarta.mail.Multipart;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeBodyPart;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.internet.MimeMultipart;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -50,6 +30,7 @@ public class PaymentService {
   private final AppointmentDAO appointmentDAO;
   private final ServiceDAO serviceDAO;
   private final UserDAO userDAO;
+  private static final String NOTIFICATION_LOG = "data/notifications.txt";
 
   public PaymentService() {
     this.paymentDAO = PaymentDAO.getInstance();
@@ -112,16 +93,15 @@ public class PaymentService {
           Service service = serviceDAO.findById(appt.getServiceId());
 
           try {
-            Path pdfPath = generateReceiptPdf(payment, appt, customer, service);
-            sendEmail(customer.getEmail(), payment, pdfPath);
+            Path txtPath = generateReceiptTxt(payment, appt, customer, service);
+            logReceiptEmail(customer.getEmail(), payment, txtPath);
             payment.markReceiptSent();
             paymentDAO.save(payment);
-            Files.deleteIfExists(pdfPath);
             SystemLogger.log(
                 actorId(),
                 "SEND_RECEIPT",
                 payment.getPaymentId(),
-                "Receipt emailed to " + customer.getEmail() + ".");
+                "Receipt generated and logged for " + customer.getEmail() + ".");
             return true;
           } catch (Exception e) {
             System.err.println("Receipt send failed: " + e.getMessage());
@@ -145,102 +125,59 @@ public class PaymentService {
         .orElse(null);
   }
 
-  private Path generateReceiptPdf(Payment payment, Appointment appt, User customer, Service service)
+  private Path generateReceiptTxt(Payment payment, Appointment appt, User customer, Service service)
       throws Exception {
-    Path path = Path.of(System.getProperty("java.io.tmpdir"), payment.getPaymentId() + ".pdf");
+    Path path = Path.of(System.getProperty("java.io.tmpdir"), payment.getPaymentId() + "_receipt.txt");
 
-    Document doc = new Document();
-    PdfWriter.getInstance(doc, new FileOutputStream(path.toFile()));
-    doc.open();
-
-    Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
-    Font bodyFont = new Font(Font.FontFamily.HELVETICA, 11);
-
-    doc.add(new Paragraph(I18n.t("receipt.title"), titleFont));
-    doc.add(new Paragraph(I18n.t("receipt.subtitle"), bodyFont));
-    doc.add(Chunk.NEWLINE);
-
-    PdfPTable table = new PdfPTable(2);
-    table.setWidthPercentage(100);
-    addRow(table, I18n.t("receipt.label.no"), payment.getPaymentId());
-    addRow(
-        table,
-        I18n.t("receipt.label.date"),
-        payment
-            .getPaymentDateTime()
-            .format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", I18n.getLocale())));
-    addRow(table, I18n.t("receipt.label.customer"), customer.getFullName());
-    addRow(table, I18n.t("receipt.label.vehiclePlate"), appt.getVehiclePlate());
-    addRow(
-        table,
-        I18n.t("receipt.label.service"),
-        service != null ? service.getServiceName() : appt.getServiceId());
-    double originalPrice = payment.getAmountPaid() + payment.getDiscountAmount();
-    addRow(table, I18n.t("receipt.label.originalPrice"), String.format("RM %.2f", originalPrice));
-    if (payment.getDiscountAmount() > 0) {
-      addRow(
-          table,
-          I18n.t("receipt.label.discount"),
-          String.format("-RM %.2f", payment.getDiscountAmount()));
+    try (PrintWriter pw = new PrintWriter(new FileWriter(path.toFile()))) {
+      pw.println("=========================================");
+      pw.println("               " + I18n.t("receipt.title"));
+      pw.println("          " + I18n.t("receipt.subtitle"));
+      pw.println("=========================================");
+      pw.println();
+      
+      pw.printf("%-20s: %s%n", I18n.t("receipt.label.no"), payment.getPaymentId());
+      pw.printf("%-20s: %s%n", I18n.t("receipt.label.date"), 
+          payment.getPaymentDateTime().format(DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm", I18n.getLocale())));
+      pw.printf("%-20s: %s%n", I18n.t("receipt.label.customer"), customer.getFullName());
+      pw.printf("%-20s: %s%n", I18n.t("receipt.label.vehiclePlate"), appt.getVehiclePlate());
+      pw.printf("%-20s: %s%n", I18n.t("receipt.label.service"), 
+          service != null ? service.getServiceName() : appt.getServiceId());
+          
+      pw.println();
+      
+      double originalPrice = payment.getAmountPaid() + payment.getDiscountAmount();
+      pw.printf("%-20s: RM %.2f%n", I18n.t("receipt.label.originalPrice"), originalPrice);
+      
+      if (payment.getDiscountAmount() > 0) {
+        pw.printf("%-20s: -RM %.2f%n", I18n.t("receipt.label.discount"), payment.getDiscountAmount());
+      }
+      
+      pw.printf("%-20s: RM %.2f%n", I18n.t("receipt.label.amountPaid"), payment.getAmountPaid());
+      
+      pw.println();
+      pw.println("=========================================");
+      pw.println("        " + I18n.t("receipt.thanks"));
+      pw.println("=========================================");
     }
-    addRow(
-        table,
-        I18n.t("receipt.label.amountPaid"),
-        String.format("RM %.2f", payment.getAmountPaid()));
-
-    doc.add(table);
-    doc.add(Chunk.NEWLINE);
-    doc.add(new Paragraph(I18n.t("receipt.thanks"), bodyFont));
-    doc.close();
 
     return path;
   }
 
-  private void addRow(PdfPTable table, String label, String value) {
-    table.addCell(new PdfPCell(new Phrase(label)));
-    table.addCell(new PdfPCell(new Phrase(value)));
-  }
-
-  private void sendEmail(String toEmail, Payment payment, Path pdfPath) throws Exception {
-    Properties mailProps = loadMailConfig();
-    String from = mailProps.getProperty("mail.from");
-    String password = mailProps.getProperty("mail.password");
-
-    Session session =
-        Session.getInstance(
-            mailProps,
-            new Authenticator() {
-              @Override
-              protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(from, password);
-              }
-            });
-
-    MimeMessage msg = new MimeMessage(session);
-    msg.setFrom(new InternetAddress(from));
-    msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-    msg.setSubject(I18n.format("email.receipt.subject", payment.getPaymentId()));
-
-    MimeBodyPart textPart = new MimeBodyPart();
-    textPart.setText(I18n.t("email.receipt.body"));
-
-    MimeBodyPart attachPart = new MimeBodyPart();
-    attachPart.attachFile(pdfPath.toFile());
-
-    Multipart multipart = new MimeMultipart();
-    multipart.addBodyPart(textPart);
-    multipart.addBodyPart(attachPart);
-    msg.setContent(multipart);
-
-    Transport.send(msg);
-  }
-
-  private Properties loadMailConfig() throws IOException {
-    Properties props = new Properties();
-    try (InputStream in = new FileInputStream("src/main/resources/config.properties")) {
-      props.load(in);
+  private void logReceiptEmail(String toEmail, Payment payment, Path txtPath) throws Exception {
+    try (FileWriter fw = new FileWriter(NOTIFICATION_LOG, true);
+         PrintWriter pw = new PrintWriter(fw)) {
+      
+      String subject = I18n.format("email.receipt.subject", payment.getPaymentId());
+      String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+      String receiptContent = Files.readString(txtPath).replace("\n", " | ");
+      
+      String logEntry = String.format("[%s] TO: %s | SUBJECT: %s | BODY: %s | ATTACHMENT: %s", 
+                                    timestamp, toEmail, subject, I18n.t("email.receipt.body"), receiptContent);
+                                    
+      pw.println(logEntry);
+      System.out.println("Receipt Simulated Email Sent: " + logEntry);
     }
-    return props;
   }
 
   private String actorId() {
