@@ -1,8 +1,8 @@
 package com.apu.asc.model;
 
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.apu.asc.util.validation.FutureOrPresent;
+import com.apu.asc.util.validation.NotBlank;
+import com.apu.asc.util.validation.NotNull;
 import java.time.LocalDateTime;
 
 public class Appointment {

@@ -1,8 +1,8 @@
 package com.apu.asc.model;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.apu.asc.util.validation.DecimalMin;
+import com.apu.asc.util.validation.NotBlank;
+import com.apu.asc.util.validation.NotNull;
 import java.time.LocalDateTime;
 
 public class Payment {

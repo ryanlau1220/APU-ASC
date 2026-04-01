@@ -1,9 +1,9 @@
 package com.apu.asc.model;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import com.apu.asc.util.validation.Email;
+import com.apu.asc.util.validation.NotBlank;
+import com.apu.asc.util.validation.Pattern;
+import com.apu.asc.util.validation.Size;
 
 public abstract class User {
 

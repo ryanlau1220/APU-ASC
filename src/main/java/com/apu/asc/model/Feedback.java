@@ -1,9 +1,9 @@
 package com.apu.asc.model;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.apu.asc.util.validation.Max;
+import com.apu.asc.util.validation.Min;
+import com.apu.asc.util.validation.NotBlank;
+import com.apu.asc.util.validation.Size;
 
 public class Feedback {
 

@@ -1,7 +1,7 @@
 package com.apu.asc.model;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
+import com.apu.asc.util.validation.DecimalMin;
+import com.apu.asc.util.validation.NotBlank;
 
 public class Service {
 
