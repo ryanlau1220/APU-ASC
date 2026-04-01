@@ -10,21 +10,13 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.BarRenderer;
-import org.jfree.data.category.DefaultCategoryDataset;
 
 public class ManagerReportPanel extends JPanel implements Refreshable {
 
@@ -39,8 +31,8 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
   private JLabel techTitleLabel;
   private JButton refreshBtn;
 
-  private DefaultCategoryDataset revenueDataset;
-  private DefaultCategoryDataset techDataset;
+  private SimpleBarChart revenueChart;
+  private SimpleBarChart techChart;
 
   public ManagerReportPanel() {
     setLayout(new GridLayout(2, 1, 0, 12));
@@ -82,24 +74,10 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
     header.add(titleRow, BorderLayout.NORTH);
     header.add(kpiRow, BorderLayout.SOUTH);
 
-    revenueDataset = new DefaultCategoryDataset();
-    JFreeChart revenueChart =
-        ChartFactory.createBarChart(
-            null,
-            "Month",
-            "Revenue (RM)",
-            revenueDataset,
-            PlotOrientation.VERTICAL,
-            false,
-            true,
-            false);
-    styleChart(revenueChart, Theme.BTN_PRIMARY);
-
-    ChartPanel chartPanel = new ChartPanel(revenueChart);
-    chartPanel.setBackground(Theme.BG_PANEL);
+    revenueChart = new SimpleBarChart(Theme.BTN_PRIMARY, "Revenue (RM)");
 
     panel.add(header, BorderLayout.NORTH);
-    panel.add(chartPanel, BorderLayout.CENTER);
+    panel.add(revenueChart, BorderLayout.CENTER);
     return panel;
   }
 
@@ -124,56 +102,11 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
     header.add(techTitleLabel, BorderLayout.NORTH);
     header.add(kpiRow, BorderLayout.SOUTH);
 
-    techDataset = new DefaultCategoryDataset();
-    JFreeChart techChart =
-        ChartFactory.createBarChart(
-            null,
-            "Technician",
-            "Jobs Completed",
-            techDataset,
-            PlotOrientation.VERTICAL,
-            false,
-            true,
-            false);
-    styleChart(techChart, Theme.BTN_SUCCESS);
-
-    ChartPanel chartPanel = new ChartPanel(techChart);
-    chartPanel.setBackground(Theme.BG_PANEL);
+    techChart = new SimpleBarChart(Theme.BTN_SUCCESS, "Jobs Completed");
 
     panel.add(header, BorderLayout.NORTH);
-    panel.add(chartPanel, BorderLayout.CENTER);
+    panel.add(techChart, BorderLayout.CENTER);
     return panel;
-  }
-
-  private void styleChart(JFreeChart chart, Color barColor) {
-    Color bg = Theme.BG_PANEL;
-    chart.setBackgroundPaint(bg);
-    chart.setBorderVisible(false);
-
-    CategoryPlot plot = chart.getCategoryPlot();
-    plot.setBackgroundPaint(Theme.BG_ROOT);
-    plot.setOutlineVisible(false);
-    plot.setRangeGridlinePaint(new Color(70, 70, 70));
-    plot.setDomainGridlinesVisible(false);
-
-    BarRenderer renderer = (BarRenderer) plot.getRenderer();
-    renderer.setSeriesPaint(0, barColor);
-    renderer.setDrawBarOutline(false);
-    renderer.setShadowVisible(false);
-    renderer.setMaximumBarWidth(0.1);
-
-    CategoryAxis domainAxis = plot.getDomainAxis();
-    domainAxis.setTickLabelPaint(Theme.TEXT_SECONDARY);
-    domainAxis.setAxisLinePaint(Theme.TEXT_MUTED);
-    domainAxis.setTickMarkPaint(Theme.TEXT_MUTED);
-    domainAxis.setLabelPaint(Theme.TEXT_SECONDARY);
-
-    NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-    rangeAxis.setTickLabelPaint(Theme.TEXT_SECONDARY);
-    rangeAxis.setAxisLinePaint(Theme.TEXT_MUTED);
-    rangeAxis.setTickMarkPaint(Theme.TEXT_MUTED);
-    rangeAxis.setLabelPaint(Theme.TEXT_SECONDARY);
-    rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
   }
 
   private JLabel kpiLabel(String text) {
@@ -184,34 +117,34 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
   }
 
   private void loadData() {
-    revenueDataset.clear();
     Map<String, Double> revenue = reportService.revenueByMonth();
     double total = 0;
     String bestMonth = "—";
     double bestAmount = -1;
 
     for (Map.Entry<String, Double> entry : revenue.entrySet()) {
-      revenueDataset.addValue(entry.getValue(), "Revenue", entry.getKey());
       total += entry.getValue();
       if (entry.getValue() > bestAmount) {
         bestAmount = entry.getValue();
         bestMonth = entry.getKey();
       }
     }
+    revenueChart.setData(revenue);
 
     kpiTotalRevenue.setText(
         LanguageManager.t("kpi.totalRevenue") + " RM " + String.format("%.2f", total));
     kpiBestMonth.setText(LanguageManager.t("kpi.bestMonth") + " " + bestMonth);
 
-    techDataset.clear();
     List<TechnicianStats> stats = reportService.technicianPerformance();
     String topTech = "—";
     String topRating = "—";
     int maxJobs = -1;
     double maxRating = -1;
+    
+    Map<String, Double> techData = new LinkedHashMap<>();
 
     for (TechnicianStats s : stats) {
-      techDataset.addValue(s.jobsCompleted, "Jobs", s.technician.getFullName());
+      techData.put(s.technician.getFullName(), (double) s.jobsCompleted);
       if (s.jobsCompleted > maxJobs) {
         maxJobs = s.jobsCompleted;
         topTech = s.technician.getFullName() + " (" + maxJobs + " jobs)";
@@ -221,6 +154,7 @@ public class ManagerReportPanel extends JPanel implements Refreshable {
         topRating = s.technician.getFullName() + " (" + String.format("%.2f", maxRating) + ")";
       }
     }
+    techChart.setData(techData);
 
     kpiTopTech.setText(LanguageManager.t("kpi.topTechnician") + " " + topTech);
     kpiTopRating.setText(LanguageManager.t("kpi.highestAvgRating") + " " + topRating);
