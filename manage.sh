@@ -2,7 +2,7 @@
 
 SRC_DIR="src/main/java"
 RES_DIR="src/main/resources"
-OUT_DIR="out"
+OUT_DIR="target"
 MAIN_CLASS="com.apu.asc.Main"
 
 case "$1" in
