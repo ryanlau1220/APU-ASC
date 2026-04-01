@@ -48,6 +48,7 @@ public abstract class User {
   }
 
   public abstract String getDashboardTitle();
+  public abstract javax.swing.JPanel getDashboardPanel();
 
   public String getId() {
     return id;

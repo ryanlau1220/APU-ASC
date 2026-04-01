@@ -17,4 +17,9 @@ public class CounterStaff extends User {
   public String getDashboardTitle() {
     return "Counter Staff Dashboard";
   }
+
+  @Override
+  public javax.swing.JPanel getDashboardPanel() {
+    return new com.apu.asc.ui.staff.StaffCustomerPanel();
+  }
 }

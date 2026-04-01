@@ -17,4 +17,9 @@ public class Technician extends User {
   public String getDashboardTitle() {
     return "Technician Dashboard";
   }
+
+  @Override
+  public javax.swing.JPanel getDashboardPanel() {
+    return new com.apu.asc.ui.technician.TechnicianJobPanel(this);
+  }
 }

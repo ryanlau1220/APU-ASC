@@ -17,4 +17,9 @@ public class Manager extends User {
   public String getDashboardTitle() {
     return "Manager Dashboard";
   }
+
+  @Override
+  public javax.swing.JPanel getDashboardPanel() {
+    return new com.apu.asc.ui.manager.ManagerUserPanel();
+  }
 }

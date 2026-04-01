@@ -17,4 +17,9 @@ public class Customer extends User {
   public String getDashboardTitle() {
     return "Customer Dashboard";
   }
+
+  @Override
+  public javax.swing.JPanel getDashboardPanel() {
+    return new com.apu.asc.ui.customer.CustomerHistoryPanel(this);
+  }
 }
