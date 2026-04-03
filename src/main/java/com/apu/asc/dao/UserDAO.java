@@ -1,9 +1,5 @@
 package com.apu.asc.dao;
 
-import com.apu.asc.model.Role;
-import com.apu.asc.model.User;
-import com.apu.asc.model.UserStatus;
-import com.apu.asc.util.UserFactory;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,6 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+
+import com.apu.asc.model.Role;
+import com.apu.asc.model.User;
+import com.apu.asc.model.UserStatus;
+import com.apu.asc.util.UserFactory;
 
 public class UserDAO implements IUserDAO {
 
@@ -58,7 +59,7 @@ public class UserDAO implements IUserDAO {
       try {
         Files.createFile(path);
         // Create default admin
-        User admin = UserFactory.fromFileLine("USR-ADMIN||admin||$2a$10$T8Z4M9P1R3V5W7Y9A2C4E6G8I0K2M4O6Q8S0U2W4Y6A8C0E2||MANAGER||System Administrator||admin@apu-asc.com||1234567890||ACTIVE");
+        User admin = UserFactory.fromFileLine("USR-ADMIN||admin||3CqYnAErVFulfApGhzq6Tg==:tz/v/C2a7NLOC4g3PO4qF3fiGqsKLtB1pcmnjz5r8c4=||MANAGER||System Administrator||admin@apu-asc.com||1234567890||ACTIVE");
         if (admin != null) {
             save(admin);
         }
