@@ -1,7 +1,9 @@
 package com.apu.asc;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -14,7 +16,7 @@ public class Main {
       if (!Files.exists(dataDir)) {
         Files.createDirectories(dataDir);
       }
-    } catch (Exception e) {
+    } catch (IOException e) {
       System.err.println("Could not create data directory: " + e.getMessage());
     }
 
