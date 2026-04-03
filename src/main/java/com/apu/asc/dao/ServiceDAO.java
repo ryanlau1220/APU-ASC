@@ -44,7 +44,27 @@ public class ServiceDAO implements IServiceDAO {
     try {
       cache.clear();
     Path path = Path.of(FILE_PATH);
-    if (!Files.exists(path)) return;
+
+    if (!Files.exists(DATA_DIR)) {
+      try {
+        Files.createDirectories(DATA_DIR);
+      } catch (IOException e) {
+        System.err.println("Could not create data dir");
+      }
+    }
+    if (!Files.exists(path)) {
+      try {
+        Files.createFile(path);
+        // Create default services
+        save(new Service("SRV-MAJOR", ServiceType.MAJOR, "Major Service", 500.0, true));
+        save(new Service("SRV-NORMAL", ServiceType.NORMAL, "Normal Service", 200.0, true));
+      } catch (IOException e) {
+        System.err.println("Could not create services.txt");
+      }
+      return;
+    }
+
+
 
     try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
       String line;
