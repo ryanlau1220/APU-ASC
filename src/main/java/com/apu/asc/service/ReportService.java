@@ -31,6 +31,7 @@ public class ReportService implements IReportService {
     this.userDAO = UserDAO.getInstance();
   }
 
+    @Override
   public Map<String, Double> revenueByMonth() {
     Map<String, Double> result = new LinkedHashMap<>();
     DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM");

@@ -147,7 +147,7 @@ public final class Toast {
     int fy = frame.getY();
     int fw = frame.getWidth();
     int fh = frame.getHeight();
-    toast.setLocation(fx + fw - toast.getWidth() - 24, fy + fh - toast.getHeight() - 56);
+    toast.setLocation(fx + (fw - toast.getWidth()) / 2, fy + fh - toast.getHeight() - 56);
   }
 
   private static Frame findFrame(Window owner) {
