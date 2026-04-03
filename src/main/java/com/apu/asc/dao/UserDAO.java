@@ -58,7 +58,7 @@ public class UserDAO implements IUserDAO {
       try {
         Files.createFile(path);
         // Create default admin
-        User admin = UserFactory.fromFileLine("USR-ADMIN||admin||$2a$10$T8Z4M9P1R3V5W7Y9A2C4E6G8I0K2M4O6Q8S0U2W4Y6A8C0E2||MANAGER||ACTIVE||System Administrator||admin@apu-asc.com||1234567890");
+        User admin = UserFactory.fromFileLine("USR-ADMIN||admin||$2a$10$T8Z4M9P1R3V5W7Y9A2C4E6G8I0K2M4O6Q8S0U2W4Y6A8C0E2||MANAGER||System Administrator||admin@apu-asc.com||1234567890||ACTIVE");
         if (admin != null) {
             save(admin);
         }

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.apu.asc.dao.UserDAO;
+import com.apu.asc.dao.ServiceDAO;
 import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -25,6 +27,14 @@ public class Main {
     } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
       System.err.println("Failed to initialize Nimbus Look and Feel");
     }
+    
+    try {
+      UserDAO.getInstance();
+      ServiceDAO.getInstance();
+    } catch (Exception e) {
+      System.err.println("Failed to initialize DAOs");
+    }
+
     SwingUtilities.invokeLater(() -> new AppShell().setVisible(true));
   }
 }
