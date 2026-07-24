@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ScalarDocConfig {
 
-    @GetMapping(value = "/docs", produces = "text/html")
-    public String scalarDocHtml() {
-        return """
+  @GetMapping(value = "/docs", produces = "text/html")
+  public String scalarDocHtml() {
+    return """
             <!doctype html>
             <html>
               <head>
@@ -28,5 +28,5 @@ public class ScalarDocConfig {
               </body>
             </html>
             """;
-    }
+  }
 }
