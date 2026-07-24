@@ -12,6 +12,10 @@
     "turbo": "^2.0.0"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss"
+    ],
     "overrides": {
       "esbuild": "0.21.5"
     }

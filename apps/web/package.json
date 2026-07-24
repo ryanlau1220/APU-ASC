@@ -11,9 +11,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run --environment node",
-    "format": "biome format",
-    "lint": "biome lint",
-    "check": "biome check"
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check": "biome check ."
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -38,11 +39,5 @@
     "typescript": "^6.0.2",
     "vite": "^6.0.0",
     "vitest": "^1.6.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ]
   }
 }

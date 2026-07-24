@@ -185,6 +185,7 @@
                 <version>3.23.0</version>
                 <configuration>
                     <targetJdk>21</targetJdk>
+                    <linkXRef>false</linkXRef>
                     <printFailingErrors>true</printFailingErrors>
                     <failOnViolation>false</failOnViolation>
                 </configuration>
