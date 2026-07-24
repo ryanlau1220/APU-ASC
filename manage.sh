@@ -17,8 +17,8 @@ trap cleanup INT TERM
 
 case "$1" in
     dev)
-        echo "Starting Docker Infrastructure (PostgreSQL, Keycloak, Traefik)..."
-        docker compose up -d postgres keycloak traefik
+        echo "Starting Docker Infrastructure (PostgreSQL, Keycloak, MinIO, Traefik)..."
+        docker compose up -d postgres keycloak minio traefik
         echo "Starting APU-ASC Backend (Spring Boot) & Web (TanStack Start) concurrently..."
         (cd apps/backend && mvn spring-boot:run) &
         (pnpm --filter @apu-asc/web dev) &
@@ -35,29 +35,33 @@ case "$1" in
         (cd apps/backend && mvn clean package -DskipTests)
         echo "Building web frontend..."
         pnpm --filter @apu-asc/web build
-        echo "Build complete."
+        echo "Full-stack build complete."
         ;;
     lint)
         echo "Running Spotless code formatting..."
         (cd apps/backend && mvn spotless:apply)
-        echo "Running Biome linter..."
-        pnpm --filter @apu-asc/web lint
+        echo "Running Biome formatting..."
+        pnpm --filter @apu-asc/web format
         ;;
     check)
-        echo "Running Maven Code Quality Plugins (Spotless, Checkstyle, SpotBugs, PMD)..."
+        echo "Running Frontend Quality Checks (Biome check & TypeScript typecheck)..."
+        pnpm --filter @apu-asc/web check
+        pnpm --filter @apu-asc/web typecheck
+        echo "Running Backend Maven Quality Plugins (Spotless, Checkstyle, SpotBugs, PMD)..."
         (cd apps/backend && mvn spotless:check checkstyle:check spotbugs:check pmd:check)
-        echo "Check complete."
+        echo "Full-stack check complete."
         ;;
     test)
         echo "Running backend JUnit 5 unit & integration tests..."
         (cd apps/backend && mvn test)
         echo "Running web unit tests..."
-        pnpm --filter @apu-asc/web test 2>/dev/null || true
+        pnpm --filter @apu-asc/web test
+        echo "Full-stack testing complete."
         ;;
     clean)
         echo "Cleaning Maven target directories and web build assets..."
         (cd apps/backend && mvn clean)
-        rm -rf apps/web/.output apps/web/dist apps/web/.vinxi .turbo
+        rm -rf apps/web/.output apps/web/dist apps/web/.vinxi apps/web/.tanstack .turbo
         echo "Clean complete."
         ;;
     *)
