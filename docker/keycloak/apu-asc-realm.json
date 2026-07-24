@@ -1,0 +1,128 @@
+{
+  "id": "apu-asc",
+  "realm": "apu-asc",
+  "displayName": "APU Automotive Service Centre",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "MANAGER",
+        "description": "System Manager with full administrative control"
+      },
+      {
+        "name": "STAFF",
+        "description": "Counter Staff with booking & billing privileges"
+      },
+      {
+        "name": "TECHNICIAN",
+        "description": "Technician with job ticket & inspection privileges"
+      },
+      {
+        "name": "CUSTOMER",
+        "description": "Customer account for service appointments"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "apu-asc-web",
+      "name": "APU-ASC Web Client",
+      "description": "Public SPA/SSR Client using OAuth2 PKCE",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost/*",
+        "http://localhost/login/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost",
+        "+"
+      ]
+    },
+    {
+      "clientId": "apu-asc-api",
+      "name": "APU-ASC Backend API Service",
+      "description": "OAuth2 Resource Server Audience Client",
+      "enabled": true,
+      "bearerOnly": true
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@apu-asc.com",
+      "firstName": "System",
+      "lastName": "Administrator",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["MANAGER"]
+    },
+    {
+      "username": "staff",
+      "email": "staff@apu-asc.com",
+      "firstName": "Lee",
+      "lastName": "Sang Yew",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Staff123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["STAFF"]
+    },
+    {
+      "username": "technician",
+      "email": "tech@apu-asc.com",
+      "firstName": "Ong",
+      "lastName": "Zi Ming",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Tech123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["TECHNICIAN"]
+    },
+    {
+      "username": "customer",
+      "email": "customer@apu-asc.com",
+      "firstName": "Ryan",
+      "lastName": "Lau",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Customer123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CUSTOMER"]
+    }
+  ]
+}
