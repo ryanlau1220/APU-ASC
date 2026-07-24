@@ -86,3 +86,13 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     details TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Spring Modulith Event Publication Table
+CREATE TABLE IF NOT EXISTS event_publication (
+    id UUID NOT NULL PRIMARY KEY,
+    listener_id VARCHAR(512) NOT NULL,
+    event_type VARCHAR(512) NOT NULL,
+    serialized_event TEXT NOT NULL,
+    publication_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    completion_date TIMESTAMP WITH TIME ZONE
+);
