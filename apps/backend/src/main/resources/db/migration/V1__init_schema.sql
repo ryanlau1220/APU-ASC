@@ -1,0 +1,88 @@
+-- APU Automotive Service Centre (APU-ASC) Relational DB Schema
+
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(64) PRIMARY KEY,
+    keycloak_id VARCHAR(128) UNIQUE,
+    username VARCHAR(64) NOT NULL UNIQUE,
+    email VARCHAR(128) NOT NULL UNIQUE,
+    full_name VARCHAR(128) NOT NULL,
+    contact_number VARCHAR(32) NOT NULL,
+    role VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+    id VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(128) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS services (
+    id VARCHAR(64) PRIMARY KEY,
+    category_id VARCHAR(64) REFERENCES categories(id) ON DELETE SET NULL,
+    name VARCHAR(128) NOT NULL,
+    description TEXT,
+    duration_minutes INT NOT NULL DEFAULT 60,
+    base_price DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS vehicles (
+    id VARCHAR(64) PRIMARY KEY,
+    customer_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    license_plate VARCHAR(32) NOT NULL UNIQUE,
+    make VARCHAR(64) NOT NULL,
+    model VARCHAR(64) NOT NULL,
+    year_of_manufacture INT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS appointments (
+    id VARCHAR(64) PRIMARY KEY,
+    customer_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    vehicle_id VARCHAR(64) NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+    service_id VARCHAR(64) NOT NULL REFERENCES services(id) ON DELETE RESTRICT,
+    technician_id VARCHAR(64) REFERENCES users(id) ON DELETE SET NULL,
+    appointment_date DATE NOT NULL,
+    time_slot VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+    id VARCHAR(64) PRIMARY KEY,
+    appointment_id VARCHAR(64) NOT NULL UNIQUE REFERENCES appointments(id) ON DELETE CASCADE,
+    customer_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    invoice_number VARCHAR(64) NOT NULL UNIQUE,
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_method VARCHAR(32) NOT NULL,
+    payment_status VARCHAR(32) NOT NULL DEFAULT 'UNPAID',
+    paid_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS feedbacks (
+    id VARCHAR(64) PRIMARY KEY,
+    appointment_id VARCHAR(64) NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+    customer_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    technician_id VARCHAR(64) REFERENCES users(id) ON DELETE SET NULL,
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    comments TEXT,
+    technician_diagnostic_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id VARCHAR(64) PRIMARY KEY,
+    user_id VARCHAR(64) REFERENCES users(id) ON DELETE SET NULL,
+    action_type VARCHAR(64) NOT NULL,
+    entity_name VARCHAR(64) NOT NULL,
+    details TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
