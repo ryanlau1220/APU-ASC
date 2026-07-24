@@ -1,60 +1,32 @@
-# Java / Maven
-target/
+# Maven Target & Binaries
+**/target/
 *.class
 *.jar
 *.war
 *.ear
 
-# Documentation
-*.md
-docs/
+# Node & Package Managers
+**/node_modules/
+**/.pnpm-store/
+**/.output/
+**/.vinxi/
+**/.turbo/
+**/dist/
 
-# App Data (runtime-generated, not source)
-data/
+# Environment Secrets
+.env
+.env.local
+.env.*.local
 
-# IDE Configurations
-.vscode/
-!.vscode/settings.json
-!.vscode/extensions.json
-.claude/
-.idea/
-.github/copilot-instructions.md
-CLAUDE.md
-.cursor/
-.gemini/
-*.code-workspace
-
-# NetBeans
-nbproject/private/
-nbproject/Makefile-*.mk
-nbproject/Package-*.bash
-build/
-nbbuild/
-dist/
-nbdist/
-nb-configuration.xml
-
-# IntelliJ IDEA (just in case)
+# IDE & OS
 .idea/
 *.iml
-*.iws
-*.ipr
-
-# OS
+.vscode/
 .DS_Store
 Thumbs.db
-desktop.ini
+*.md
 
-# Secrets (never commit)
-.env
-src/main/resources/config.properties
-
-# Unused files
-.settings/
-.project
-.classpath
+# Docker Data & Temp
 tmp/
-logs/
 *.log
-*.tmp
-scripts/
+data/
