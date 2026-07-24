@@ -29,8 +29,8 @@ case "$1" in
             exit 1
         fi
 
-        # Automatically free ports 8080 and 3000 from lingering background processes
-        fuser -k 8080/tcp 3000/tcp 2>/dev/null || true
+        # Automatically free ports 8081 and 3000 from lingering background processes
+        fuser -k 8081/tcp 3000/tcp 2>/dev/null || true
 
         trap cleanup_dev INT TERM
 
