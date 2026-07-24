@@ -4,30 +4,46 @@
 
 set -e
 
-# Cleanup handler for Ctrl+C signal
-cleanup() {
+# ANSI Color Tokens
+CYAN='\033[36m'
+MAGENTA='\033[35m'
+YELLOW='\033[33m'
+RED='\033[31m'
+RESET='\033[0m'
+
+# Cleanup handler for Ctrl+C signal in dev mode
+cleanup_dev() {
     echo ""
-    echo "Stopping background dev services..."
+    echo -e "${YELLOW}Stopping backend and frontend dev processes...${RESET}"
     kill $(jobs -p) 2>/dev/null || true
-    echo "Done."
+    echo -e "${YELLOW}Done.${RESET}"
     exit 0
 }
 
-trap cleanup INT TERM
-
 case "$1" in
     dev)
-        echo "Starting Docker Infrastructure (PostgreSQL, Keycloak, MinIO, Traefik)..."
-        docker compose up -d postgres keycloak minio traefik
-        echo "Starting APU-ASC Backend (Spring Boot) & Web (TanStack Start) concurrently..."
-        (cd apps/backend && mvn spring-boot:run) &
-        (pnpm --filter @apu-asc/web dev) &
+        # Fast health check for PostgreSQL port 5432
+        if ! (nc -z localhost 5432 2>/dev/null || (echo > /dev/tcp/localhost/5432) 2>/dev/null); then
+            echo -e "${RED}⚠️  [WARN] PostgreSQL database is not reachable on port 5432.${RESET}"
+            echo -e "${YELLOW}Please start the Docker infrastructure in another terminal using:${RESET} ${CYAN}./manage.sh docker${RESET}"
+            exit 1
+        fi
+
+        # Automatically free ports 8080 and 3000 from lingering background processes
+        fuser -k 8080/tcp 3000/tcp 2>/dev/null || true
+
+        trap cleanup_dev INT TERM
+
+        echo -e "${CYAN}Starting APU-ASC Backend (Spring Boot) & Web (TanStack Start) concurrently...${RESET}"
+        (cd apps/backend && mvn spring-boot:run 2>&1 | stdbuf -oL sed "s/^/$(printf "${CYAN}[backend]${RESET}") /") &
+        (pnpm --filter @apu-asc/web dev 2>&1 | stdbuf -oL sed "s/^/$(printf "${MAGENTA}[web]${RESET}") /") &
         wait
         ;;
     docker)
-        echo "Starting full Docker Compose stack (Ctrl+C to shut down)..."
+        echo -e "${YELLOW}Starting Docker Compose infrastructure stack (PostgreSQL, Keycloak, MinIO, Traefik)...${RESET}"
+        echo -e "${YELLOW}Press Ctrl+C to stop all containers gracefully.${RESET}"
         docker compose up || true
-        echo "Shutting down Docker Compose containers..."
+        echo -e "${YELLOW}Shutting down Docker Compose containers...${RESET}"
         docker compose down
         ;;
     build)
