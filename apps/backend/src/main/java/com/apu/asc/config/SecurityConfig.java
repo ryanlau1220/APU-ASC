@@ -39,7 +39,8 @@ public class SecurityConfig {
                         "/scalar",
                         "/docs",
                         "/docs/**",
-                        "/actuator/**")
+                        "/actuator/**",
+                        "/api/v1/auth/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
