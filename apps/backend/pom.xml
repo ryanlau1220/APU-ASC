@@ -154,6 +154,15 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven Surefire Plugin with Java 21 Dynamic Agent Loading -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+                </configuration>
+            </plugin>
+
             <!-- Spotless Format Plugin -->
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
