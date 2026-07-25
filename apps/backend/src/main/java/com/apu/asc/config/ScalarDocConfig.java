@@ -1,32 +1,36 @@
 package com.apu.asc.config;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @Configuration
-@RestController
 public class ScalarDocConfig {
 
-  @GetMapping(value = "/docs", produces = "text/html")
-  public String scalarDocHtml() {
-    return """
-            <!doctype html>
-            <html>
-              <head>
-                <title>APU Automotive Service Centre API Reference</title>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" type="image/svg+xml" href="https://scalar.com/favicon.svg" />
-              </head>
-              <body>
-                <script
-                  id="api-reference"
-                  data-url="/v3/api-docs"
-                  data-theme="purple"
-                  src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
-              </body>
-            </html>
-            """;
+  @Bean
+  public OpenAPI apuAscOpenAPI() {
+    final String securitySchemeName = "bearerAuth";
+    return new OpenAPI()
+        .info(
+            new Info()
+                .title("APU Automotive Service Centre (APU-ASC) API")
+                .description("Automotive Service Management RESTful API Specifications")
+                .version("1.0.0")
+                .contact(new Contact().name("APU-ASC Support").email("support@apu-asc.com")))
+        .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+        .components(
+            new Components()
+                .addSecuritySchemes(
+                    securitySchemeName,
+                    new SecurityScheme()
+                        .name(securitySchemeName)
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")));
   }
 }
