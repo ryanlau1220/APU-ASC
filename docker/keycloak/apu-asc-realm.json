@@ -7,10 +7,21 @@
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
   "rememberMe": true,
-  "verifyEmail": false,
+  "verifyEmail": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
+  "smtpServer": {
+    "host": "${SMTP_HOST:smtp.gmail.com}",
+    "port": "${SMTP_PORT:587}",
+    "from": "${SMTP_FROM:noreply@apu-asc.com}",
+    "fromDisplayName": "APU-ASC Security",
+    "auth": "true",
+    "ssl": "false",
+    "starttls": "true",
+    "user": "${SMTP_USERNAME:user@gmail.com}",
+    "password": "${SMTP_PASSWORD:secret}"
+  },
   "roles": {
     "realm": [
       {
@@ -75,54 +86,6 @@
         }
       ],
       "realmRoles": ["MANAGER"]
-    },
-    {
-      "username": "staff",
-      "email": "staff@apu-asc.com",
-      "firstName": "Lee",
-      "lastName": "Sang Yew",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "Staff123!",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["STAFF"]
-    },
-    {
-      "username": "technician",
-      "email": "tech@apu-asc.com",
-      "firstName": "Ong",
-      "lastName": "Zi Ming",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "Tech123!",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["TECHNICIAN"]
-    },
-    {
-      "username": "customer",
-      "email": "customer@apu-asc.com",
-      "firstName": "Ryan",
-      "lastName": "Lau",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "Customer123!",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["CUSTOMER"]
     }
   ]
 }
