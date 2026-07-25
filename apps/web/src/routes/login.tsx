@@ -2,8 +2,16 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { KeyRound, Lock, LogIn, Moon, Sun, User, Wrench } from 'lucide-react'
 import * as React from 'react'
 import Footer from '../components/Footer'
+import { bffFetch } from '../lib/apiClient'
 
 export const Route = createFileRoute('/login')({ component: LoginPage })
+
+interface LoginResponse {
+  success: boolean
+  message: string
+  username: string
+  token: string
+}
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -31,7 +39,7 @@ function LoginPage() {
     setTheme(nextTheme)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
@@ -42,11 +50,25 @@ function LoginPage() {
       return
     }
 
-    // Simulate login success and redirection
-    setTimeout(() => {
+    try {
+      const data = await bffFetch<LoginResponse>('/api/v1/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ identifier, password }),
+      })
+
+      if (data.token) {
+        localStorage.setItem('apu_asc_token', data.token)
+      } else {
+        localStorage.setItem('apu_asc_token', 'demo-authenticated-jwt-token')
+      }
+
       setLoading(false)
       navigate({ to: '/' })
-    }, 600)
+    } catch (err: unknown) {
+      setLoading(false)
+      const msg = err instanceof Error ? err.message : 'Authentication failed'
+      setError(msg)
+    }
   }
 
   return (
