@@ -3,7 +3,9 @@ import {
   CheckCircle2,
   Lock,
   Mail,
+  Moon,
   Phone,
+  Sun,
   User,
   UserPlus,
   Wrench,
@@ -21,6 +23,25 @@ function RegisterPage() {
   const [password, setPassword] = React.useState('')
   const [submitted, setSubmitted] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
+
+  React.useEffect(() => {
+    const root = document.documentElement
+    const isDark =
+      root.classList.contains('dark') ||
+      root.getAttribute('data-theme') === 'dark'
+    setTheme(isDark ? 'dark' : 'light')
+  }, [])
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light'
+    const root = document.documentElement
+    root.classList.remove('light', 'dark')
+    root.classList.add(nextTheme)
+    root.setAttribute('data-theme', nextTheme)
+    localStorage.setItem('theme', nextTheme)
+    setTheme(nextTheme)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,12 +67,18 @@ function RegisterPage() {
             </span>
           </Link>
 
-          <Link
-            to="/login"
-            className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
+            title="Toggle theme"
           >
-            Existing User? Sign In
-          </Link>
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-primary" />
+            ) : (
+              <Moon className="w-4 h-4 text-primary" />
+            )}
+          </button>
         </div>
       </header>
 

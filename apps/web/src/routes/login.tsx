@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { KeyRound, Lock, LogIn, User, Wrench } from 'lucide-react'
+import { KeyRound, Lock, LogIn, Moon, Sun, User, Wrench } from 'lucide-react'
 import * as React from 'react'
 import Footer from '../components/Footer'
 
@@ -11,6 +11,25 @@ function LoginPage() {
   const [password, setPassword] = React.useState('')
   const [error, setError] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState(false)
+  const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
+
+  React.useEffect(() => {
+    const root = document.documentElement
+    const isDark =
+      root.classList.contains('dark') ||
+      root.getAttribute('data-theme') === 'dark'
+    setTheme(isDark ? 'dark' : 'light')
+  }, [])
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light'
+    const root = document.documentElement
+    root.classList.remove('light', 'dark')
+    root.classList.add(nextTheme)
+    root.setAttribute('data-theme', nextTheme)
+    localStorage.setItem('theme', nextTheme)
+    setTheme(nextTheme)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,12 +62,18 @@ function LoginPage() {
             </span>
           </Link>
 
-          <Link
-            to="/register"
-            className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
+            title="Toggle theme"
           >
-            Register Account
-          </Link>
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-primary" />
+            ) : (
+              <Moon className="w-4 h-4 text-primary" />
+            )}
+          </button>
         </div>
       </header>
 
@@ -98,22 +123,12 @@ function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="login-password"
-                  className="font-semibold text-foreground block"
-                >
-                  Password
-                </label>
-                <a
-                  href="http://localhost/auth/realms/apu-asc/login-actions/reset-credentials"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[11px] font-medium text-primary hover:underline"
-                >
-                  Forgot Password?
-                </a>
-              </div>
+              <label
+                htmlFor="login-password"
+                className="font-semibold text-foreground block"
+              >
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                   <Lock className="w-4 h-4" />
@@ -127,6 +142,16 @@ function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border border-border focus:border-primary text-foreground placeholder:text-muted-foreground outline-none transition-colors"
                 />
+              </div>
+              <div className="flex justify-end pt-1">
+                <a
+                  href="http://localhost/auth/realms/apu-asc/login-actions/reset-credentials"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] font-medium text-primary hover:underline"
+                >
+                  Forgot Password?
+                </a>
               </div>
             </div>
 
