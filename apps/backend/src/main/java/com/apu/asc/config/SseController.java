@@ -34,10 +34,13 @@ public class SseController {
           for (SseEmitter emitter : emitters) {
             try {
               emitter.send(SseEmitter.event().comment("ping"));
-            } catch (IOException e) {
-              // Client disconnected or broken pipe - remove silently
-              emitters.remove(emitter);
             } catch (Exception e) {
+              // Gracefully complete dead emitters on disconnect to prevent Tomcat Broken pipe logs
+              try {
+                emitter.complete();
+              } catch (Exception ignored) {
+                // Ignore secondary cleanup errors
+              }
               emitters.remove(emitter);
             }
           }
@@ -52,10 +55,10 @@ public class SseController {
   public SseEmitter subscribe() {
     SseEmitter emitter = new SseEmitter(0L); // Infinite timeout for long-lived stream
 
-    emitters.add(emitter);
     emitter.onCompletion(() -> emitters.remove(emitter));
     emitter.onTimeout(() -> emitters.remove(emitter));
     emitter.onError((e) -> emitters.remove(emitter));
+    emitters.add(emitter);
 
     try {
       emitter.send(
@@ -72,9 +75,12 @@ public class SseController {
     for (SseEmitter emitter : emitters) {
       try {
         emitter.send(SseEmitter.event().name("invalidate").data(Map.of("entity", entityName)));
-      } catch (IOException e) {
-        emitters.remove(emitter);
       } catch (Exception e) {
+        try {
+          emitter.complete();
+        } catch (Exception ignored) {
+          // Ignore
+        }
         emitters.remove(emitter);
       }
     }
