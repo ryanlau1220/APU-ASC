@@ -8,6 +8,7 @@ set -e
 CYAN='\033[36m'
 MAGENTA='\033[35m'
 YELLOW='\033[33m'
+GREEN='\033[32m'
 RED='\033[31m'
 RESET='\033[0m'
 
@@ -34,8 +35,16 @@ case "$1" in
 
         trap cleanup_dev INT TERM
 
-        echo -e "${CYAN}Starting APU-ASC Backend (Spring Boot) & Web (TanStack Start) concurrently...${RESET}"
+        echo -e "${CYAN}Launching APU-ASC Backend (Spring Boot)...${RESET}"
         (cd apps/backend && mvn spring-boot:run 2>&1 | stdbuf -oL sed "s/^/$(printf "${CYAN}[backend]${RESET}") /") &
+
+        echo -e "${YELLOW}Waiting for Spring Boot backend (port 8081) to become healthy...${RESET}"
+        until curl -s http://localhost:8081/actuator/health >/dev/null 2>&1 || (echo > /dev/tcp/localhost/8081) 2>/dev/null; do
+            sleep 2
+        done
+
+        echo -e "${GREEN}✓ [OK] Spring Boot Backend is 100% HEALTHY & READY on port 8081!${RESET}"
+        echo -e "${MAGENTA}Launching APU-ASC Web (TanStack Start)...${RESET}"
         (pnpm --filter @apu-asc/web dev 2>&1 | stdbuf -oL sed "s/^/$(printf "${MAGENTA}[web]${RESET}") /") &
         wait
         ;;
