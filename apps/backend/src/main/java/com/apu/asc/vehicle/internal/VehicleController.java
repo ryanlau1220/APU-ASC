@@ -23,6 +23,13 @@ class VehicleController {
 
   private final VehicleApi vehicleApi;
 
+  @GetMapping
+  @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
+  @Operation(summary = "Get all registered vehicles")
+  public ResponseEntity<List<VehicleDto>> getAllVehicles() {
+    return ResponseEntity.ok(vehicleApi.findAllVehicles());
+  }
+
   @GetMapping("/customer/{customerId}")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get vehicles by customer ID")

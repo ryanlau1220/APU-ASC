@@ -16,6 +16,12 @@ class VehicleServiceImpl implements VehicleApi {
 
   @Override
   @Transactional(readOnly = true)
+  public List<VehicleDto> findAllVehicles() {
+    return vehicleRepository.findAll().stream().map(this::toDto).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<VehicleDto> findVehiclesByCustomer(final String customerId) {
     return vehicleRepository.findByCustomerId(customerId).stream().map(this::toDto).toList();
   }
