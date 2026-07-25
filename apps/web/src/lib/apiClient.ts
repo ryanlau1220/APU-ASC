@@ -6,12 +6,16 @@ export async function bffFetch<T>(
 ): Promise<T> {
   const url = `${BACKEND_URL}${endpoint}`
 
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('apu_asc_token') : null
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string>),
   }
 
-  // Include HttpOnly session cookies automatically with credentials: 'include'
+  // Support both HttpOnly cookies and Bearer token headers
   const res = await fetch(url, {
     credentials: 'include',
     ...options,
@@ -23,7 +27,8 @@ export async function bffFetch<T>(
       const isAuthPage =
         window.location.pathname.startsWith('/login') ||
         window.location.pathname.startsWith('/register')
-      if (!isAuthPage) {
+      if (!isAuthPage && token) {
+        localStorage.removeItem('apu_asc_token')
         window.location.href = '/login'
       }
     }
