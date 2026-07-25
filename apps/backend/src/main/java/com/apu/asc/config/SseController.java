@@ -29,12 +29,14 @@ public class SseController {
       Executors.newSingleThreadScheduledExecutor();
 
   public SseController() {
-    // Periodically send ping comments to keep connections alive through reverse proxies
     heartbeatExecutor.scheduleAtFixedRate(
         () -> {
           for (SseEmitter emitter : emitters) {
             try {
               emitter.send(SseEmitter.event().comment("ping"));
+            } catch (IOException e) {
+              // Client disconnected or broken pipe - remove silently
+              emitters.remove(emitter);
             } catch (Exception e) {
               emitters.remove(emitter);
             }
@@ -70,6 +72,8 @@ public class SseController {
     for (SseEmitter emitter : emitters) {
       try {
         emitter.send(SseEmitter.event().name("invalidate").data(Map.of("entity", entityName)));
+      } catch (IOException e) {
+        emitters.remove(emitter);
       } catch (Exception e) {
         emitters.remove(emitter);
       }
