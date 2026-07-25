@@ -14,7 +14,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as AuditLogsRouteImport } from './routes/audit-logs'
 import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as PaymentsRouteImport } from './routes/payments'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as VehiclesRouteImport } from './routes/vehicles'
@@ -44,9 +46,19 @@ const FeedbackRoute = FeedbackRouteImport.update({
   path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PaymentsRoute = PaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -71,7 +83,9 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AppointmentsRoute
   '/audit-logs': typeof AuditLogsRoute
   '/feedback': typeof FeedbackRoute
+  '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
+  '/register': typeof RegisterRoute
   '/services': typeof ServicesRoute
   '/users': typeof UsersRoute
   '/vehicles': typeof VehiclesRoute
@@ -82,7 +96,9 @@ export interface FileRoutesByTo {
   '/appointments': typeof AppointmentsRoute
   '/audit-logs': typeof AuditLogsRoute
   '/feedback': typeof FeedbackRoute
+  '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
+  '/register': typeof RegisterRoute
   '/services': typeof ServicesRoute
   '/users': typeof UsersRoute
   '/vehicles': typeof VehiclesRoute
@@ -94,7 +110,9 @@ export interface FileRoutesById {
   '/appointments': typeof AppointmentsRoute
   '/audit-logs': typeof AuditLogsRoute
   '/feedback': typeof FeedbackRoute
+  '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
+  '/register': typeof RegisterRoute
   '/services': typeof ServicesRoute
   '/users': typeof UsersRoute
   '/vehicles': typeof VehiclesRoute
@@ -107,7 +125,9 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/audit-logs'
     | '/feedback'
+    | '/login'
     | '/payments'
+    | '/register'
     | '/services'
     | '/users'
     | '/vehicles'
@@ -118,7 +138,9 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/audit-logs'
     | '/feedback'
+    | '/login'
     | '/payments'
+    | '/register'
     | '/services'
     | '/users'
     | '/vehicles'
@@ -129,7 +151,9 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/audit-logs'
     | '/feedback'
+    | '/login'
     | '/payments'
+    | '/register'
     | '/services'
     | '/users'
     | '/vehicles'
@@ -141,7 +165,9 @@ export interface RootRouteChildren {
   AppointmentsRoute: typeof AppointmentsRoute
   AuditLogsRoute: typeof AuditLogsRoute
   FeedbackRoute: typeof FeedbackRoute
+  LoginRoute: typeof LoginRoute
   PaymentsRoute: typeof PaymentsRoute
+  RegisterRoute: typeof RegisterRoute
   ServicesRoute: typeof ServicesRoute
   UsersRoute: typeof UsersRoute
   VehiclesRoute: typeof VehiclesRoute
@@ -184,11 +210,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/payments': {
       id: '/payments'
       path: '/payments'
       fullPath: '/payments'
       preLoaderRoute: typeof PaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -221,7 +261,9 @@ const rootRouteChildren: RootRouteChildren = {
   AppointmentsRoute: AppointmentsRoute,
   AuditLogsRoute: AuditLogsRoute,
   FeedbackRoute: FeedbackRoute,
+  LoginRoute: LoginRoute,
   PaymentsRoute: PaymentsRoute,
+  RegisterRoute: RegisterRoute,
   ServicesRoute: ServicesRoute,
   UsersRoute: UsersRoute,
   VehiclesRoute: VehiclesRoute,
