@@ -38,8 +38,8 @@ case "$1" in
         echo -e "${CYAN}Launching APU-ASC Backend (Spring Boot)...${RESET}"
         (cd apps/backend && mvn spring-boot:run 2>&1 | stdbuf -oL sed "s/^/$(printf "${CYAN}[backend]${RESET}") /") &
 
-        echo -e "${YELLOW}Waiting for Spring Boot backend (port 8081) to become healthy...${RESET}"
-        until curl -s http://localhost:8081/actuator/health >/dev/null 2>&1 || (echo > /dev/tcp/localhost/8081) 2>/dev/null; do
+        echo -e "${YELLOW}Waiting for Spring Boot backend to become healthy on port 8081...${RESET}"
+        until curl -s -f http://localhost:8081/actuator/health >/dev/null 2>&1; do
             sleep 2
         done
 
