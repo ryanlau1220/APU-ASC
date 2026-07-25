@@ -5,24 +5,25 @@ export async function bffFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const url = `${BACKEND_URL}${endpoint}`
-  const token =
-    typeof window !== 'undefined' ? localStorage.getItem('apu_asc_token') : null
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string>),
   }
 
-  const res = await fetch(url, { ...options, headers })
+  // Include HttpOnly session cookies automatically with credentials: 'include'
+  const res = await fetch(url, {
+    credentials: 'include',
+    ...options,
+    headers,
+  })
 
   if (res.status === 401) {
     if (typeof window !== 'undefined') {
       const isAuthPage =
         window.location.pathname.startsWith('/login') ||
         window.location.pathname.startsWith('/register')
-      if (!isAuthPage && token) {
-        localStorage.removeItem('apu_asc_token')
+      if (!isAuthPage) {
         window.location.href = '/login'
       }
     }
