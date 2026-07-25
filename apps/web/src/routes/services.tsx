@@ -1,68 +1,51 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { BookOpen, CheckCircle2, Clock, Filter, Tag } from 'lucide-react'
 import * as React from 'react'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { bffFetch } from '../lib/apiClient'
 
 export const Route = createFileRoute('/services')({ component: ServicesPage })
+
+interface ServiceCategoryDto {
+  id: string
+  name: string
+  description: string
+}
+
+interface ServiceDto {
+  id: string
+  categoryId: string
+  name: string
+  description: string
+  durationMinutes: number
+  basePrice: number
+  status: string
+}
 
 function ServicesPage() {
   const [activeCategory, setActiveCategory] = React.useState<string>('ALL')
 
-  const categories = [
-    { id: 'ALL', name: 'All Services' },
-    { id: 'MAINTENANCE', name: 'Regular Maintenance' },
-    { id: 'REPAIR', name: 'Brake & Mechanical Repair' },
-    { id: 'DIAGNOSTIC', name: 'Air-Con & Electrical' },
-  ]
+  const { data: categories = [], isLoading: loadingCategories } = useQuery<
+    ServiceCategoryDto[]
+  >({
+    queryKey: ['categories'],
+    queryFn: () =>
+      bffFetch<ServiceCategoryDto[]>('/api/v1/services/categories'),
+  })
 
-  const services = [
-    {
-      id: 'SVC-101',
-      category: 'MAINTENANCE',
-      name: 'Full Engine Synthetic Oil Service',
-      description:
-        'Includes 100% synthetic engine oil replacement, oil filter change, and 21-point safety inspection.',
-      durationMinutes: 60,
-      basePrice: 180.0,
-      status: 'ACTIVE',
-    },
-    {
-      id: 'SVC-102',
-      category: 'REPAIR',
-      name: 'Brake Disc & Pad Replacement',
-      description:
-        'Replacement of front/rear ceramic brake pads and rotor resurfacing for high stopping power.',
-      durationMinutes: 90,
-      basePrice: 320.0,
-      status: 'ACTIVE',
-    },
-    {
-      id: 'SVC-103',
-      category: 'DIAGNOSTIC',
-      name: 'Air Conditioning Maintenance & Gas Refill',
-      description:
-        'Full AC system flush, leak check, compressor oil top-up, and R134a refrigerant refill.',
-      durationMinutes: 60,
-      basePrice: 150.0,
-      status: 'ACTIVE',
-    },
-    {
-      id: 'SVC-104',
-      category: 'MAINTENANCE',
-      name: 'Transmission Fluid & Filter Flush',
-      description:
-        'Automatic transmission fluid exchange and filter cleaning to ensure smooth gear shifts.',
-      durationMinutes: 75,
-      basePrice: 240.0,
-      status: 'ACTIVE',
-    },
-  ]
+  const { data: services = [], isLoading: loadingServices } = useQuery<
+    ServiceDto[]
+  >({
+    queryKey: ['services'],
+    queryFn: () => bffFetch<ServiceDto[]>('/api/v1/services'),
+  })
 
   const filteredServices =
     activeCategory === 'ALL'
       ? services
-      : services.filter((s) => s.category === activeCategory)
+      : services.filter((s) => s.categoryId === activeCategory)
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
@@ -88,6 +71,18 @@ function ServicesPage() {
         {/* Category Filters */}
         <section className="flex items-center gap-2 overflow-x-auto pb-2">
           <Filter className="w-4 h-4 text-muted-foreground mr-1 shrink-0" />
+          <button
+            type="button"
+            onClick={() => setActiveCategory('ALL')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors border ${
+              activeCategory === 'ALL'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-card text-muted-foreground border-border hover:text-foreground'
+            }`}
+          >
+            All Services
+          </button>
+
           {categories.map((cat) => (
             <button
               key={cat.id}
@@ -105,46 +100,58 @@ function ServicesPage() {
         </section>
 
         {/* Service Cards Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredServices.map((svc) => (
-            <div
-              key={svc.id}
-              className="bg-card border border-border rounded-xl p-5 flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                    {svc.id}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-completed">
-                    <CheckCircle2 className="w-3 h-3" />
-                    {svc.status}
-                  </span>
+        {loadingServices || loadingCategories ? (
+          <div className="text-center py-12 text-xs text-muted-foreground">
+            Loading service catalog...
+          </div>
+        ) : filteredServices.length === 0 ? (
+          <div className="text-center py-12 text-xs text-muted-foreground bg-card border border-border rounded-xl p-8">
+            No service packages found in this category.
+          </div>
+        ) : (
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredServices.map((svc) => (
+              <div
+                key={svc.id}
+                className="bg-card border border-border rounded-xl p-5 flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                      {svc.id}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-completed">
+                      <CheckCircle2 className="w-3 h-3" />
+                      {svc.status}
+                    </span>
+                  </div>
+                  <h3 className="font-heading text-base font-bold">
+                    {svc.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {svc.description}
+                  </p>
                 </div>
-                <h3 className="font-heading text-base font-bold">{svc.name}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {svc.description}
-                </p>
-              </div>
 
-              <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
-                <div className="flex items-center gap-4 text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-primary" />
-                    {svc.durationMinutes} mins
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Tag className="w-3.5 h-3.5 text-primary" />
-                    {svc.category}
-                  </span>
-                </div>
-                <div className="font-heading text-lg font-bold text-foreground">
-                  RM {svc.basePrice.toFixed(2)}
+                <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-4 text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-primary" />
+                      {svc.durationMinutes} mins
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Tag className="w-3.5 h-3.5 text-primary" />
+                      {svc.categoryId}
+                    </span>
+                  </div>
+                  <div className="font-heading text-lg font-bold text-foreground">
+                    RM {Number(svc.basePrice).toFixed(2)}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </section>
+            ))}
+          </section>
+        )}
       </main>
 
       <Footer />

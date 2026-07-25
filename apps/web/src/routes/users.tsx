@@ -1,48 +1,38 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { CheckCircle2, Filter, Shield, User, Users } from 'lucide-react'
+import {
+  CheckCircle2,
+  Filter,
+  Shield,
+  User as UserIcon,
+  Users,
+} from 'lucide-react'
 import * as React from 'react'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { bffFetch } from '../lib/apiClient'
 
 export const Route = createFileRoute('/users')({ component: UsersPage })
+
+interface UserDto {
+  id: string
+  keycloakId: string
+  username: string
+  email: string
+  fullName: string
+  contactNumber: string
+  role: string
+  status: string
+  createdAt: string
+}
 
 function UsersPage() {
   const [activeRole, setActiveRole] = React.useState<string>('ALL')
 
-  const users = [
-    {
-      id: 'USR-101',
-      name: 'Alex Tan',
-      email: 'alex.tan@example.com',
-      role: 'CUSTOMER',
-      status: 'ACTIVE',
-      createdAt: '2026-01-10',
-    },
-    {
-      id: 'USR-102',
-      name: 'Siti Aminah',
-      email: 'siti.aminah@example.com',
-      role: 'CUSTOMER',
-      status: 'ACTIVE',
-      createdAt: '2026-02-01',
-    },
-    {
-      id: 'USR-201',
-      name: 'Master Tech Rahman',
-      email: 'rahman.tech@apu-asc.com',
-      role: 'TECHNICIAN',
-      status: 'ACTIVE',
-      createdAt: '2025-11-15',
-    },
-    {
-      id: 'USR-301',
-      name: 'Sarah Manager',
-      email: 'sarah.mgr@apu-asc.com',
-      role: 'MANAGER',
-      status: 'ACTIVE',
-      createdAt: '2025-10-01',
-    },
-  ]
+  const { data: users = [], isLoading } = useQuery<UserDto[]>({
+    queryKey: ['users'],
+    queryFn: () => bffFetch<UserDto[]>('/api/v1/users'),
+  })
 
   const filteredUsers =
     activeRole === 'ALL' ? users : users.filter((u) => u.role === activeRole)
@@ -89,54 +79,64 @@ function UsersPage() {
 
         {/* Users Table */}
         <section className="bg-card border border-border rounded-xl p-6 space-y-4">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground font-semibold">
-                  <th className="py-3 px-3">ID</th>
-                  <th className="py-3 px-3">Name</th>
-                  <th className="py-3 px-3">Email Address</th>
-                  <th className="py-3 px-3">Assigned Role</th>
-                  <th className="py-3 px-3">Registered Date</th>
-                  <th className="py-3 px-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredUsers.map((u) => (
-                  <tr
-                    key={u.id}
-                    className="hover:bg-muted/50 transition-colors"
-                  >
-                    <td className="py-3.5 px-3 font-mono font-semibold">
-                      {u.id}
-                    </td>
-                    <td className="py-3.5 px-3 font-medium flex items-center gap-2">
-                      <User className="w-3.5 h-3.5 text-primary" />
-                      {u.name}
-                    </td>
-                    <td className="py-3.5 px-3 text-muted-foreground">
-                      {u.email}
-                    </td>
-                    <td className="py-3.5 px-3">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-muted border border-border">
-                        <Shield className="w-3 h-3 text-primary" />
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3 text-muted-foreground">
-                      {u.createdAt}
-                    </td>
-                    <td className="py-3.5 px-3">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-status-completed bg-status-completed/10 border border-status-completed/30">
-                        <CheckCircle2 className="w-3 h-3" />
-                        {u.status}
-                      </span>
-                    </td>
+          {isLoading ? (
+            <div className="text-center py-8 text-xs text-muted-foreground">
+              Loading user directory...
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="text-center py-8 text-xs text-muted-foreground">
+              No registered user accounts found for role: {activeRole}.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border text-muted-foreground font-semibold">
+                    <th className="py-3 px-3">ID</th>
+                    <th className="py-3 px-3">Name</th>
+                    <th className="py-3 px-3">Email Address</th>
+                    <th className="py-3 px-3">Assigned Role</th>
+                    <th className="py-3 px-3">Contact</th>
+                    <th className="py-3 px-3">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filteredUsers.map((u) => (
+                    <tr
+                      key={u.id}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="py-3.5 px-3 font-mono font-semibold">
+                        {u.id}
+                      </td>
+                      <td className="py-3.5 px-3 font-medium flex items-center gap-2">
+                        <UserIcon className="w-3.5 h-3.5 text-primary" />
+                        {u.fullName || u.username}
+                      </td>
+                      <td className="py-3.5 px-3 text-muted-foreground">
+                        {u.email}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-muted border border-border">
+                          <Shield className="w-3 h-3 text-primary" />
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-3 text-muted-foreground">
+                        {u.contactNumber || '-'}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-status-completed bg-status-completed/10 border border-status-completed/30">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {u.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </main>
 

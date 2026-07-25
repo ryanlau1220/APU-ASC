@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   ArrowUpRight,
@@ -13,72 +14,90 @@ import {
 } from 'lucide-react'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { bffFetch } from '../lib/apiClient'
 
 export const Route = createFileRoute('/')({ component: DashboardPage })
 
+interface AppointmentDto {
+  id: string
+  customerId: string
+  vehicleId: string
+  serviceId: string
+  technicianId: string
+  appointmentDate: string
+  timeSlot: string
+  status: string
+  notes: string
+}
+
+interface ServiceDto {
+  id: string
+}
+
+interface VehicleDto {
+  id: string
+}
+
+interface PaymentDto {
+  id: string
+  amount: number
+  paymentStatus: string
+}
+
 function DashboardPage() {
+  const { data: appointments = [] } = useQuery<AppointmentDto[]>({
+    queryKey: ['appointments'],
+    queryFn: () => bffFetch<AppointmentDto[]>('/api/v1/appointments'),
+  })
+
+  const { data: services = [] } = useQuery<ServiceDto[]>({
+    queryKey: ['services'],
+    queryFn: () => bffFetch<ServiceDto[]>('/api/v1/services'),
+  })
+
+  const { data: vehicles = [] } = useQuery<VehicleDto[]>({
+    queryKey: ['vehicles'],
+    queryFn: () => bffFetch<VehicleDto[]>('/api/v1/vehicles'),
+  })
+
+  const { data: payments = [] } = useQuery<PaymentDto[]>({
+    queryKey: ['payments'],
+    queryFn: () => bffFetch<PaymentDto[]>('/api/v1/payments'),
+  })
+
+  const totalRevenue = payments
+    .filter((p) => p.paymentStatus === 'PAID')
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0)
+
   const metrics = [
     {
       title: 'Active Appointments',
-      value: '12',
-      subtitle: '4 pending approval',
+      value: String(appointments.length),
+      subtitle: `${appointments.filter((a) => a.status === 'PENDING').length} pending approval`,
       icon: Calendar,
       color: 'text-primary bg-primary/10 border-primary/30',
     },
     {
       title: 'Catalog Services',
-      value: '18',
-      subtitle: 'Across 4 categories',
+      value: String(services.length),
+      subtitle: 'Active packages',
       icon: BookOpen,
       color: 'text-secondary-foreground bg-secondary border-secondary/50',
     },
     {
       title: 'Registered Vehicles',
-      value: '42',
-      subtitle: 'Active customer fleet',
+      value: String(vehicles.length),
+      subtitle: 'Customer fleet',
       icon: Car,
       color: 'text-accent-foreground bg-accent border-accent/50',
     },
     {
-      title: 'Monthly Revenue',
-      value: 'RM 14,850',
-      subtitle: '98% payment completion',
+      title: 'Total Revenue',
+      value: `RM ${totalRevenue.toFixed(2)}`,
+      subtitle: 'Completed payments',
       icon: CreditCard,
       color:
         'text-status-completed bg-status-completed/10 border-status-completed/30',
-    },
-  ]
-
-  const recentAppointments = [
-    {
-      id: 'APT-1001',
-      customer: 'Alex Tan',
-      vehicle: 'WXD 8821 (Honda Civic 2022)',
-      service: 'Full Engine Synthetic Oil Service',
-      timeSlot: '10:00 AM - 11:30 AM',
-      date: '2026-07-26',
-      status: 'CONFIRMED',
-      technician: 'Master Tech Rahman',
-    },
-    {
-      id: 'APT-1002',
-      customer: 'Siti Aminah',
-      vehicle: 'VCE 4512 (Perodua Myvi 2021)',
-      service: 'Brake Disc & Pad Replacement',
-      timeSlot: '02:00 PM - 03:30 PM',
-      date: '2026-07-26',
-      status: 'PENDING',
-      technician: 'Unassigned',
-    },
-    {
-      id: 'APT-1003',
-      customer: 'Devon Lee',
-      vehicle: 'BQA 9010 (Toyota Camry 2023)',
-      service: 'Air Conditioning Maintenance & Gas Refill',
-      timeSlot: '04:00 PM - 05:00 PM',
-      date: '2026-07-25',
-      status: 'COMPLETED',
-      technician: 'Tech Kevin Wong',
     },
   ]
 
@@ -170,56 +189,69 @@ function DashboardPage() {
             </Link>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground font-semibold">
-                  <th className="py-3 px-3">ID</th>
-                  <th className="py-3 px-3">Customer</th>
-                  <th className="py-3 px-3">Vehicle</th>
-                  <th className="py-3 px-3">Service Required</th>
-                  <th className="py-3 px-3">Date & Slot</th>
-                  <th className="py-3 px-3">Technician</th>
-                  <th className="py-3 px-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {recentAppointments.map((apt) => (
-                  <tr
-                    key={apt.id}
-                    className="hover:bg-muted/50 transition-colors"
-                  >
-                    <td className="py-3.5 px-3 font-mono font-semibold">
-                      {apt.id}
-                    </td>
-                    <td className="py-3.5 px-3 font-medium">{apt.customer}</td>
-                    <td className="py-3.5 px-3 text-muted-foreground">
-                      {apt.vehicle}
-                    </td>
-                    <td className="py-3.5 px-3 font-medium">{apt.service}</td>
-                    <td className="py-3.5 px-3 text-muted-foreground">
-                      {apt.date} ({apt.timeSlot})
-                    </td>
-                    <td className="py-3.5 px-3">{apt.technician}</td>
-                    <td className="py-3.5 px-3">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
-                          apt.status === 'CONFIRMED'
-                            ? 'text-status-confirmed border-status-confirmed/30 bg-status-confirmed/10'
-                            : apt.status === 'COMPLETED'
-                              ? 'text-status-completed border-status-completed/30 bg-status-completed/10'
-                              : 'text-status-pending border-status-pending/30 bg-status-pending/10'
-                        }`}
-                      >
-                        <CheckCircle2 className="w-3 h-3" />
-                        {apt.status}
-                      </span>
-                    </td>
+          {appointments.length === 0 ? (
+            <div className="text-center py-8 text-xs text-muted-foreground">
+              No service appointments recorded yet. Click "Book Appointment" to
+              create one.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border text-muted-foreground font-semibold">
+                    <th className="py-3 px-3">ID</th>
+                    <th className="py-3 px-3">Customer ID</th>
+                    <th className="py-3 px-3">Vehicle ID</th>
+                    <th className="py-3 px-3">Service ID</th>
+                    <th className="py-3 px-3">Date & Slot</th>
+                    <th className="py-3 px-3">Technician ID</th>
+                    <th className="py-3 px-3">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {appointments.slice(0, 5).map((apt) => (
+                    <tr
+                      key={apt.id}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="py-3.5 px-3 font-mono font-semibold">
+                        {apt.id}
+                      </td>
+                      <td className="py-3.5 px-3 font-medium">
+                        {apt.customerId}
+                      </td>
+                      <td className="py-3.5 px-3 text-muted-foreground">
+                        {apt.vehicleId}
+                      </td>
+                      <td className="py-3.5 px-3 font-medium">
+                        {apt.serviceId}
+                      </td>
+                      <td className="py-3.5 px-3 text-muted-foreground">
+                        {apt.appointmentDate} ({apt.timeSlot})
+                      </td>
+                      <td className="py-3.5 px-3">
+                        {apt.technicianId || 'Unassigned'}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                            apt.status === 'CONFIRMED'
+                              ? 'text-status-confirmed border-status-confirmed/30 bg-status-confirmed/10'
+                              : apt.status === 'COMPLETED'
+                                ? 'text-status-completed border-status-completed/30 bg-status-completed/10'
+                                : 'text-status-pending border-status-pending/30 bg-status-pending/10'
+                          }`}
+                        >
+                          <CheckCircle2 className="w-3 h-3" />
+                          {apt.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </main>
 
