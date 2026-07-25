@@ -15,6 +15,7 @@ import { Route as AuditLogsRouteImport } from './routes/audit-logs'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PaymentsRouteImport } from './routes/payments'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as UsersRouteImport } from './routes/users'
@@ -50,6 +51,11 @@ const PaymentsRoute = PaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/services': typeof ServicesRoute
   '/users': typeof UsersRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/services': typeof ServicesRoute
   '/users': typeof UsersRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/feedback': typeof FeedbackRoute
   '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
+  '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/services': typeof ServicesRoute
   '/users': typeof UsersRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/login'
     | '/payments'
+    | '/profile'
     | '/register'
     | '/services'
     | '/users'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/login'
     | '/payments'
+    | '/profile'
     | '/register'
     | '/services'
     | '/users'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/login'
     | '/payments'
+    | '/profile'
     | '/register'
     | '/services'
     | '/users'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   FeedbackRoute: typeof FeedbackRoute
   LoginRoute: typeof LoginRoute
   PaymentsRoute: typeof PaymentsRoute
+  ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   ServicesRoute: typeof ServicesRoute
   UsersRoute: typeof UsersRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackRoute: FeedbackRoute,
   LoginRoute: LoginRoute,
   PaymentsRoute: PaymentsRoute,
+  ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   ServicesRoute: ServicesRoute,
   UsersRoute: UsersRoute,
