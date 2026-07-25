@@ -146,7 +146,7 @@ export default function Header() {
             {isOpsOpen && (
               <div
                 role="menu"
-                className="absolute left-0 mt-2 w-48 rounded-lg bg-card border border-border shadow-lg p-1 space-y-0.5 z-50"
+                className="absolute left-0 mt-2 w-52 rounded-xl bg-card opacity-100 shadow-2xl border border-border p-1.5 space-y-1 z-50 font-sans"
               >
                 <Link
                   to="/payments"
@@ -220,7 +220,7 @@ export default function Header() {
             {isUserMenuOpen && (
               <div
                 role="menu"
-                className="absolute right-0 mt-2 w-48 rounded-lg bg-card border border-border shadow-lg p-1 space-y-0.5 z-50"
+                className="absolute right-0 mt-2 w-52 rounded-xl bg-card opacity-100 shadow-2xl border border-border p-1.5 space-y-1 z-50 font-sans"
               >
                 <div className="px-3 py-2 border-b border-border text-xs">
                   <div className="font-bold text-foreground">System Admin</div>
