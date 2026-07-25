@@ -37,7 +37,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   @Value(
-      "${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:http://localhost:8080/auth/realms/apu-asc/protocol/openid-connect/certs}")
+      "${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:http://localhost/auth/realms/apu-asc/protocol/openid-connect/certs}")
   private String jwkSetUri;
 
   @Bean

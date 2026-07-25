@@ -17,7 +17,7 @@ class KeycloakAuthIntegrationTest {
 
   private final RestTemplate restTemplate = new RestTemplate();
   private final String keycloakTokenUri =
-      "http://localhost:8080/auth/realms/apu-asc/protocol/openid-connect/token";
+      "http://localhost/auth/realms/apu-asc/protocol/openid-connect/token";
 
   @Test
   @DisplayName(
