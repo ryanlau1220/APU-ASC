@@ -1,35 +1,46 @@
 package com.apu.asc.common.exception;
 
-import java.time.Instant;
+import java.net.URI;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ValidationErrorResponse> handleValidationExceptions(
-      MethodArgumentNotValidException ex) {
-    List<ValidationErrorResponse.FieldErrorItem> errors =
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+      MethodArgumentNotValidException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+
+    ProblemDetail problemDetail =
+        ProblemDetail.forStatusAndDetail(
+            status, "Validation failed for one or more request parameters");
+    problemDetail.setType(URI.create("https://apu-asc.com/errors/validation-error"));
+    problemDetail.setTitle("Validation Failure");
+
+    List<FieldErrorParam> invalidParams =
         ex.getBindingResult().getFieldErrors().stream()
             .map(
                 err ->
-                    new ValidationErrorResponse.FieldErrorItem(
-                        err.getField(), err.getRejectedValue(), err.getDefaultMessage()))
+                    new FieldErrorParam(
+                        err.getField(),
+                        err.getRejectedValue() != null ? err.getRejectedValue().toString() : null,
+                        err.getDefaultMessage()))
             .toList();
 
-    ValidationErrorResponse response =
-        new ValidationErrorResponse(
-            Instant.now(),
-            HttpStatus.BAD_REQUEST.value(),
-            "Bad Request",
-            "Validation failed for request parameters",
-            errors);
+    problemDetail.setProperty("invalidParams", invalidParams);
 
-    return ResponseEntity.badRequest().body(response);
+    return this.createResponseEntity(problemDetail, headers, status, request);
   }
+
+  public record FieldErrorParam(String name, String value, String reason) {}
 }
