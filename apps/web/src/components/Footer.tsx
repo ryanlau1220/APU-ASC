@@ -1,4 +1,4 @@
-import { CheckCircle2, ShieldCheck } from 'lucide-react'
+import { CheckCircle2, FileCode, ShieldCheck } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -12,11 +12,21 @@ export default function Footer() {
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 text-status-active">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="flex items-center gap-1.5 text-status-active font-medium">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            Spring Boot 3.3 API Online
+            Spring Boot API Online
           </span>
+          <span className="text-border">|</span>
+          <a
+            href="http://localhost:8081/scalar"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 hover:text-foreground transition-colors font-medium"
+          >
+            <FileCode className="w-3.5 h-3.5 text-primary" />
+            Scalar Docs
+          </a>
           <span className="text-border">|</span>
           <a
             href="http://localhost/auth/admin/"
