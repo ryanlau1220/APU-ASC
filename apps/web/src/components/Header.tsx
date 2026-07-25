@@ -3,18 +3,22 @@ import {
   BookOpen,
   Calendar,
   Car,
+  ChevronDown,
   CreditCard,
-  FileCode,
+  History,
   LayoutDashboard,
   MessageSquare,
   Moon,
   Sun,
+  User,
+  Users,
   Wrench,
 } from 'lucide-react'
 import * as React from 'react'
 
 export default function Header() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
+  const [isOpsOpen, setIsOpsOpen] = React.useState<boolean>(false)
 
   React.useEffect(() => {
     const root = document.documentElement
@@ -52,7 +56,7 @@ export default function Header() {
           </div>
         </Link>
 
-        {/* Navigation Links */}
+        {/* Primary Navigation Links */}
         <nav className="hidden md:flex items-center gap-1">
           <Link
             to="/"
@@ -98,41 +102,70 @@ export default function Header() {
             Appointments
           </Link>
 
-          <Link
-            to="/payments"
-            activeProps={{
-              className: 'text-primary bg-primary/10 border-primary/30',
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
+          {/* Operations Dropdown */}
+          <div
+            role="none"
+            className="relative"
+            onMouseLeave={() => setIsOpsOpen(false)}
           >
-            <CreditCard className="w-4 h-4" />
-            Payments
-          </Link>
+            <button
+              type="button"
+              onClick={() => setIsOpsOpen(!isOpsOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
+            >
+              Operations
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${isOpsOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
 
-          <Link
-            to="/feedback"
-            activeProps={{
-              className: 'text-primary bg-primary/10 border-primary/30',
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
-          >
-            <MessageSquare className="w-4 h-4" />
-            Feedback
-          </Link>
+            {isOpsOpen && (
+              <div
+                role="menu"
+                className="absolute left-0 mt-2 w-48 rounded-lg bg-card border border-border shadow-lg p-1 space-y-0.5 z-50"
+              >
+                <Link
+                  to="/payments"
+                  onClick={() => setIsOpsOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  Payments & Invoices
+                </Link>
+
+                <Link
+                  to="/feedback"
+                  onClick={() => setIsOpsOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  Service Feedback
+                </Link>
+
+                <Link
+                  to="/users"
+                  onClick={() => setIsOpsOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <Users className="w-4 h-4 text-primary" />
+                  User Accounts
+                </Link>
+
+                <Link
+                  to="/audit-logs"
+                  onClick={() => setIsOpsOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <History className="w-4 h-4 text-primary" />
+                  Audit Logs
+                </Link>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Actions Header */}
         <div className="flex items-center gap-3">
-          <a
-            href="http://localhost:8081/scalar"
-            target="_blank"
-            rel="noreferrer"
-            className="hidden sm:flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded border border-border bg-muted hover:border-primary/40 transition-colors"
-          >
-            <FileCode className="w-3.5 h-3.5 text-primary" />
-            Scalar Docs
-          </a>
-
           <button
             type="button"
             onClick={toggleTheme}
@@ -145,6 +178,13 @@ export default function Header() {
               <Moon className="w-4 h-4 text-primary" />
             )}
           </button>
+
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-semibold">
+            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
+              <User className="w-3.5 h-3.5" />
+            </div>
+            <span className="hidden sm:inline">Admin</span>
+          </div>
         </div>
       </div>
     </header>
