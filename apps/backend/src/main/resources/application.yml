@@ -34,7 +34,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8080/realms/apu-asc}
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8080/auth/realms/apu-asc}
 
   mail:
     host: ${SPRING_MAIL_HOST:localhost}
@@ -53,6 +53,8 @@ springdoc:
     enabled: true
 
 logging:
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} : %msg%n"
   level:
     root: INFO
     com.apu.asc: DEBUG
