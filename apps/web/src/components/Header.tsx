@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   BookOpen,
   Calendar,
@@ -7,18 +7,24 @@ import {
   CreditCard,
   History,
   LayoutDashboard,
+  LogOut,
   MessageSquare,
   Moon,
   Sun,
-  User,
+  User as UserIcon,
   Users,
   Wrench,
 } from 'lucide-react'
 import * as React from 'react'
 
 export default function Header() {
+  const navigate = useNavigate()
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
   const [isOpsOpen, setIsOpsOpen] = React.useState<boolean>(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = React.useState<boolean>(false)
+
+  const opsRef = React.useRef<HTMLDivElement>(null)
+  const userMenuRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     const root = document.documentElement
@@ -26,6 +32,23 @@ export default function Header() {
       root.classList.contains('dark') ||
       root.getAttribute('data-theme') === 'dark'
     setTheme(isDark ? 'dark' : 'light')
+  }, [])
+
+  // Click outside listener for dropdowns
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (opsRef.current && !opsRef.current.contains(event.target as Node)) {
+        setIsOpsOpen(false)
+      }
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const toggleTheme = () => {
@@ -36,6 +59,11 @@ export default function Header() {
     root.setAttribute('data-theme', nextTheme)
     localStorage.setItem('theme', nextTheme)
     setTheme(nextTheme)
+  }
+
+  const handleLogout = () => {
+    setIsUserMenuOpen(false)
+    navigate({ to: '/login' })
   }
 
   return (
@@ -103,11 +131,7 @@ export default function Header() {
           </Link>
 
           {/* Operations Dropdown */}
-          <div
-            role="none"
-            className="relative"
-            onMouseLeave={() => setIsOpsOpen(false)}
-          >
+          <div ref={opsRef} className="relative">
             <button
               type="button"
               onClick={() => setIsOpsOpen(!isOpsOpen)}
@@ -179,11 +203,51 @@ export default function Header() {
             )}
           </button>
 
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-semibold">
-            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
-              <User className="w-3.5 h-3.5" />
-            </div>
-            <span className="hidden sm:inline">Admin</span>
+          {/* User Menu Avatar */}
+          <div ref={userMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-semibold hover:border-primary/40 transition-colors"
+            >
+              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
+                <UserIcon className="w-3.5 h-3.5" />
+              </div>
+              <span className="hidden sm:inline">System Admin</span>
+              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            </button>
+
+            {isUserMenuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 mt-2 w-48 rounded-lg bg-card border border-border shadow-lg p-1 space-y-0.5 z-50"
+              >
+                <div className="px-3 py-2 border-b border-border text-xs">
+                  <div className="font-bold text-foreground">System Admin</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    admin@apu-asc.com
+                  </div>
+                </div>
+
+                <Link
+                  to="/profile"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <UserIcon className="w-4 h-4 text-primary" />
+                  Edit Profile
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-status-pending hover:bg-status-pending/10 transition-colors text-left"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
