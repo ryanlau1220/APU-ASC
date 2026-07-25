@@ -1,87 +1,229 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import {
+  ArrowUpRight,
+  BookOpen,
+  Calendar,
+  Car,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  FileCode,
+  Plus,
+  ShieldCheck,
+} from 'lucide-react'
+import Footer from '../components/Footer'
+import Header from '../components/Header'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({ component: DashboardPage })
 
-function App() {
+function DashboardPage() {
+  const metrics = [
+    {
+      title: 'Active Appointments',
+      value: '12',
+      subtitle: '4 pending approval',
+      icon: Calendar,
+      color: 'text-primary bg-primary/10 border-primary/30',
+    },
+    {
+      title: 'Catalog Services',
+      value: '18',
+      subtitle: 'Across 4 categories',
+      icon: BookOpen,
+      color: 'text-secondary-foreground bg-secondary border-secondary/50',
+    },
+    {
+      title: 'Registered Vehicles',
+      value: '42',
+      subtitle: 'Active customer fleet',
+      icon: Car,
+      color: 'text-accent-foreground bg-accent border-accent/50',
+    },
+    {
+      title: 'Monthly Revenue',
+      value: 'RM 14,850',
+      subtitle: '98% payment completion',
+      icon: CreditCard,
+      color:
+        'text-status-completed bg-status-completed/10 border-status-completed/30',
+    },
+  ]
+
+  const recentAppointments = [
+    {
+      id: 'APT-1001',
+      customer: 'Alex Tan',
+      vehicle: 'WXD 8821 (Honda Civic 2022)',
+      service: 'Full Engine Synthetic Oil Service',
+      timeSlot: '10:00 AM - 11:30 AM',
+      date: '2026-07-26',
+      status: 'CONFIRMED',
+      technician: 'Master Tech Rahman',
+    },
+    {
+      id: 'APT-1002',
+      customer: 'Siti Aminah',
+      vehicle: 'VCE 4512 (Perodua Myvi 2021)',
+      service: 'Brake Disc & Pad Replacement',
+      timeSlot: '02:00 PM - 03:30 PM',
+      date: '2026-07-26',
+      status: 'PENDING',
+      technician: 'Unassigned',
+    },
+    {
+      id: 'APT-1003',
+      customer: 'Devon Lee',
+      vehicle: 'BQA 9010 (Toyota Camry 2023)',
+      service: 'Air Conditioning Maintenance & Gas Refill',
+      timeSlot: '04:00 PM - 05:00 PM',
+      date: '2026-07-25',
+      status: 'COMPLETED',
+      technician: 'Tech Kevin Wong',
+    },
+  ]
+
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <section className="island-shell rise-in relative overflow-hidden rounded-[2rem] px-6 py-10 sm:px-10 sm:py-14">
-        <div className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(79,184,178,0.32),transparent_66%)]" />
-        <div className="pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(47,106,74,0.18),transparent_66%)]" />
-        <p className="island-kicker mb-3">TanStack Start Base Template</p>
-        <h1 className="display-title mb-5 max-w-3xl text-4xl leading-[1.02] font-bold tracking-tight text-[var(--sea-ink)] sm:text-6xl">
-          Start simple, ship quickly.
-        </h1>
-        <p className="mb-8 max-w-2xl text-base text-[var(--sea-ink-soft)] sm:text-lg">
-          This base starter intentionally keeps things light: two routes, clean
-          structure, and the essentials you need to build from scratch.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="/about"
-            className="rounded-full border border-[rgba(50,143,151,0.3)] bg-[rgba(79,184,178,0.14)] px-5 py-2.5 text-sm font-semibold text-[var(--lagoon-deep)] no-underline transition hover:-translate-y-0.5 hover:bg-[rgba(79,184,178,0.24)]"
-          >
-            About This Starter
-          </a>
-          <a
-            href="https://tanstack.com/router"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-[rgba(23,58,64,0.2)] bg-white/50 px-5 py-2.5 text-sm font-semibold text-[var(--sea-ink)] no-underline transition hover:-translate-y-0.5 hover:border-[rgba(23,58,64,0.35)]"
-          >
-            Router Guide
-          </a>
-        </div>
-      </section>
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
+      <Header />
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          [
-            'Type-Safe Routing',
-            'Routes and links stay in sync across every page.',
-          ],
-          [
-            'Server Functions',
-            'Call server code from your UI without creating API boilerplate.',
-          ],
-          [
-            'Streaming by Default',
-            'Ship progressively rendered responses for faster experiences.',
-          ],
-          [
-            'Tailwind Native',
-            'Design quickly with utility-first styling and reusable tokens.',
-          ],
-        ].map(([title, desc], index) => (
-          <article
-            key={title}
-            className="island-shell feature-card rise-in rounded-2xl p-5"
-            style={{ animationDelay: `${index * 90 + 80}ms` }}
-          >
-            <h2 className="mb-2 text-base font-semibold text-[var(--sea-ink)]">
-              {title}
-            </h2>
-            <p className="m-0 text-sm text-[var(--sea-ink-soft)]">{desc}</p>
-          </article>
-        ))}
-      </section>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Banner Section */}
+        <section className="bg-card border border-border rounded-xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold text-primary">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Automotive Operations Command Centre
+            </div>
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight">
+              Service Management & Scheduling Overview
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Monitor active workshop appointments, manage vehicle service
+              catalogs, track customer billing, and review diagnostic feedback.
+            </p>
+          </div>
 
-      <section className="island-shell mt-8 rounded-2xl p-6">
-        <p className="island-kicker mb-2">Quick Start</p>
-        <ul className="m-0 list-disc space-y-2 pl-5 text-sm text-[var(--sea-ink-soft)]">
-          <li>
-            Edit <code>src/routes/index.tsx</code> to customize the home page.
-          </li>
-          <li>
-            Update <code>src/components/Header.tsx</code> and{' '}
-            <code>src/components/Footer.tsx</code> for brand links.
-          </li>
-          <li>
-            Add routes in <code>src/routes</code> and tweak visual tokens in{' '}
-            <code>src/styles.css</code>.
-          </li>
-        </ul>
-      </section>
-    </main>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/appointments"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              <Plus className="w-4 h-4" />
+              Book Appointment
+            </Link>
+            <a
+              href="http://localhost:8081/scalar"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-muted hover:border-primary/40 text-sm font-semibold transition-colors"
+            >
+              <FileCode className="w-4 h-4 text-primary" />
+              Scalar API Docs
+            </a>
+          </div>
+        </section>
+
+        {/* Metrics Grid */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {metrics.map((m) => {
+            const Icon = m.icon
+            return (
+              <div
+                key={m.title}
+                className="bg-card border border-border rounded-xl p-5 flex flex-col justify-between space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {m.title}
+                  </span>
+                  <div className={`p-2 rounded-lg border ${m.color}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="font-heading text-2xl font-bold">
+                    {m.value}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">
+                    {m.subtitle}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </section>
+
+        {/* Recent Appointments Table */}
+        <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              <h2 className="font-heading text-lg font-bold">
+                Upcoming Service Appointments
+              </h2>
+            </div>
+            <Link
+              to="/appointments"
+              className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              View All <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground font-semibold">
+                  <th className="py-3 px-3">ID</th>
+                  <th className="py-3 px-3">Customer</th>
+                  <th className="py-3 px-3">Vehicle</th>
+                  <th className="py-3 px-3">Service Required</th>
+                  <th className="py-3 px-3">Date & Slot</th>
+                  <th className="py-3 px-3">Technician</th>
+                  <th className="py-3 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {recentAppointments.map((apt) => (
+                  <tr
+                    key={apt.id}
+                    className="hover:bg-muted/50 transition-colors"
+                  >
+                    <td className="py-3.5 px-3 font-mono font-semibold">
+                      {apt.id}
+                    </td>
+                    <td className="py-3.5 px-3 font-medium">{apt.customer}</td>
+                    <td className="py-3.5 px-3 text-muted-foreground">
+                      {apt.vehicle}
+                    </td>
+                    <td className="py-3.5 px-3 font-medium">{apt.service}</td>
+                    <td className="py-3.5 px-3 text-muted-foreground">
+                      {apt.date} ({apt.timeSlot})
+                    </td>
+                    <td className="py-3.5 px-3">{apt.technician}</td>
+                    <td className="py-3.5 px-3">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                          apt.status === 'CONFIRMED'
+                            ? 'text-status-confirmed border-status-confirmed/30 bg-status-confirmed/10'
+                            : apt.status === 'COMPLETED'
+                              ? 'text-status-completed border-status-completed/30 bg-status-completed/10'
+                              : 'text-status-pending border-status-pending/30 bg-status-pending/10'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        {apt.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
   )
 }
