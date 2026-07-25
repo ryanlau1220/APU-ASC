@@ -24,16 +24,19 @@ public class HttpLoggingFilter extends OncePerRequestFilter {
     long startTime = System.currentTimeMillis();
     String method = request.getMethod();
     String uri = request.getRequestURI();
-    String remoteAddr = request.getRemoteAddr();
 
-    log.info("[HTTP IN] {} {} from {}", method, uri, remoteAddr);
+    // Skip verbose pre-flight OPTIONS logging to keep terminal clean
+    if ("OPTIONS".equalsIgnoreCase(method)) {
+      filterChain.doFilter(request, response);
+      return;
+    }
 
     try {
       filterChain.doFilter(request, response);
     } finally {
       long duration = System.currentTimeMillis() - startTime;
       int status = response.getStatus();
-      log.info("[HTTP OUT] {} {} -> Status {} (Took {}ms)", method, uri, status, duration);
+      log.info("{} {} -> {} ({}ms)", method, uri, status, duration);
     }
   }
 }
