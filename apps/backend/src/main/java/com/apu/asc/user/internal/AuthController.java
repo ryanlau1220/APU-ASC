@@ -36,7 +36,7 @@ class AuthController {
   private final RestTemplate restTemplate = new RestTemplate();
 
   @Value(
-      "${spring.security.oauth2.resourceserver.jwt.token-uri:http://localhost:8080/auth/realms/apu-asc/protocol/openid-connect/token}")
+      "${spring.security.oauth2.resourceserver.jwt.token-uri:http://localhost/auth/realms/apu-asc/protocol/openid-connect/token}")
   private String keycloakTokenUri;
 
   @PostMapping("/register-customer")
