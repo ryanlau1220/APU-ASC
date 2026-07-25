@@ -1,9 +1,11 @@
 package com.apu.asc.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -24,12 +26,38 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@Slf4j
 public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
+        .exceptionHandling(
+            exceptions ->
+                exceptions.authenticationEntryPoint(
+                    (request, response, authException) -> {
+                      log.warn(
+                          "[SECURITY 401] Unauthorized access attempt to {} from {}: {}",
+                          request.getRequestURI(),
+                          request.getRemoteAddr(),
+                          authException.getMessage());
+                      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                      response.setContentType("application/problem+json");
+                      response
+                          .getWriter()
+                          .write(
+                              """
+                          {
+                            "type": "about:blank",
+                            "title": "Unauthorized",
+                            "status": 401,
+                            "detail": "Authentication is required to access this resource",
+                            "instance": "%s"
+                          }
+                          """
+                                  .formatted(request.getRequestURI()));
+                    }))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
@@ -40,7 +68,8 @@ public class SecurityConfig {
                         "/docs",
                         "/docs/**",
                         "/actuator/**",
-                        "/api/v1/auth/**")
+                        "/api/v1/auth/**",
+                        "/api/v1/services/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -60,19 +89,18 @@ public class SecurityConfig {
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOriginPatterns(List.of("*"));
-    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-    config.setAllowedHeaders(List.of("*"));
-    config.setAllowCredentials(true);
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOriginPatterns(List.of("*"));
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
+    source.registerCorsConfiguration("/**", configuration);
     return source;
   }
 
-  private static class KeycloakRoleConverter
-      implements Converter<Jwt, Collection<GrantedAuthority>> {
+  static class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
     @Override
     @SuppressWarnings("unchecked")
     public Collection<GrantedAuthority> convert(Jwt jwt) {
