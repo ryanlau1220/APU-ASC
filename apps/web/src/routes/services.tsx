@@ -31,15 +31,14 @@ function ServicesPage() {
     ServiceCategoryDto[]
   >({
     queryKey: ['categories'],
-    queryFn: () =>
-      bffFetch<ServiceCategoryDto[]>('/api/v1/services/categories'),
+    queryFn: () => bffFetch<ServiceCategoryDto[]>('/api/v1/catalog/categories'),
   })
 
   const { data: services = [], isLoading: loadingServices } = useQuery<
     ServiceDto[]
   >({
     queryKey: ['services'],
-    queryFn: () => bffFetch<ServiceDto[]>('/api/v1/services'),
+    queryFn: () => bffFetch<ServiceDto[]>('/api/v1/catalog/services'),
   })
 
   const filteredServices =

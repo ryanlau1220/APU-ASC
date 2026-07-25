@@ -52,7 +52,7 @@ function DashboardPage() {
 
   const { data: services = [] } = useQuery<ServiceDto[]>({
     queryKey: ['services'],
-    queryFn: () => bffFetch<ServiceDto[]>('/api/v1/services'),
+    queryFn: () => bffFetch<ServiceDto[]>('/api/v1/catalog/services'),
   })
 
   const { data: vehicles = [] } = useQuery<VehicleDto[]>({
