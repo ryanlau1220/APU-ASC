@@ -1,9 +1,6 @@
-import { TanStackDevtools } from '@tanstack/react-devtools'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import * as React from 'react'
-import Footer from '../components/Footer'
-import Header from '../components/Header'
+import { queryClient } from '../lib/queryClient'
 
 import appCss from '../styles.css?url'
 
@@ -20,7 +17,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'APU Automotive Service Centre (APU-ASC)',
       },
     ],
     links: [
@@ -41,20 +38,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-        <Header />
-        {children}
-        <Footer />
-        {/* biome-ignore lint/suspicious/noExplicitAny: React 19 JSX type compatibility */}
-        {React.createElement(TanStackDevtools as any, {
-          config: { position: 'bottom-right' },
-          plugins: [
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ],
-        })}
+      <body className="bg-background text-foreground font-sans antialiased selection:bg-primary/20 min-h-screen flex flex-col">
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
         <Scripts />
       </body>
     </html>
