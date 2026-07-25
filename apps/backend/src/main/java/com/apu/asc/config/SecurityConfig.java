@@ -1,17 +1,14 @@
 package com.apu.asc.config;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,8 +17,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -33,10 +28,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity
 @Slf4j
 public class SecurityConfig {
-
-  @Value(
-      "${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/auth/realms/apu-asc}")
-  private String issuerUri;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -77,9 +68,8 @@ public class SecurityConfig {
                         "/docs",
                         "/docs/**",
                         "/actuator/**",
-                        "/api/v1/auth/**")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/catalog/**")
+                        "/api/v1/auth/**",
+                        "/api/v1/events/stream")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -88,26 +78,6 @@ public class SecurityConfig {
                 oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
     return http.build();
-  }
-
-  @Bean
-  public JwtDecoder jwtDecoder() {
-    try {
-      return NimbusJwtDecoder.withIssuerLocation(issuerUri).build();
-    } catch (Exception e) {
-      log.warn("Keycloak JWT Issuer unavailable ({}); falling back to dev JWT decoder", issuerUri);
-      return token ->
-          Jwt.withTokenValue(token)
-              .header("alg", "none")
-              .claim("sub", "admin-keycloak-id")
-              .claim("preferred_username", "admin")
-              .claim(
-                  "realm_access",
-                  Map.of("roles", List.of("MANAGER", "STAFF", "TECHNICIAN", "CUSTOMER")))
-              .issuedAt(Instant.now())
-              .expiresAt(Instant.now().plusSeconds(3600))
-              .build();
-    }
   }
 
   @Bean
