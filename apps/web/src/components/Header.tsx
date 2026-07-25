@@ -62,6 +62,7 @@ export default function Header() {
   }
 
   const handleLogout = () => {
+    localStorage.removeItem('apu_asc_token')
     setIsUserMenuOpen(false)
     navigate({ to: '/login' })
   }
