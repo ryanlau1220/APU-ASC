@@ -83,6 +83,13 @@ case "$1" in
         pnpm --filter @apu-asc/web test
         echo "Full-stack testing complete."
         ;;
+    test:e2e)
+        echo "Running backend E2E integration tests..."
+        (cd apps/backend && mvn test -Dtest=*E2eTest,*IntegrationTest)
+        echo "Running frontend Playwright browser E2E tests..."
+        pnpm --filter @apu-asc/web test:e2e
+        echo "Full-stack E2E testing complete."
+        ;;
     clean)
         echo "Cleaning Maven target directories and web build assets..."
         (cd apps/backend && mvn clean)
@@ -90,7 +97,7 @@ case "$1" in
         echo "Clean complete."
         ;;
     *)
-        echo "Usage: ./manage.sh {dev|docker|build|lint|check|test|clean}"
+        echo "Usage: ./manage.sh {dev|docker|build|lint|check|test|test:e2e|clean}"
         exit 1
         ;;
 esac
