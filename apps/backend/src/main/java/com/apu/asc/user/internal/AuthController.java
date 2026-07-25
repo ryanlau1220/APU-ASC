@@ -11,8 +11,10 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -78,10 +80,14 @@ class AuthController {
       body.add("password", request.password());
 
       HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
-      ResponseEntity<Map> response =
-          restTemplate.postForEntity(keycloakTokenUri, entity, Map.class);
+      ResponseEntity<Map<String, Object>> response =
+          restTemplate.exchange(
+              keycloakTokenUri,
+              HttpMethod.POST,
+              entity,
+              new ParameterizedTypeReference<Map<String, Object>>() {});
 
-      Map<?, ?> responseMap = response.getBody();
+      Map<String, Object> responseMap = response.getBody();
       if (response.getStatusCode().is2xxSuccessful() && responseMap != null) {
         Object tokenObj = responseMap.get("access_token");
         if (tokenObj != null) {
