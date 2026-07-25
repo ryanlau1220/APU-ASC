@@ -12,6 +12,17 @@ export async function bffFetch<T>(
 
   const res = await fetch(url, { ...options, headers })
 
+  if (res.status === 401) {
+    if (
+      typeof window !== 'undefined' &&
+      !window.location.pathname.startsWith('/login') &&
+      !window.location.pathname.startsWith('/register')
+    ) {
+      window.location.href = '/login'
+    }
+    throw new Error('[401] Unauthorized session. Redirecting to login...')
+  }
+
   if (!res.ok) {
     let errorDetail = 'API request failed'
     try {
