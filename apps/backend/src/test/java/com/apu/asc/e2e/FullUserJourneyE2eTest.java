@@ -11,16 +11,24 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 class FullUserJourneyE2eTest {
 
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final RestTemplate restTemplate;
   private final String backendBaseUrl = "http://localhost:8081";
   private final String keycloakTokenUri =
       "http://localhost/auth/realms/apu-asc/protocol/openid-connect/token";
+
+  public FullUserJourneyE2eTest() {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(1000);
+    factory.setReadTimeout(1000);
+    this.restTemplate = new RestTemplate(factory);
+  }
 
   @Test
   @DisplayName("E2E Test: Full User Journey - Health, Catalog, Keycloak Auth & Secured Endpoint")
@@ -37,7 +45,7 @@ class FullUserJourneyE2eTest {
       assertThat(healthResponse.getBody()).isNotNull();
       assertThat(healthResponse.getBody().get("status")).isEqualTo("UP");
     } catch (Exception e) {
-      // Skips if backend process is not active during unit build runs
+      // Skips gracefully if backend server is not running on port 8081 during isolated builds
       return;
     }
 

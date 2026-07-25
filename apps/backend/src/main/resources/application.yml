@@ -10,6 +10,14 @@ spring:
   profiles:
     active: dev
 
+  devtools:
+    restart:
+      enabled: true
+      poll-interval: 1000ms
+      quiet-period: 500ms
+    livereload:
+      enabled: false
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/apu_asc}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
