@@ -19,7 +19,7 @@ export default function Footer() {
           </span>
           <span className="text-border">|</span>
           <a
-            href="http://localhost:8080/auth/admin/"
+            href="http://localhost/auth/admin/"
             target="_blank"
             rel="noreferrer"
             className="hover:text-foreground transition-colors"
