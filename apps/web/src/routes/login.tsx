@@ -1,5 +1,14 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { KeyRound, Lock, LogIn, Moon, Sun, User, Wrench } from 'lucide-react'
+import {
+  KeyRound,
+  Lock,
+  LogIn,
+  Moon,
+  ShieldCheck,
+  Sun,
+  User,
+  Wrench,
+} from 'lucide-react'
 import * as React from 'react'
 import Footer from '../components/Footer'
 import { bffFetch } from '../lib/apiClient'
@@ -109,8 +118,8 @@ function LoginPage() {
               Sign In to APU-ASC
             </h1>
             <p className="text-xs text-muted-foreground">
-              Enter your registered username or email address to access your
-              dashboard.
+              Enter your registered credentials or sign in via Keycloak
+              Enterprise Identity.
             </p>
           </div>
 
@@ -119,6 +128,22 @@ function LoginPage() {
               {error}
             </div>
           )}
+
+          <a
+            href="/oauth2/authorization/keycloak"
+            className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-xs shadow-md"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Sign In with Keycloak SSO (Enterprise)
+          </a>
+
+          <div className="relative flex items-center justify-center">
+            <div className="border-t border-border w-full" />
+            <span className="bg-card px-3 text-[11px] text-muted-foreground uppercase font-semibold">
+              Or direct login
+            </span>
+            <div className="border-t border-border w-full" />
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="space-y-1.5">
@@ -180,7 +205,7 @@ function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-lg bg-muted border border-border text-foreground font-semibold hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4" />
               {loading ? 'Authenticating...' : 'Sign In'}

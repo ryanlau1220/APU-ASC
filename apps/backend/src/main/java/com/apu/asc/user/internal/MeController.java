@@ -67,6 +67,10 @@ class MeController {
       }
     }
 
+    if (roles.isEmpty() && userDto != null && userDto.role() != null) {
+      roles = List.of(userDto.role());
+    }
+
     return ResponseEntity.ok(
         Map.of(
             "authenticated",

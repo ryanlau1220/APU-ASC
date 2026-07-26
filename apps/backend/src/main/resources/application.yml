@@ -56,7 +56,7 @@ spring:
             client-id: apu-asc-web
             authorization-grant-type: authorization_code
             scope: openid, profile, email
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${OAUTH2_REDIRECT_URI:http://localhost:3000/login/oauth2/code/{registrationId}}"
         provider:
           keycloak:
             issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost/auth/realms/apu-asc}
