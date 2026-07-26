@@ -19,10 +19,17 @@ spring:
       enabled: false
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/apu_asc?sslmode=disable}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/apu_asc?sslmode=disable}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres_password}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      max-lifetime: 60000
+      connection-timeout: 10000
+      validation-timeout: 3000
 
   jpa:
     hibernate:

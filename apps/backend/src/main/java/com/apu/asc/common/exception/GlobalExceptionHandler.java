@@ -19,10 +19,20 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-  @ExceptionHandler({IOException.class, AsyncRequestTimeoutException.class})
-  public void handleClientDisconnect(Exception ex) {
+  @ExceptionHandler(IOException.class)
+  public void handleClientDisconnect(IOException ex) {
     // Suppress noisy Tomcat broken pipe / client disconnect stack traces for SSE streams
-    log.debug("[SSE/NETWORK] Client connection closed or timed out: {}", ex.getMessage());
+    log.debug("[SSE/NETWORK] Client connection closed: {}", ex.getMessage());
+  }
+
+  @Override
+  protected ResponseEntity<Object> handleAsyncRequestTimeoutException(
+      AsyncRequestTimeoutException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest webRequest) {
+    log.debug("[SSE/NETWORK] Async request timeout: {}", ex.getMessage());
+    return null;
   }
 
   @Override

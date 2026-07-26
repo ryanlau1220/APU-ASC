@@ -23,9 +23,9 @@ cleanup_dev() {
 
 case "$1" in
     dev)
-        # Fast health check for PostgreSQL port 5432
-        if ! (nc -z localhost 5432 2>/dev/null || (echo > /dev/tcp/localhost/5432) 2>/dev/null); then
-            echo -e "${RED}⚠️  [WARN] PostgreSQL database is not reachable on port 5432.${RESET}"
+        # Fast health check for PostgreSQL port 5433
+        if ! (nc -z localhost 5433 2>/dev/null || (echo > /dev/tcp/localhost/5433) 2>/dev/null); then
+            echo -e "${RED}⚠️  [WARN] PostgreSQL database is not reachable on port 5433.${RESET}"
             echo -e "${YELLOW}Please start the Docker infrastructure in another terminal using:${RESET} ${CYAN}./manage.sh docker${RESET}"
             exit 1
         fi
@@ -84,6 +84,10 @@ case "$1" in
         echo "Full-stack testing complete."
         ;;
     test:e2e)
+        if ! (nc -z localhost 8081 2>/dev/null || (echo > /dev/tcp/localhost/8081) 2>/dev/null); then
+            echo -e "${YELLOW}ℹ️  [NOTE] Backend dev server (port 8081) is not running.${RESET}"
+            echo -e "${YELLOW}For sub-second live API E2E tests, run ${CYAN}./manage.sh dev${YELLOW} in a separate terminal.${RESET}"
+        fi
         echo "Running backend E2E integration tests..."
         (cd apps/backend && mvn test -Dtest=*E2eTest,*IntegrationTest)
         echo "Running frontend Playwright browser E2E tests..."
