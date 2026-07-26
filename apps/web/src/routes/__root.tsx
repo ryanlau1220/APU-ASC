@@ -30,8 +30,20 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async () => {
     try {
       const userSession = await bffFetch<UserSession>('/api/v1/auth/me')
+      if (typeof window !== 'undefined' && !userSession.authenticated) {
+        const path = window.location.pathname
+        if (!path.startsWith('/login') && !path.startsWith('/register')) {
+          window.location.href = '/oauth2/authorization/keycloak'
+        }
+      }
       return { userSession }
     } catch {
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname
+        if (!path.startsWith('/login') && !path.startsWith('/register')) {
+          window.location.href = '/oauth2/authorization/keycloak'
+        }
+      }
       return {
         userSession: {
           authenticated: false,
