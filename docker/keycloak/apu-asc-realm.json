@@ -2,6 +2,7 @@
   "id": "apu-asc",
   "realm": "apu-asc",
   "displayName": "APU Automotive Service Centre",
+  "loginTheme": "apu-asc",
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": true,
