@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouteContext } from '@tanstack/react-router'
 import {
   ArrowUpRight,
   BookOpen,
@@ -45,9 +45,15 @@ interface PaymentDto {
 }
 
 function DashboardPage() {
+  const context = useRouteContext({ from: '__root__' })
+  const userSession = context?.userSession
+  const isAuthenticated = userSession?.authenticated ?? false
+
   const { data: appointments = [] } = useQuery<AppointmentDto[]>({
     queryKey: ['appointments'],
     queryFn: () => bffFetch<AppointmentDto[]>('/api/v1/appointments'),
+    enabled: isAuthenticated,
+    retry: false,
   })
 
   const { data: services = [] } = useQuery<ServiceDto[]>({
@@ -58,11 +64,15 @@ function DashboardPage() {
   const { data: vehicles = [] } = useQuery<VehicleDto[]>({
     queryKey: ['vehicles'],
     queryFn: () => bffFetch<VehicleDto[]>('/api/v1/vehicles'),
+    enabled: isAuthenticated,
+    retry: false,
   })
 
   const { data: payments = [] } = useQuery<PaymentDto[]>({
     queryKey: ['payments'],
     queryFn: () => bffFetch<PaymentDto[]>('/api/v1/payments'),
+    enabled: isAuthenticated,
+    retry: false,
   })
 
   const totalRevenue = payments
