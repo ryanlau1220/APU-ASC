@@ -7,9 +7,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -158,9 +159,22 @@ public class SecurityConfig {
         return List.of();
       }
 
-      return roles.stream()
-          .map(roleName -> new SimpleGrantedAuthority("ROLE_" + roleName))
-          .collect(Collectors.toList());
+      Set<GrantedAuthority> authorities = new HashSet<>();
+      for (String roleName : roles) {
+        String roleStr = roleName.toUpperCase();
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + roleStr));
+        if ("SYSTEM_ADMIN".equals(roleStr) || "MANAGER".equals(roleStr)) {
+          authorities.add(new SimpleGrantedAuthority("ROLE_SYSTEM_ADMIN"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
+        } else if ("WORKSHOP_MANAGER".equals(roleStr)) {
+          authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
+        }
+      }
+      return authorities;
     }
   }
 }
