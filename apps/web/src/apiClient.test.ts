@@ -30,19 +30,20 @@ describe('bffFetch API Client', () => {
 
     await expect(
       bffFetch('/api/v1/auth/login', { method: 'POST' }),
-    ).rejects.toThrow(
-      '[400] Validation failed for one or more request parameters',
-    )
+    ).rejects.toThrow('Validation failed for one or more request parameters')
   })
 
-  it('should throw 401 error and clear token when session expired', async () => {
+  it('should throw user-friendly error when session expired or 401', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 401,
+      json: async () => ({
+        message: 'Invalid username or password',
+      }),
     })
 
     await expect(bffFetch('/api/v1/vehicles')).rejects.toThrow(
-      '[401] Session expired or unauthorized',
+      'Invalid username or password',
     )
   })
 })

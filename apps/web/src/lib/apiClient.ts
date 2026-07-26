@@ -32,18 +32,34 @@ export async function bffFetch<T>(
         window.location.href = '/login'
       }
     }
-    throw new Error('[401] Session expired or unauthorized')
+
+    let userFriendlyDetail =
+      'Invalid username or password. Please check your credentials and try again.'
+    try {
+      const problem = await res.json()
+      userFriendlyDetail =
+        problem.detail || problem.message || userFriendlyDetail
+    } catch {
+      // Fallback to human friendly message
+    }
+    throw new Error(userFriendlyDetail)
   }
 
   if (!res.ok) {
-    let errorDetail = 'API request failed'
+    let errorDetail = 'An unexpected error occurred. Please try again.'
     try {
       const problem = await res.json()
       errorDetail = problem.detail || problem.message || errorDetail
     } catch {
-      // Ignore JSON parse error fallback
+      if (res.status === 403) {
+        errorDetail = 'You do not have permission to perform this action.'
+      } else if (res.status === 404) {
+        errorDetail = 'The requested resource could not be found.'
+      } else if (res.status >= 500) {
+        errorDetail = 'A server error occurred. Please try again later.'
+      }
     }
-    throw new Error(`[${res.status}] ${errorDetail}`)
+    throw new Error(errorDetail)
   }
 
   if (res.status === 204) {
