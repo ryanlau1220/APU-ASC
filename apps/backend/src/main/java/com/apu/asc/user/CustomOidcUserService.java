@@ -90,6 +90,17 @@ public class CustomOidcUserService extends OidcUserService {
       log.error("Failed to execute JIT user sync for sub {}: {}", sub, e.getMessage(), e);
     }
 
-    return new DefaultOidcUser(authorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
+    String nameAttributeKey =
+        userRequest
+            .getClientRegistration()
+            .getProviderDetails()
+            .getUserInfoEndpoint()
+            .getUserNameAttributeName();
+    if (nameAttributeKey == null || nameAttributeKey.isBlank()) {
+      nameAttributeKey = "sub";
+    }
+
+    return new DefaultOidcUser(
+        authorities, oidcUser.getIdToken(), oidcUser.getUserInfo(), nameAttributeKey);
   }
 }
