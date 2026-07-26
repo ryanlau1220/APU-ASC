@@ -7,7 +7,7 @@
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
   "rememberMe": true,
-  "verifyEmail": true,
+  "verifyEmail": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
@@ -25,8 +25,16 @@
   "roles": {
     "realm": [
       {
+        "name": "SYSTEM_ADMIN",
+        "description": "System Administrator with full control"
+      },
+      {
         "name": "MANAGER",
-        "description": "System Manager with full administrative control"
+        "description": "Workshop Manager with administrative control"
+      },
+      {
+        "name": "WORKSHOP_MANAGER",
+        "description": "Workshop Manager with administrative control"
       },
       {
         "name": "STAFF",
@@ -53,11 +61,15 @@
       "standardFlowEnabled": true,
       "redirectUris": [
         "http://localhost:3000/*",
+        "http://localhost:8081/*",
+        "http://localhost:8081/login/oauth2/code/*",
+        "http://localhost/login/oauth2/code/*",
         "http://localhost/*",
         "http://localhost/login/callback"
       ],
       "webOrigins": [
         "http://localhost:3000",
+        "http://localhost:8081",
         "http://localhost",
         "+"
       ]
@@ -85,7 +97,7 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["MANAGER"]
+      "realmRoles": ["SYSTEM_ADMIN", "MANAGER"]
     }
   ]
 }
