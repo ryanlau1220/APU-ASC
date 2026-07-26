@@ -5,6 +5,7 @@ import {
   redirect,
   Scripts,
 } from '@tanstack/react-router'
+import { getWebRequest } from '@tanstack/react-start/server'
 import { bffFetch } from '../lib/apiClient'
 import { queryClient } from '../lib/queryClient'
 import { useEventStream } from '../lib/useEventStream'
@@ -33,15 +34,32 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       location.pathname.startsWith('/login') ||
       location.pathname.startsWith('/register')
 
+    const headers: Record<string, string> = {}
+    if (typeof window === 'undefined') {
+      try {
+        const req = getWebRequest()
+        const cookie = req?.headers?.get('cookie')
+        if (cookie) {
+          headers.cookie = cookie
+        }
+      } catch {
+        // Ignore if getWebRequest unavailable
+      }
+    }
+
     let userSession: UserSession = { authenticated: false, roles: [] }
     try {
-      userSession = await bffFetch<UserSession>('/api/v1/auth/me')
+      userSession = await bffFetch<UserSession>('/api/v1/auth/me', { headers })
     } catch {
       userSession = { authenticated: false, roles: [] }
     }
 
     if (!userSession.authenticated && !isPublicRoute) {
-      throw redirect({ href: '/oauth2/authorization/keycloak' })
+      if (typeof window !== 'undefined') {
+        window.location.href = '/oauth2/authorization/keycloak'
+      } else {
+        throw redirect({ href: '/oauth2/authorization/keycloak' })
+      }
     }
 
     return { userSession }
