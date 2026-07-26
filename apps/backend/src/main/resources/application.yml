@@ -86,12 +86,12 @@ springdoc:
 
 logging:
   pattern:
-    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} : %msg%n"
+    console: "[%d{HH:mm:ss} UTC] %clr(%-5level): %msg%n"
   level:
     root: INFO
-    com.apu.asc: DEBUG
-    org.springframework.web: INFO
-    org.hibernate.SQL: INFO
+    com.apu.asc: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
     org.apache.catalina.core.ContainerBase: OFF
     org.apache.catalina.core.StandardHostValue: OFF
     org.apache.catalina.valves.ErrorReportValve: OFF
