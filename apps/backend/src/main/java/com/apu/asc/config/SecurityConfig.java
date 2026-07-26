@@ -25,6 +25,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -38,6 +40,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -52,6 +55,8 @@ public class SecurityConfig {
 
   private final CustomOidcUserService customOidcUserService;
 
+  private final ClientRegistrationRepository clientRegistrationRepository;
+
   @Value(
       "${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:http://localhost/auth/realms/apu-asc/protocol/openid-connect/certs}")
   private String jwkSetUri;
@@ -63,7 +68,7 @@ public class SecurityConfig {
             csrf ->
                 csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                    .ignoringRequestMatchers("/api/v1/auth/**", "/login/oauth2/**"))
+                    .ignoringRequestMatchers("/api/v1/auth/**", "/login/oauth2/**", "/logout"))
         .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
         .oauth2Login(
             oauth2 ->
@@ -71,6 +76,14 @@ public class SecurityConfig {
                     .userInfoEndpoint(userInfo -> userInfo.oidcUserService(customOidcUserService))
                     .defaultSuccessUrl("http://localhost:3000", true)
                     .failureUrl("http://localhost:3000/login?error=true"))
+        .logout(
+            logout ->
+                logout
+                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                    .logoutSuccessHandler(oidcLogoutSuccessHandler())
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID"))
         .exceptionHandling(
             exceptions ->
                 exceptions.authenticationEntryPoint(
@@ -102,6 +115,13 @@ public class SecurityConfig {
                 oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
     return http.build();
+  }
+
+  private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
+    OidcClientInitiatedLogoutSuccessHandler handler =
+        new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
+    handler.setPostLogoutRedirectUri("http://localhost:3000/login");
+    return handler;
   }
 
   @Bean
