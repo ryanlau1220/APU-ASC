@@ -1,5 +1,8 @@
 server:
   port: 8081
+  error:
+    whitelabel:
+      enabled: false
 
 spring:
   application:
@@ -89,6 +92,9 @@ logging:
     com.apu.asc: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: INFO
+    org.apache.catalina.core.ContainerBase: OFF
+    org.apache.catalina.core.StandardHostValue: OFF
+    org.apache.catalina.valves.ErrorReportValve: OFF
 
 # Cloudflare R2 / S3 Configuration
 s3:

@@ -25,6 +25,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -42,33 +43,33 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    AuthenticationEntryPoint customEntryPoint =
+        (request, response, authException) -> {
+          log.warn(
+              "[SECURITY 401] Unauthorized access attempt to {} from {}: {}",
+              request.getRequestURI(),
+              request.getRemoteAddr(),
+              authException.getMessage());
+          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+          response.setContentType("application/problem+json");
+          response
+              .getWriter()
+              .write(
+                  """
+              {
+                "type": "about:blank",
+                "title": "Unauthorized",
+                "status": 401,
+                "detail": "Authentication is required to access this resource",
+                "instance": "%s"
+              }
+              """
+                      .formatted(request.getRequestURI()));
+        };
+
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
-        .exceptionHandling(
-            exceptions ->
-                exceptions.authenticationEntryPoint(
-                    (request, response, authException) -> {
-                      log.warn(
-                          "[SECURITY 401] Unauthorized access attempt to {} from {}: {}",
-                          request.getRequestURI(),
-                          request.getRemoteAddr(),
-                          authException.getMessage());
-                      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                      response.setContentType("application/problem+json");
-                      response
-                          .getWriter()
-                          .write(
-                              """
-                          {
-                            "type": "about:blank",
-                            "title": "Unauthorized",
-                            "status": 401,
-                            "detail": "Authentication is required to access this resource",
-                            "instance": "%s"
-                          }
-                          """
-                                  .formatted(request.getRequestURI()));
-                    }))
+        .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(customEntryPoint))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
@@ -88,7 +89,9 @@ public class SecurityConfig {
                     .authenticated())
         .oauth2ResourceServer(
             oauth2 ->
-                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
+                oauth2
+                    .authenticationEntryPoint(customEntryPoint)
+                    .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
     return http.build();
   }
