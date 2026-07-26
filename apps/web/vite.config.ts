@@ -15,7 +15,7 @@ const config = defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true,
       },
-      '/login': {
+      '/login/oauth2': {
         target: 'http://localhost:8081',
         changeOrigin: true,
       },
