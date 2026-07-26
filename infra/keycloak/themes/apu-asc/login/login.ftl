@@ -1,5 +1,5 @@
 <#import "template.ftl" as layout>
-<@layout.registrationLayout displayMessage=!messagesPerField.existsError('username','password') displayInfo=realm.password && realm.registrationAllowed && !registrationDisabled??; section>
+<@layout.registrationLayout displayMessage=true displayInfo=realm.password && realm.registrationAllowed && !registrationDisabled??; section>
     <#if section = "header">
         ${msg("loginAccountTitle")}
     <#elseif section = "form">
@@ -13,9 +13,9 @@
                         <input tabindex="1" id="username" class="${properties.kcInputClass!}" name="username" value="${(login.username!'')}" type="text" autofocus autocomplete="username"
                                aria-invalid="<#if messagesPerField.existsError('username','password')>true</#if>"
                         />
-                        <#if messagesPerField.existsError('username','password')>
+                        <#if messagesPerField.existsError('username')>
                             <span id="input-error-username" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                                ${kcSanitize(messagesPerField.getFirstError('username','password'))?no_esc}
+                                ${kcSanitize(messagesPerField.getFirstError('username'))?no_esc}
                             </span>
                         </#if>
                     </div>
@@ -32,7 +32,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
                     </div>
-                    <#if usernameHidden?? && messagesPerField.existsError('username','password')>
+                    <#if messagesPerField.existsError('username','password')>
                         <span id="input-error-password" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
                             ${kcSanitize(messagesPerField.getFirstError('username','password'))?no_esc}
                         </span>
