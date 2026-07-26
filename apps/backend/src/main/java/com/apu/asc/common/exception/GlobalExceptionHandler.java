@@ -1,18 +1,29 @@
 package com.apu.asc.common.exception;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+  @ExceptionHandler({IOException.class, AsyncRequestTimeoutException.class})
+  public void handleClientDisconnect(Exception ex) {
+    // Suppress noisy Tomcat broken pipe / client disconnect stack traces for SSE streams
+    log.debug("[SSE/NETWORK] Client connection closed or timed out: {}", ex.getMessage());
+  }
 
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
