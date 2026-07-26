@@ -11,4 +11,7 @@ public interface UserApi {
   Optional<UserDto> findByUsername(String username);
 
   UserDto createUser(UserDto userDto);
+
+  UserDto syncJitUser(
+      String keycloakId, String username, String email, String fullName, String role);
 }
