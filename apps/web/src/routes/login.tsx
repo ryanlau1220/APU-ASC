@@ -58,12 +58,12 @@ function LoginPage() {
 
       if (data.token) {
         localStorage.setItem('apu_asc_token', data.token)
+        setLoading(false)
+        navigate({ to: '/' })
       } else {
-        localStorage.setItem('apu_asc_token', 'demo-authenticated-jwt-token')
+        setLoading(false)
+        setError(data.message || 'Invalid username or password.')
       }
-
-      setLoading(false)
-      navigate({ to: '/' })
     } catch (err: unknown) {
       setLoading(false)
       const msg = err instanceof Error ? err.message : 'Authentication failed'
