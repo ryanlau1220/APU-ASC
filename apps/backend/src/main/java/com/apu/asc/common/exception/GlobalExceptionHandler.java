@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -19,8 +20,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-  @ExceptionHandler(IOException.class)
-  public void handleClientDisconnect(IOException ex) {
+  @ExceptionHandler({IOException.class, AsyncRequestNotUsableException.class})
+  public void handleClientDisconnect(Exception ex) {
     // Suppress noisy Tomcat broken pipe / client disconnect stack traces for SSE streams
     log.debug("[SSE/NETWORK] Client connection closed: {}", ex.getMessage());
   }
