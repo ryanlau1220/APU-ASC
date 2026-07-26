@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
   HeadContent,
+  redirect,
   Scripts,
 } from '@tanstack/react-router'
 import { bffFetch } from '../lib/apiClient'
@@ -27,30 +28,23 @@ export interface RouterContext {
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
+    const isPublicRoute =
+      location.pathname.startsWith('/login') ||
+      location.pathname.startsWith('/register')
+
+    let userSession: UserSession = { authenticated: false, roles: [] }
     try {
-      const userSession = await bffFetch<UserSession>('/api/v1/auth/me')
-      if (typeof window !== 'undefined' && !userSession.authenticated) {
-        const path = window.location.pathname
-        if (!path.startsWith('/login') && !path.startsWith('/register')) {
-          window.location.href = '/oauth2/authorization/keycloak'
-        }
-      }
-      return { userSession }
+      userSession = await bffFetch<UserSession>('/api/v1/auth/me')
     } catch {
-      if (typeof window !== 'undefined') {
-        const path = window.location.pathname
-        if (!path.startsWith('/login') && !path.startsWith('/register')) {
-          window.location.href = '/oauth2/authorization/keycloak'
-        }
-      }
-      return {
-        userSession: {
-          authenticated: false,
-          roles: [],
-        },
-      }
+      userSession = { authenticated: false, roles: [] }
     }
+
+    if (!userSession.authenticated && !isPublicRoute) {
+      throw redirect({ href: '/oauth2/authorization/keycloak' })
+    }
+
+    return { userSession }
   },
   head: () => ({
     meta: [
