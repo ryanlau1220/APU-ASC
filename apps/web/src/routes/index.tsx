@@ -48,11 +48,21 @@ interface PaymentDto {
 function DashboardPage() {
   const { userSession } = useUserSession()
   const isAuthenticated = userSession?.authenticated ?? false
+  const roles = userSession?.roles ?? []
+  const isStaffOrManager =
+    roles.includes('MANAGER') ||
+    roles.includes('STAFF') ||
+    roles.includes('WORKSHOP_MANAGER') ||
+    roles.includes('SYSTEM_ADMIN') ||
+    roles.includes('ROLE_MANAGER') ||
+    roles.includes('ROLE_STAFF') ||
+    roles.includes('ROLE_WORKSHOP_MANAGER') ||
+    roles.includes('ROLE_SYSTEM_ADMIN')
 
   const { data: appointments = [] } = useQuery<AppointmentDto[]>({
     queryKey: ['appointments'],
     queryFn: () => bffFetch<AppointmentDto[]>('/api/v1/appointments'),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isStaffOrManager,
     retry: false,
   })
 
@@ -64,14 +74,14 @@ function DashboardPage() {
   const { data: vehicles = [] } = useQuery<VehicleDto[]>({
     queryKey: ['vehicles'],
     queryFn: () => bffFetch<VehicleDto[]>('/api/v1/vehicles'),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isStaffOrManager,
     retry: false,
   })
 
   const { data: payments = [] } = useQuery<PaymentDto[]>({
     queryKey: ['payments'],
     queryFn: () => bffFetch<PaymentDto[]>('/api/v1/payments'),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isStaffOrManager,
     retry: false,
   })
 

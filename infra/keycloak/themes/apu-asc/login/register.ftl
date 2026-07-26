@@ -10,7 +10,7 @@
                        value="${(register.formData.firstName!'')}"
                        aria-invalid="<#if messagesPerField.existsError('firstName')>true</#if>"
                 />
-                <input type="hidden" id="lastName" name="lastName" value="-" />
+                <input type="hidden" id="lastName" name="lastName" value="" />
                 <#if messagesPerField.existsError('firstName')>
                     <span id="input-error-first-name" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
                         ${kcSanitize(messagesPerField.get('firstName'))?no_esc}
