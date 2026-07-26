@@ -13,10 +13,15 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
-          <span className="flex items-center gap-1.5 text-status-active font-medium">
+          <a
+            href="http://localhost:8081/"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 text-status-active hover:underline font-medium transition-colors"
+          >
             <CheckCircle2 className="w-3.5 h-3.5" />
             Spring Boot API Online
-          </span>
+          </a>
           <span className="text-border">|</span>
           <a
             href="http://localhost:8081/scalar"
