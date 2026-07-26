@@ -1,4 +1,4 @@
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useRouteContext } from '@tanstack/react-router'
 import {
   BookOpen,
   Calendar,
@@ -7,6 +7,7 @@ import {
   CreditCard,
   History,
   LayoutDashboard,
+  LogIn,
   LogOut,
   MessageSquare,
   Moon,
@@ -18,7 +19,10 @@ import {
 import * as React from 'react'
 
 export default function Header() {
-  const navigate = useNavigate()
+  const context = useRouteContext({ from: '__root__' })
+  const userSession = context?.userSession
+  const isAuthenticated = userSession?.authenticated ?? false
+
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
   const [isOpsOpen, setIsOpsOpen] = React.useState<boolean>(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState<boolean>(false)
@@ -62,9 +66,12 @@ export default function Header() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('apu_asc_token')
     setIsUserMenuOpen(false)
-    navigate({ to: '/login' })
+    window.location.href = '/logout'
+  }
+
+  const handleSignIn = () => {
+    window.location.href = '/oauth2/authorization/keycloak'
   }
 
   return (
@@ -204,52 +211,67 @@ export default function Header() {
             )}
           </button>
 
-          {/* User Menu Avatar */}
-          <div ref={userMenuRef} className="relative">
+          {/* User Menu / Sign In */}
+          {isAuthenticated ? (
+            <div ref={userMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-semibold hover:border-primary/40 transition-colors"
+              >
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
+                  <UserIcon className="w-3.5 h-3.5" />
+                </div>
+                <span className="hidden sm:inline">
+                  {userSession?.fullName || userSession?.username || 'User'}
+                </span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </button>
+
+              {isUserMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-52 rounded-xl bg-card opacity-100 shadow-2xl border border-border p-1.5 space-y-1 z-50 font-sans"
+                >
+                  <div className="px-3 py-2 border-b border-border text-xs">
+                    <div className="font-bold text-foreground">
+                      {userSession?.fullName || userSession?.username}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {userSession?.email || 'authenticated'}
+                    </div>
+                  </div>
+
+                  <Link
+                    to="/profile"
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  >
+                    <UserIcon className="w-4 h-4 text-primary" />
+                    Edit Profile
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-status-pending hover:bg-status-pending/10 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
             <button
               type="button"
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-semibold hover:border-primary/40 transition-colors"
+              onClick={handleSignIn}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
             >
-              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
-                <UserIcon className="w-3.5 h-3.5" />
-              </div>
-              <span className="hidden sm:inline">System Admin</span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              <LogIn className="w-3.5 h-3.5" />
+              Sign In
             </button>
-
-            {isUserMenuOpen && (
-              <div
-                role="menu"
-                className="absolute right-0 mt-2 w-52 rounded-xl bg-card opacity-100 shadow-2xl border border-border p-1.5 space-y-1 z-50 font-sans"
-              >
-                <div className="px-3 py-2 border-b border-border text-xs">
-                  <div className="font-bold text-foreground">System Admin</div>
-                  <div className="text-[10px] text-muted-foreground">
-                    admin@apu-asc.com
-                  </div>
-                </div>
-
-                <Link
-                  to="/profile"
-                  onClick={() => setIsUserMenuOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <UserIcon className="w-4 h-4 text-primary" />
-                  Edit Profile
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-status-pending hover:bg-status-pending/10 transition-colors text-left"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </header>
