@@ -1,4 +1,4 @@
-import { Link, useRouteContext } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import {
   BookOpen,
   Calendar,
@@ -17,10 +17,10 @@ import {
   Wrench,
 } from 'lucide-react'
 import * as React from 'react'
+import { useUserSession } from '../routes/__root'
 
 export default function Header() {
-  const context = useRouteContext({ from: '__root__' })
-  const userSession = context?.userSession
+  const { userSession } = useUserSession()
   const isAuthenticated = userSession?.authenticated ?? false
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
