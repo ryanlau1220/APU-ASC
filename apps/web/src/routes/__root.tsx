@@ -31,6 +31,10 @@ export const Route = createRootRoute({
         type: 'image/svg+xml',
         href: '/favicon.svg',
       },
+      {
+        rel: 'alternate icon',
+        href: '/favicon.ico',
+      },
     ],
   }),
   shellComponent: RootDocument,
