@@ -23,7 +23,12 @@ export async function bffFetch<T>(
     }
   }
 
-  const res = await fetch(endpoint, {
+  let url = endpoint
+  if (typeof window === 'undefined' && endpoint.startsWith('/')) {
+    url = `http://localhost:8081${endpoint}`
+  }
+
+  const res = await fetch(url, {
     credentials: 'include',
     ...options,
     headers,
