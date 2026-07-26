@@ -1,34 +1,81 @@
-/* APU Automotive Service Centre (APU-ASC) Keycloak Theme */
+/* APU Automotive Service Centre (APU-ASC) Modern Dark Keycloak Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   background-color: #0b0f19 !important;
-  background-image: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.15), transparent 70%),
-                    radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.08), transparent 50%) !important;
+  background-image: radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.12), transparent 70%),
+                    radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.06), transparent 50%) !important;
   font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
   color: #f8fafc !important;
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Hide default Keycloak header */
 #kc-header {
   display: none !important;
 }
 
-#kc-container {
-  min-height: 100vh;
+/* APU-ASC Top Header */
+.apu-top-header {
+  width: 100%;
+  padding: 16px 24px;
+  background-color: #131c31;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.apu-header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.apu-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none !important;
+  color: #f8fafc !important;
+}
+
+.apu-logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(2, 132, 199, 0.15);
+  border: 1px solid rgba(2, 132, 199, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #0284c7;
 }
 
-#kc-container-wrapper {
-  width: 100%;
-  max-width: 440px;
-  margin: 40px auto;
-  padding: 0 16px;
+.apu-brand-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Main Layout & Centered Card */
+.apu-main-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
 }
 
 .card-pf {
@@ -36,39 +83,62 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 16px !important;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
-  padding: 32px !important;
-  margin: 0 !important;
+  padding: 32px 36px !important;
+  width: 100% !important;
+  max-width: 440px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
 }
 
-/* Header branding */
+.card-pf-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.apu-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #0284c7;
+  margin-bottom: 12px;
+}
+
 #kc-page-title {
   font-size: 1.5rem !important;
   font-weight: 700 !important;
   color: #f8fafc !important;
-  text-align: center !important;
-  margin-bottom: 24px !important;
-  letter-spacing: -0.025em !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
 }
 
-#kc-page-title::before {
-  content: '🔧 APU-ASC Enterprise Sign In' !important;
-  display: block !important;
-  font-size: 1.5rem !important;
-  font-weight: 700 !important;
-  color: #f8fafc !important;
+/* Input Groups & Containers */
+.pf-c-input-group,
+.pf-c-input-group__item,
+.input-group,
+.input-group-addon,
+.kc-input-wrapper {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  width: 100% !important;
 }
 
-/* Form labels */
-.control-label, label {
-  color: #cbd5e1 !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  margin-bottom: 6px !important;
-  display: block !important;
-}
-
-/* Inputs */
-.form-control, input[type="text"], input[type="password"] {
+/* Individual Form Inputs */
+.form-control,
+.pf-c-form-control,
+input[type="text"],
+input[type="password"],
+input[type="email"] {
   background-color: #1e293b !important;
   border: 1px solid #334155 !important;
   border-radius: 8px !important;
@@ -80,91 +150,140 @@ html, body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-.form-control:focus, input[type="text"]:focus, input[type="password"]:focus {
+.form-control:focus,
+.pf-c-form-control:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
   border-color: #0284c7 !important;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25) !important;
   outline: none !important;
 }
 
-/* Buttons */
-.btn-primary, input[type="submit"] {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+/* Fix Input Group with Toggle Button */
+.pf-c-input-group input[type="password"],
+.pf-c-input-group input[type="text"],
+.input-group input[type="password"],
+.input-group input[type="text"] {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  border-right: none !important;
+}
+
+/* Eye Toggle Button */
+.pf-c-button,
+.pf-c-input-group__button,
+.pf-m-control,
+button.pf-c-button,
+.kc-password-toggle,
+button[data-password-toggle] {
+  background-color: #1e293b !important;
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-left: none !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-top-right-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  color: #94a3b8 !important;
+  padding: 0 14px !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.pf-c-button:hover,
+.pf-c-input-group__button:hover,
+button[data-password-toggle]:hover {
+  color: #38bdf8 !important;
+  background-color: #334155 !important;
+  background: #334155 !important;
+}
+
+/* Fix input inside input group with toggle */
+.pf-c-input-group input[type="password"], .pf-c-input-group input[type="text"] {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Action Buttons */
+.btn-primary, input[type="submit"], button[type="submit"] {
+  background: #0284c7 !important;
   border: none !important;
   border-radius: 8px !important;
   color: #ffffff !important;
   font-weight: 600 !important;
   font-size: 0.875rem !important;
-  padding: 12px 20px !important;
+  padding: 11px 20px !important;
   width: 100% !important;
   cursor: pointer !important;
-  transition: opacity 0.2s ease, transform 0.1s ease !important;
-  margin-top: 16px !important;
+  transition: background-color 0.2s ease, transform 0.1s ease !important;
+  margin-top: 20px !important;
   box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3) !important;
 }
 
-.btn-primary:hover, input[type="submit"]:hover {
-  opacity: 0.95 !important;
-  transform: translateY(-1px) !important;
+.btn-primary:hover, input[type="submit"]:hover, button[type="submit"]:hover {
+  background: #0369a1 !important;
 }
 
-/* Links */
+/* Form Footer Links & Checkbox */
+#kc-form-options {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-top: 14px !important;
+  font-size: 0.8125rem !important;
+}
+
+.checkbox label {
+  font-weight: 400 !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
 a {
   color: #38bdf8 !important;
   text-decoration: none !important;
   font-weight: 500 !important;
-  font-size: 0.875rem !important;
+  font-size: 0.8125rem !important;
+  transition: color 0.2s ease !important;
 }
 
 a:hover {
+  color: #7dd3fc !important;
   text-decoration: underline !important;
 }
 
-/* Feedback/Alert Messages */
+/* Alerts */
 .alert {
   border-radius: 8px !important;
-  padding: 12px 16px !important;
-  font-size: 0.875rem !important;
+  padding: 12px 14px !important;
+  font-size: 0.8125rem !important;
   margin-bottom: 20px !important;
 }
 
 .alert-error {
   background-color: rgba(239, 68, 68, 0.15) !important;
-  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
   color: #fca5a5 !important;
 }
 
-.alert-info {
-  background-color: rgba(56, 189, 248, 0.15) !important;
-  border: 1px solid rgba(56, 189, 248, 0.4) !important;
-  color: #7dd3fc !important;
-}
-
-.alert-warning {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-  border: 1px solid rgba(245, 158, 11, 0.4) !important;
-  color: #fde68a !important;
-}
-
-.alert-success {
-  background-color: rgba(34, 197, 94, 0.15) !important;
-  border: 1px solid rgba(34, 197, 94, 0.4) !important;
-  color: #86efac !important;
-}
-
-/* Footer / Registration Options */
-#kc-registration {
+/* Register / Login Footer Option */
+#kc-registration, #kc-info {
   margin-top: 24px !important;
   padding-top: 16px !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
   text-align: center !important;
   color: #94a3b8 !important;
-  font-size: 0.875rem !important;
+  font-size: 0.8125rem !important;
 }
 
-#kc-form-options {
-  margin-top: 12px !important;
-  margin-bottom: 12px !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
+/* Hide clutter */
+.subtitle, .required {
+  display: none !important;
 }
