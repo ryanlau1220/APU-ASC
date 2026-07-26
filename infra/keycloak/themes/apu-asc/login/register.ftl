@@ -5,27 +5,15 @@
     <#elseif section = "form">
         <form id="kc-register-form" class="${properties.kcFormClass!}" action="${url.registrationAction}" method="post">
             <div class="${properties.kcFormGroupClass!}">
-                <label for="firstName" class="${properties.kcLabelClass!}">${msg("firstName")}</label>
+                <label for="firstName" class="${properties.kcLabelClass!}">${msg("fullName")}</label>
                 <input type="text" id="firstName" class="${properties.kcInputClass!}" name="firstName"
                        value="${(register.formData.firstName!'')}"
                        aria-invalid="<#if messagesPerField.existsError('firstName')>true</#if>"
                 />
+                <input type="hidden" id="lastName" name="lastName" value="-" />
                 <#if messagesPerField.existsError('firstName')>
                     <span id="input-error-first-name" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
                         ${kcSanitize(messagesPerField.get('firstName'))?no_esc}
-                    </span>
-                </#if>
-            </div>
-
-            <div class="${properties.kcFormGroupClass!}">
-                <label for="lastName" class="${properties.kcLabelClass!}">${msg("lastName")}</label>
-                <input type="text" id="lastName" class="${properties.kcInputClass!}" name="lastName"
-                       value="${(register.formData.lastName!'')}"
-                       aria-invalid="<#if messagesPerField.existsError('lastName')>true</#if>"
-                />
-                <#if messagesPerField.existsError('lastName')>
-                    <span id="input-error-last-name" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                        ${kcSanitize(messagesPerField.get('lastName'))?no_esc}
                     </span>
                 </#if>
             </div>
