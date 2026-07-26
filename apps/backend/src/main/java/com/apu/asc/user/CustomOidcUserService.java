@@ -1,5 +1,7 @@
 package com.apu.asc.user;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class CustomOidcUserService extends OidcUserService {
 
   private final UserApi userApi;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
   @SuppressWarnings("unchecked")
@@ -49,6 +52,22 @@ public class CustomOidcUserService extends OidcUserService {
       realmAccess = (Map<String, Object>) map;
     } else if (oidcUser.getClaims().get("realm_access") instanceof Map<?, ?> map) {
       realmAccess = (Map<String, Object>) map;
+    }
+
+    if (realmAccess == null && userRequest.getAccessToken() != null) {
+      try {
+        String tokenVal = userRequest.getAccessToken().getTokenValue();
+        String[] parts = tokenVal.split("\\.");
+        if (parts.length >= 2) {
+          String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
+          Map<String, Object> tokenClaims = objectMapper.readValue(payloadJson, Map.class);
+          if (tokenClaims.get("realm_access") instanceof Map<?, ?> map) {
+            realmAccess = (Map<String, Object>) map;
+          }
+        }
+      } catch (Exception e) {
+        log.debug("Could not parse access token claims: {}", e.getMessage());
+      }
     }
 
     if (realmAccess != null && realmAccess.get("roles") instanceof List<?> roles) {
