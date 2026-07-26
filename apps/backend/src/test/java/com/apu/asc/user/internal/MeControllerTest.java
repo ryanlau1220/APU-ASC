@@ -31,9 +31,12 @@ class MeControllerTest {
   @MockBean private CustomOidcUserService customOidcUserService;
 
   @Test
-  @DisplayName("Should return 401 Unauthorized for unauthenticated requests")
-  void shouldReturn401ForUnauthenticatedRequest() throws Exception {
-    mockMvc.perform(get("/api/v1/auth/me")).andExpect(status().isUnauthorized());
+  @DisplayName("Should return 200 OK with authenticated=false for guest session hydration")
+  void shouldReturnAuthenticatedFalseForUnauthenticatedRequest() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/auth/me"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.authenticated").value(false));
   }
 
   @Test

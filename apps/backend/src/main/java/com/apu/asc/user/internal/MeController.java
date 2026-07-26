@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,9 +29,10 @@ class MeController {
       summary = "Get current authenticated user profile",
       description = "Hydrates current session user details, roles, and PostgreSQL ID")
   public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(Map.of("authenticated", false, "message", "User is not authenticated"));
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || "anonymousUser".equals(authentication.getPrincipal())) {
+      return ResponseEntity.ok(Map.of("authenticated", false, "roles", List.of()));
     }
 
     Object principal = authentication.getPrincipal();
