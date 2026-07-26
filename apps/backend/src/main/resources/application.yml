@@ -101,6 +101,7 @@ logging:
   level:
     root: INFO
     com.apu.asc: INFO
+    org.springframework.security: DEBUG
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
     org.apache.catalina.core.ContainerBase: OFF
