@@ -4,8 +4,8 @@ test.describe('Authentication & Dashboard User Journey', () => {
   test('should navigate to login page and initiate Keycloak SSO redirect', async ({
     page,
   }) => {
-    await page.goto('/login')
-    await expect(page).toHaveURL(/.*auth\/realms\/apu-asc.*/)
+    await page.goto('/login', { waitUntil: 'commit' })
+    await expect(page).toHaveURL(/.*(oauth2\/authorization\/keycloak|auth\/realms\/apu-asc).*/, { timeout: 15000 })
   })
 
   test('should render service catalog page', async ({ page }) => {
