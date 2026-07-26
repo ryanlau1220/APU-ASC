@@ -1,22 +1,29 @@
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8081'
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/)
+  return match ? decodeURIComponent(match[1]) : null
+}
 
 export async function bffFetch<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const url = `${BACKEND_URL}${endpoint}`
-
-  const token =
-    typeof window !== 'undefined' ? localStorage.getItem('apu_asc_token') : null
+  const method = (options.method || 'GET').toUpperCase()
+  const isMutating = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string>),
   }
 
-  // Support both HttpOnly cookies and Bearer token headers
-  const res = await fetch(url, {
+  if (isMutating) {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      headers['X-XSRF-TOKEN'] = csrfToken
+    }
+  }
+
+  const res = await fetch(endpoint, {
     credentials: 'include',
     ...options,
     headers,
@@ -28,8 +35,7 @@ export async function bffFetch<T>(
         window.location.pathname.startsWith('/login') ||
         window.location.pathname.startsWith('/register')
       if (!isAuthPage) {
-        localStorage.removeItem('apu_asc_token')
-        window.location.href = '/login'
+        window.location.href = '/oauth2/authorization/keycloak'
       }
     }
 
@@ -40,7 +46,7 @@ export async function bffFetch<T>(
       userFriendlyDetail =
         problem.detail || problem.message || userFriendlyDetail
     } catch {
-      // Fallback to human friendly message
+      // Fallback message
     }
     throw new Error(userFriendlyDetail)
   }
