@@ -8,20 +8,21 @@
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
   "rememberMe": true,
-  "verifyEmail": false,
+  "verifyEmail": true,
+  "defaultRoles": ["CUSTOMER"],
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "smtpServer": {
     "host": "${SMTP_HOST:smtp.gmail.com}",
     "port": "${SMTP_PORT:587}",
-    "from": "${SMTP_FROM:noreply@apu-asc.com}",
+    "from": "${SMTP_FROM:liujunhong20@gmail.com}",
     "fromDisplayName": "APU-ASC Security",
     "auth": "true",
     "ssl": "false",
     "starttls": "true",
-    "user": "${SMTP_USERNAME:user@gmail.com}",
-    "password": "${SMTP_PASSWORD:secret}"
+    "user": "${SMTP_USERNAME:liujunhong20@gmail.com}",
+    "password": "${SMTP_PASSWORD:tvjg byun uipz umf}"
   },
   "roles": {
     "realm": [
