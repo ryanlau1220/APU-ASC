@@ -1,15 +1,11 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('Authentication & Dashboard User Journey', () => {
-  test('should navigate to login page and render form elements', async ({
+  test('should navigate to login page and initiate Keycloak SSO redirect', async ({
     page,
   }) => {
     await page.goto('/login')
-    await expect(
-      page.getByRole('heading', { name: /Sign In to APU-ASC/i }),
-    ).toBeVisible()
-    await expect(page.getByLabel(/Username or Email Address/i)).toBeVisible()
-    await expect(page.getByLabel(/Password/i)).toBeVisible()
+    await expect(page).toHaveURL(/.*auth\/realms\/apu-asc.*/)
   })
 
   test('should render service catalog page', async ({ page }) => {
