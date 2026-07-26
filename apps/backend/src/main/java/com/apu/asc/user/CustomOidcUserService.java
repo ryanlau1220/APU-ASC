@@ -41,16 +41,44 @@ public class CustomOidcUserService extends OidcUserService {
     Set<GrantedAuthority> authorities = new HashSet<>(oidcUser.getAuthorities());
     String primaryRole = "CUSTOMER";
 
-    Map<String, Object> claims = oidcUser.getClaims();
-    Map<String, Object> realmAccess = (Map<String, Object>) claims.get("realm_access");
+    Map<String, Object> realmAccess = null;
+    if (oidcUser.getIdToken() != null
+        && oidcUser.getIdToken().getClaim("realm_access") instanceof Map<?, ?> map) {
+      realmAccess = (Map<String, Object>) map;
+    } else if (oidcUser.getAttribute("realm_access") instanceof Map<?, ?> map) {
+      realmAccess = (Map<String, Object>) map;
+    } else if (oidcUser.getClaims().get("realm_access") instanceof Map<?, ?> map) {
+      realmAccess = (Map<String, Object>) map;
+    }
+
     if (realmAccess != null && realmAccess.get("roles") instanceof List<?> roles) {
       for (Object r : roles) {
-        String roleStr = r.toString();
+        String roleStr = r.toString().toUpperCase();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + roleStr));
-        if ("SYSTEM_ADMIN".equalsIgnoreCase(roleStr)
-            || "WORKSHOP_MANAGER".equalsIgnoreCase(roleStr)
-            || "TECHNICIAN".equalsIgnoreCase(roleStr)) {
-          primaryRole = roleStr.toUpperCase();
+
+        if ("SYSTEM_ADMIN".equals(roleStr) || "MANAGER".equals(roleStr)) {
+          authorities.add(new SimpleGrantedAuthority("ROLE_SYSTEM_ADMIN"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
+          primaryRole = "SYSTEM_ADMIN";
+        } else if ("WORKSHOP_MANAGER".equals(roleStr)) {
+          authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
+          authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
+          if (!"SYSTEM_ADMIN".equals(primaryRole)) {
+            primaryRole = "WORKSHOP_MANAGER";
+          }
+        } else if ("STAFF".equals(roleStr)) {
+          authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
+          if ("CUSTOMER".equals(primaryRole)) {
+            primaryRole = "STAFF";
+          }
+        } else if ("TECHNICIAN".equals(roleStr)) {
+          authorities.add(new SimpleGrantedAuthority("ROLE_TECHNICIAN"));
+          if ("CUSTOMER".equals(primaryRole)) {
+            primaryRole = "TECHNICIAN";
+          }
         }
       }
     }
