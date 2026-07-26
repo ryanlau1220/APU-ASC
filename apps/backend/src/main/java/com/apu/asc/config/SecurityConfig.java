@@ -69,7 +69,8 @@ public class SecurityConfig {
             oauth2 ->
                 oauth2
                     .userInfoEndpoint(userInfo -> userInfo.oidcUserService(customOidcUserService))
-                    .defaultSuccessUrl("http://localhost:3000", true))
+                    .defaultSuccessUrl("http://localhost:3000", true)
+                    .failureUrl("http://localhost:3000/login?error=true"))
         .exceptionHandling(
             exceptions ->
                 exceptions.authenticationEntryPoint(
