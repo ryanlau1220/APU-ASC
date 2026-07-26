@@ -45,11 +45,6 @@ public class SecurityConfig {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     AuthenticationEntryPoint customEntryPoint =
         (request, response, authException) -> {
-          log.warn(
-              "[SECURITY 401] Unauthorized access attempt to {} from {}: {}",
-              request.getRequestURI(),
-              request.getRemoteAddr(),
-              authException.getMessage());
           response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
           response.setContentType("application/problem+json");
           response
@@ -73,6 +68,9 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
+                        "/",
+                        "/favicon.ico",
+                        "/favicon.svg",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
