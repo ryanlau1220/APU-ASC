@@ -2,11 +2,10 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
   HeadContent,
-  redirect,
+  Outlet,
   Scripts,
 } from '@tanstack/react-router'
-import { getWebRequest } from '@tanstack/react-start/server'
-import { bffFetch } from '../lib/apiClient'
+import * as React from 'react'
 import { queryClient } from '../lib/queryClient'
 import { useEventStream } from '../lib/useEventStream'
 
@@ -28,42 +27,24 @@ export interface RouterContext {
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
 
+/**
+ * React context to share the user session state across the app.
+ * This is populated by the AuthProvider component which fetches
+ * the session on the client side (where browser cookies are available).
+ */
+export const UserSessionContext = React.createContext<{
+  userSession: UserSession
+  loading: boolean
+}>({
+  userSession: { authenticated: false, roles: [] },
+  loading: true,
+})
+
+export function useUserSession() {
+  return React.useContext(UserSessionContext)
+}
+
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async ({ location }) => {
-    const isPublicRoute =
-      location.pathname.startsWith('/login') ||
-      location.pathname.startsWith('/register')
-
-    const headers: Record<string, string> = {}
-    if (typeof window === 'undefined') {
-      try {
-        const req = getWebRequest()
-        const cookie = req?.headers?.get('cookie')
-        if (cookie) {
-          headers.cookie = cookie
-        }
-      } catch {
-        // Ignore if getWebRequest unavailable
-      }
-    }
-
-    let userSession: UserSession = { authenticated: false, roles: [] }
-    try {
-      userSession = await bffFetch<UserSession>('/api/v1/auth/me', { headers })
-    } catch {
-      userSession = { authenticated: false, roles: [] }
-    }
-
-    if (!userSession.authenticated && !isPublicRoute) {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/oauth2/authorization/keycloak'
-      } else {
-        throw redirect({ href: '/oauth2/authorization/keycloak' })
-      }
-    }
-
-    return { userSession }
-  },
   head: () => ({
     meta: [
       {
@@ -94,7 +75,63 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
   }),
   shellComponent: RootDocument,
+  component: RootComponent,
 })
+
+/**
+ * Client-side auth provider. Fetches the user session after hydration
+ * using the browser's JSESSIONID cookie (sent via `credentials: 'include'`).
+ *
+ * During SSR the auth check is impossible because the browser's cookies
+ * are not available in the server-side fetch context. This component
+ * bridges that gap by performing the auth check on the client and
+ * providing the result via React context.
+ */
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [userSession, setUserSession] = React.useState<UserSession>({
+    authenticated: false,
+    roles: [],
+  })
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    let cancelled = false
+
+    // Use raw fetch instead of bffFetch to avoid triggering the
+    // automatic 401 → Keycloak redirect. The auth provider should
+    // silently check the session status without side effects.
+    fetch('/api/v1/auth/me', { credentials: 'include' })
+      .then((res) => {
+        if (!res.ok) throw new Error('Not authenticated')
+        return res.json()
+      })
+      .then((session: UserSession) => {
+        if (!cancelled) {
+          setUserSession(session)
+          setLoading(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUserSession({ authenticated: false, roles: [] })
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return (
+    <UserSessionContext.Provider value={{ userSession, loading }}>
+      {children}
+    </UserSessionContext.Provider>
+  )
+}
+
+function RootComponent() {
+  return <Outlet />
+}
 
 function AppContent({ children }: { children: React.ReactNode }) {
   useEventStream()
@@ -111,7 +148,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="bg-background text-foreground font-sans antialiased selection:bg-primary/20 min-h-screen flex flex-col">
         <QueryClientProvider client={queryClient}>
-          <AppContent>{children}</AppContent>
+          <AuthProvider>
+            <AppContent>{children}</AppContent>
+          </AuthProvider>
         </QueryClientProvider>
         <Scripts />
       </body>
