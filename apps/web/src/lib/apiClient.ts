@@ -27,7 +27,7 @@ export async function bffFetch<T>(
       const isAuthPage =
         window.location.pathname.startsWith('/login') ||
         window.location.pathname.startsWith('/register')
-      if (!isAuthPage && token) {
+      if (!isAuthPage) {
         localStorage.removeItem('apu_asc_token')
         window.location.href = '/login'
       }

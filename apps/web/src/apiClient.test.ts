@@ -34,4 +34,15 @@ describe('bffFetch API Client', () => {
       '[400] Validation failed for one or more request parameters',
     )
   })
+
+  it('should throw 401 error and clear token when session expired', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+    })
+
+    await expect(bffFetch('/api/v1/vehicles')).rejects.toThrow(
+      '[401] Session expired or unauthorized',
+    )
+  })
 })
