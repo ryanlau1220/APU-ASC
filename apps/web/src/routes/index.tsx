@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link, useRouteContext } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   ArrowUpRight,
   BookOpen,
@@ -15,6 +15,7 @@ import {
 import Footer from '../components/Footer'
 import Header from '../components/Header'
 import { bffFetch } from '../lib/apiClient'
+import { useUserSession } from './__root'
 
 export const Route = createFileRoute('/')({ component: DashboardPage })
 
@@ -45,8 +46,7 @@ interface PaymentDto {
 }
 
 function DashboardPage() {
-  const context = useRouteContext({ from: '__root__' })
-  const userSession = context?.userSession
+  const { userSession } = useUserSession()
   const isAuthenticated = userSession?.authenticated ?? false
 
   const { data: appointments = [] } = useQuery<AppointmentDto[]>({
