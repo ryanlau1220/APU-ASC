@@ -1,99 +1,73 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayMessage=true; section>
     <#if section = "header">
-        ${msg("registerTitle")}
+        Create APU-ASC Account
     <#elseif section = "form">
-        <form id="kc-register-form" class="${properties.kcFormClass!}" action="${url.registrationAction}" method="post">
-            <div class="${properties.kcFormGroupClass!}">
-                <label for="firstName" class="${properties.kcLabelClass!}">${msg("fullName")}</label>
-                <input type="text" id="firstName" class="${properties.kcInputClass!}" name="firstName"
-                       value="${(register.formData.firstName!'')}"
-                       aria-invalid="<#if messagesPerField.existsError('firstName')>true</#if>"
-                />
-                <input type="hidden" id="lastName" name="lastName" value="" />
-                <#if messagesPerField.existsError('firstName')>
-                    <span id="input-error-first-name" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                        ${kcSanitize(messagesPerField.get('firstName'))?no_esc}
-                    </span>
-                </#if>
+        <form id="kc-register-form" action="${url.registrationAction}" method="post">
+            <div class="form-group">
+                <label for="fullName" class="form-label">${msg("fullName")}</label>
+                <input type="text" id="fullName" class="form-input" value="${(register.formData.firstName!'')}<#if register.formData.lastName?? && register.formData.lastName != '.'> ${register.formData.lastName}</#if>" required autofocus />
+                <input type="hidden" id="firstName" name="firstName" value="${(register.formData.firstName!'')}" />
+                <input type="hidden" id="lastName" name="lastName" value="${(register.formData.lastName!'.')}" />
             </div>
 
-            <div class="${properties.kcFormGroupClass!}">
-                <label for="email" class="${properties.kcLabelClass!}">${msg("email")}</label>
-                <input type="email" id="email" class="${properties.kcInputClass!}" name="email"
-                       value="${(register.formData.email!'')}" autocomplete="email"
-                       aria-invalid="<#if messagesPerField.existsError('email')>true</#if>"
-                />
-                <#if messagesPerField.existsError('email')>
-                    <span id="input-error-email" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                        ${kcSanitize(messagesPerField.get('email'))?no_esc}
-                    </span>
-                </#if>
+            <div class="form-group">
+                <label for="email" class="form-label">${msg("email")}</label>
+                <input type="email" id="email" class="form-input" name="email" value="${(register.formData.email!'')}" autocomplete="email" required />
             </div>
 
             <#if !realm.registrationEmailAsUsername>
-                <div class="${properties.kcFormGroupClass!}">
-                    <label for="username" class="${properties.kcLabelClass!}">${msg("username")}</label>
-                    <input type="text" id="username" class="${properties.kcInputClass!}" name="username"
-                           value="${(register.formData.username!'')}" autocomplete="username"
-                           aria-invalid="<#if messagesPerField.existsError('username')>true</#if>"
-                    />
-                    <#if messagesPerField.existsError('username')>
-                        <span id="input-error-username" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                            ${kcSanitize(messagesPerField.get('username'))?no_esc}
-                        </span>
-                    </#if>
+                <div class="form-group">
+                    <label for="username" class="form-label">${msg("username")}</label>
+                    <input type="text" id="username" class="form-input" name="username" value="${(register.formData.username!'')}" autocomplete="username" required />
                 </div>
             </#if>
 
             <#if passwordRequired??>
-                <div class="${properties.kcFormGroupClass!}">
-                    <label for="password" class="${properties.kcLabelClass!}">${msg("password")}</label>
-                    <div class="${properties.kcInputGroup!}">
-                        <input type="password" id="password" class="${properties.kcInputClass!}" name="password"
-                               autocomplete="new-password"
-                               aria-invalid="<#if messagesPerField.existsError('password','password-confirm')>true</#if>"
-                        />
-                        <button class="${properties.kcFormPasswordVisibilityButtonClass!}" type="button" aria-label="${msg('showPassword')}"
-                                aria-controls="password" data-password-toggle="true">
+                <div class="form-group">
+                    <label for="password" class="form-label">${msg("password")}</label>
+                    <div class="input-group">
+                        <input type="password" id="password" class="form-input" name="password" autocomplete="new-password" required minlength="8" />
+                        <button class="password-toggle-btn" type="button" aria-label="${msg('showPassword')}" aria-controls="password" data-password-toggle="true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
                     </div>
-                    <#if messagesPerField.existsError('password')>
-                        <span id="input-error-password" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                            ${kcSanitize(messagesPerField.get('password'))?no_esc}
-                        </span>
-                    </#if>
                 </div>
 
-                <div class="${properties.kcFormGroupClass!}">
-                    <label for="password-confirm" class="${properties.kcLabelClass!}">${msg("passwordConfirm")}</label>
-                    <div class="${properties.kcInputGroup!}">
-                        <input type="password" id="password-confirm" class="${properties.kcInputClass!}" name="password-confirm"
-                               aria-invalid="<#if messagesPerField.existsError('password-confirm')>true</#if>"
-                        />
-                        <button class="${properties.kcFormPasswordVisibilityButtonClass!}" type="button" aria-label="${msg('showPassword')}"
-                                aria-controls="password-confirm" data-password-toggle="true">
+                <div class="form-group">
+                    <label for="password-confirm" class="form-label">${msg("passwordConfirm")}</label>
+                    <div class="input-group">
+                        <input type="password" id="password-confirm" class="form-input" name="password-confirm" required minlength="8" />
+                        <button class="password-toggle-btn" type="button" aria-label="${msg('showPassword')}" aria-controls="password-confirm" data-password-toggle="true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
                     </div>
-                    <#if messagesPerField.existsError('password-confirm')>
-                        <span id="input-error-password-confirm" class="${properties.kcInputErrorMessageClass!}" aria-live="polite">
-                            ${kcSanitize(messagesPerField.get('password-confirm'))?no_esc}
-                        </span>
-                    </#if>
                 </div>
             </#if>
 
-            <div id="kc-form-buttons" class="${properties.kcFormGroupClass!}">
-                <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!}" type="submit" value="${msg("doRegister")}"/>
+            <div style="margin-top: 1.5rem;">
+                <input class="btn-primary" type="submit" value="${msg("doRegister")}"/>
             </div>
 
-            <div id="kc-info" class="${properties.kcSignUpClass!}">
-                <div id="kc-info-wrapper" class="${properties.kcSignUpClassWrapper!}">
-                    <span><a href="${url.loginUrl}">${msg("backToLogin")}</a></span>
-                </div>
+            <div class="form-footer">
+                <span>Already have an account? <a href="${url.loginUrl}">${msg("backToLogin")}</a></span>
             </div>
         </form>
+
+        <script>
+            document.getElementById('kc-register-form').addEventListener('submit', function() {
+                var nameVal = document.getElementById('fullName').value.trim();
+                if (nameVal) {
+                    var parts = nameVal.split(/\s+/);
+                    var first = parts[0];
+                    var last = parts.slice(1).join(' ') || '.';
+                    document.getElementById('firstName').value = first;
+                    document.getElementById('lastName').value = last;
+                } else {
+                    document.getElementById('firstName').value = 'User';
+                    document.getElementById('lastName').value = '.';
+                }
+            });
+        </script>
     </#if>
 </@layout.registrationLayout>
