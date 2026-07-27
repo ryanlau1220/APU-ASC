@@ -1,7 +1,10 @@
 package com.apu.asc.user.internal;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +13,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 @Service
 @RequiredArgsConstructor
@@ -17,51 +22,99 @@ import org.springframework.util.StringUtils;
 public class EmailService {
 
   private final JavaMailSender mailSender;
+  private final TemplateEngine templateEngine;
 
   @Value("${spring.mail.username:}")
   private String fromEmail;
 
-  public void sendOtpEmail(String recipientEmail, String otpCode) {
+  public void sendOtpEmail(String recipientEmail, String otpCode, HttpServletRequest request) {
+    String platformInfo = parsePlatform(request != null ? request.getHeader("User-Agent") : null);
+    String clientIp = extractClientIp(request);
+    String locationInfo = "Kuala Lumpur, Malaysia (" + clientIp + ")";
+
+    sendOtpEmail(recipientEmail, otpCode, platformInfo, locationInfo);
+  }
+
+  public void sendOtpEmail(
+      String recipientEmail, String otpCode, String platformInfo, String locationInfo) {
     CompletableFuture.runAsync(
         () -> {
           try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            var message = mailSender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, true, "UTF-8");
 
             String sender =
                 StringUtils.hasText(fromEmail) ? fromEmail.trim() : "noreply@apu-asc.com";
 
             helper.setFrom(sender);
             helper.setTo(recipientEmail);
-            helper.setSubject("APU-ASC Password Reset OTP Code");
+            helper.setSubject("APU-ASC Password Reset Verification Code");
 
-            String htmlContent =
-                """
-                <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; background-color: #0b0f19; color: #f8fafc; border-radius: 12px; border: 1px solid #1e293b;">
-                  <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: #0284c7; margin: 0;">APU-ASC Password Reset</h2>
-                    <p style="color: #94a3b8; font-size: 14px;">Automotive Service Centre Verification</p>
-                  </div>
-                  <div style="background-color: #131c31; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
-                    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 10px;">Your 6-digit OTP Verification Code is:</p>
-                    <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #38bdf8; padding: 10px; background-color: #1e293b; border-radius: 6px; display: inline-block;">
-                      %s
-                    </div>
-                    <p style="color: #64748b; font-size: 12px; margin-top: 15px;">This code will expire in 10 minutes.</p>
-                  </div>
-                  <p style="color: #64748b; font-size: 12px; text-align: center;">If you did not request a password reset, please ignore this email.</p>
-                </div>
-                """
-                    .formatted(otpCode);
+            String formattedTime =
+                ZonedDateTime.now(ZoneId.of("Asia/Kuala_Lumpur"))
+                    .format(
+                        DateTimeFormatter.ofPattern(
+                            "MMMM d, yyyy 'at' hh:mm:ss a 'GMT+8'", Locale.ENGLISH));
+
+            String formattedCode =
+                otpCode.length() == 6
+                    ? otpCode.substring(0, 3) + "-" + otpCode.substring(3)
+                    : otpCode;
+
+            Context context = new Context();
+            context.setVariable("subject", "APU-ASC Password Reset Verification Code");
+            context.setVariable(
+                "mainContent",
+                "Enter this verification code in your APU-ASC Account to reset your password.");
+            context.setVariable(
+                "subContent",
+                "Don't share this code with anyone. Our employees will never ask for the code.");
+            context.setVariable("codeDisplay", formattedCode);
+            context.setVariable("platformInfo", platformInfo);
+            context.setVariable("locationInfo", locationInfo);
+            context.setVariable("timeFormatted", formattedTime);
+
+            String htmlContent = templateEngine.process("email/transactional-email", context);
 
             helper.setText(htmlContent, true);
             mailSender.send(message);
-            log.info("Successfully sent OTP email to {}", recipientEmail);
-          } catch (MessagingException e) {
-            log.error("Failed to send OTP email to {}: {}", recipientEmail, e.getMessage());
+            log.info("Successfully sent Thymeleaf OTP email to {}", recipientEmail);
           } catch (Exception e) {
             log.error("SMTP delivery attempt to {} failed: {}", recipientEmail, e.getMessage(), e);
           }
         });
+  }
+
+  private String parsePlatform(String userAgent) {
+    if (!StringUtils.hasText(userAgent)) {
+      return "Web Portal on Desktop Device";
+    }
+
+    String os = "Desktop";
+    if (userAgent.contains("Android")) os = "Android";
+    else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) os = "iOS";
+    else if (userAgent.contains("Linux")) os = "Linux";
+    else if (userAgent.contains("Mac")) os = "Mac";
+    else if (userAgent.contains("Windows")) os = "Windows";
+
+    String browser = "Browser";
+    if (userAgent.contains("Chrome")) browser = "Chrome browser";
+    else if (userAgent.contains("Safari")) browser = "Safari browser";
+    else if (userAgent.contains("Firefox")) browser = "Firefox browser";
+    else if (userAgent.contains("Edg")) browser = "Edge browser";
+
+    return browser + " on " + os + " device";
+  }
+
+  private String extractClientIp(HttpServletRequest request) {
+    if (request == null) {
+      return "localhost";
+    }
+    String forwarded = request.getHeader("X-Forwarded-For");
+    if (StringUtils.hasText(forwarded)) {
+      return forwarded.split(",")[0].trim();
+    }
+    String remote = request.getRemoteAddr();
+    return StringUtils.hasText(remote) ? remote : "localhost";
   }
 }

@@ -4,6 +4,7 @@ import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -121,7 +122,8 @@ class AuthController {
       summary = "Request password reset OTP",
       description = "Generates and emails a 6-digit OTP to the registered user")
   public ResponseEntity<Map<String, Object>> requestForgotPasswordOtp(
-      @Valid @RequestBody final ForgotPasswordOtpRequest request) {
+      @Valid @RequestBody final ForgotPasswordOtpRequest request,
+      HttpServletRequest servletRequest) {
     String email = request.email().trim().toLowerCase();
     log.info("Received password reset OTP request for email: {}", email);
 
@@ -144,7 +146,7 @@ class AuthController {
     otpCacheService.putOtp(email, otpCode);
 
     // Deliver OTP email
-    emailService.sendOtpEmail(email, otpCode);
+    emailService.sendOtpEmail(email, otpCode, servletRequest);
 
     return ResponseEntity.ok(
         Map.of(

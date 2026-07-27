@@ -11,7 +11,7 @@ Tech Stack:
 - Migrations: Flyway
 - Logging: Logback + SLF4J
 - Identity Management: Keycloak
-- Email Delivery: Jakarta Mail
+- Email Delivery: Jakarta Mail + Thymeleaf
 - Object Storage: MinIO
 - Reverse Proxy: Traefik
 - Testing: JUnit 5 + Vitest
