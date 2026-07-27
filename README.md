@@ -5,8 +5,9 @@ Tech Stack:
 - Web: TanStack Start
 - Backend: Spring Boot + Spring Modulith
 - Styles: Tailwind CSS + shadcn-ui
+- State Management: TanStack Query
 - Database: PostgreSQL
-- Validation: Hibernate Validation + RFC 9457 Problem Details
+- Validation: Hibernate Validation + RFC 9457 Problem Details + Zod
 - ORM: JPA Entities + Hibernate
 - Migrations: Flyway
 - Logging: Logback + SLF4J
@@ -23,7 +24,7 @@ To run project
 2. ./manage.sh dev
 
 Useful Commands
-1. ./manage.sh docer
+1. ./manage.sh docker
 - run all docker services with docker compose
 
 2. ./manage.sh check
