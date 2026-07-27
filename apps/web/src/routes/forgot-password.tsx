@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -144,12 +144,12 @@ function ForgotPasswordPage() {
 
           {isSuccess ? (
             <div className="space-y-4 pt-2 text-center">
-              <Link
-                to="/login"
+              <a
+                href="/oauth2/authorization/keycloak"
                 className="w-full inline-flex justify-center items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 px-4 rounded-lg text-xs transition-colors shadow-md"
               >
-                Proceed to Login
-              </Link>
+                Proceed to Sign In
+              </a>
             </div>
           ) : step === 'request' ? (
             <form onSubmit={handleRequestOtp} className="space-y-4 text-xs">
@@ -185,13 +185,13 @@ function ForgotPasswordPage() {
               </button>
 
               <div className="pt-2 text-center">
-                <Link
-                  to="/login"
+                <a
+                  href="/oauth2/authorization/keycloak"
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Back to Sign In
-                </Link>
+                </a>
               </div>
             </form>
           ) : (
@@ -284,13 +284,13 @@ function ForgotPasswordPage() {
                 >
                   Resend OTP Code
                 </button>
-                <Link
-                  to="/login"
+                <a
+                  href="/oauth2/authorization/keycloak"
                   className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   Back to Sign In
-                </Link>
+                </a>
               </div>
             </form>
           )}
