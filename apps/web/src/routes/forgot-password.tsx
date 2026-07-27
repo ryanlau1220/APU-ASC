@@ -8,8 +8,6 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import * as React from 'react'
-import Footer from '../components/Footer'
-import Header from '../components/Header'
 import { bffFetch } from '../lib/apiClient'
 
 export const Route = createFileRoute('/forgot-password')({
@@ -110,10 +108,8 @@ function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
-      <Header />
-
-      <main className="flex-1 max-w-md w-full mx-auto px-4 sm:px-6 py-12 flex flex-col justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground transition-colors p-4 sm:p-6">
+      <main className="max-w-md w-full mx-auto">
         <div className="bg-card border border-border rounded-xl p-6 sm:p-8 space-y-6 shadow-lg">
           <div className="text-center space-y-2">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-2">
@@ -296,8 +292,6 @@ function ForgotPasswordPage() {
           )}
         </div>
       </main>
-
-      <Footer />
     </div>
   )
 }
