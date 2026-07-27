@@ -4,7 +4,6 @@ import {
   Lock,
   Mail,
   Moon,
-  Phone,
   Sun,
   User,
   UserPlus,
@@ -18,7 +17,6 @@ export const Route = createFileRoute('/register')({ component: RegisterPage })
 function RegisterPage() {
   const navigate = useNavigate()
   const [fullName, setFullName] = React.useState('')
-  const [contactNumber, setContactNumber] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [submitted, setSubmitted] = React.useState(false)
@@ -136,29 +134,6 @@ function RegisterPage() {
                     placeholder="Ryan Lau"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border border-border focus:border-primary text-foreground placeholder:text-muted-foreground outline-none transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="reg-contact"
-                  className="font-semibold text-foreground block"
-                >
-                  Contact Number
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="reg-contact"
-                    type="text"
-                    required
-                    placeholder="+60123456789"
-                    value={contactNumber}
-                    onChange={(e) => setContactNumber(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border border-border focus:border-primary text-foreground placeholder:text-muted-foreground outline-none transition-colors"
                   />
                 </div>

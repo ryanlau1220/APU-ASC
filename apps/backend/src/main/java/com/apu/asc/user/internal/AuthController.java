@@ -64,7 +64,6 @@ class AuthController {
             request.username(),
             request.email(),
             request.fullName(),
-            request.contactNumber(),
             "CUSTOMER",
             "PENDING_VERIFICATION",
             Instant.now(),
@@ -275,7 +274,6 @@ class AuthController {
       @NotBlank(message = "Username is required") String username,
       @NotBlank(message = "Email is required") String email,
       @NotBlank(message = "Full name is required") String fullName,
-      @NotBlank(message = "Contact number is required") String contactNumber,
       @NotBlank(message = "Password is required") String password) {}
 
   public record LoginRequest(

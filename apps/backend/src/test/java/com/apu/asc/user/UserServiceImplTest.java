@@ -15,7 +15,6 @@ class UserServiceImplTest {
             "john_doe",
             "john@example.com",
             "John Doe",
-            "0123456789",
             "CUSTOMER",
             "ACTIVE",
             null,

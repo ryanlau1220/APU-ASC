@@ -8,7 +8,13 @@ public interface UserApi {
 
   UserDto getUserById(String id);
 
+  Optional<UserDto> findById(String id);
+
+  Optional<UserDto> findByEmail(String email);
+
   Optional<UserDto> findByUsername(String username);
+
+  Optional<UserDto> findByKeycloakId(String keycloakId);
 
   UserDto createUser(UserDto userDto);
 

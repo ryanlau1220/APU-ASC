@@ -20,7 +20,6 @@ interface UserDto {
   username: string
   email: string
   fullName: string
-  contactNumber: string
   role: string
   status: string
   createdAt: string
@@ -96,7 +95,6 @@ function UsersPage() {
                     <th className="py-3 px-3">Name</th>
                     <th className="py-3 px-3">Email Address</th>
                     <th className="py-3 px-3">Assigned Role</th>
-                    <th className="py-3 px-3">Contact</th>
                     <th className="py-3 px-3">Status</th>
                   </tr>
                 </thead>
@@ -121,9 +119,6 @@ function UsersPage() {
                           <Shield className="w-3 h-3 text-primary" />
                           {u.role}
                         </span>
-                      </td>
-                      <td className="py-3.5 px-3 text-muted-foreground">
-                        {u.contactNumber || '-'}
                       </td>
                       <td className="py-3.5 px-3">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-status-completed bg-status-completed/10 border border-status-completed/30">

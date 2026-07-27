@@ -4,7 +4,6 @@ import {
   KeyRound,
   Lock,
   Mail,
-  Phone,
   Save,
   Shield,
   User as UserIcon,
@@ -22,7 +21,6 @@ function ProfilePage() {
   const [fullName, setFullName] = React.useState(
     userSession?.fullName || 'System Administrator',
   )
-  const [contactNumber, setContactNumber] = React.useState('+60123456789')
   const [email, setEmail] = React.useState(
     userSession?.email || 'admin@apu-asc.com',
   )
@@ -143,49 +141,25 @@ function ProfilePage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="prof-fullname"
-                  className="font-semibold text-foreground block"
-                >
-                  Full Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                    <UserIcon className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="prof-fullname"
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-muted border border-border focus:border-primary text-foreground outline-none transition-colors"
-                  />
+            <div className="space-y-1.5">
+              <label
+                htmlFor="prof-fullname"
+                className="font-semibold text-foreground block"
+              >
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <UserIcon className="w-4 h-4" />
                 </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="prof-contact"
-                  className="font-semibold text-foreground block"
-                >
-                  Contact Number
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="prof-contact"
-                    type="text"
-                    required
-                    value={contactNumber}
-                    onChange={(e) => setContactNumber(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-muted border border-border focus:border-primary text-foreground outline-none transition-colors"
-                  />
-                </div>
+                <input
+                  id="prof-fullname"
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-muted border border-border focus:border-primary text-foreground outline-none transition-colors"
+                />
               </div>
             </div>
 

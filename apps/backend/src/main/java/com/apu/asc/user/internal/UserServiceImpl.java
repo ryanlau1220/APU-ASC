@@ -16,42 +16,50 @@ class UserServiceImpl implements UserApi {
   private final UserRepository userRepository;
 
   @Override
-  @Transactional(readOnly = true)
   public List<UserDto> findAllUsers() {
     return userRepository.findAll().stream().map(this::toDto).toList();
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public UserDto getUserById(final String id) {
-    return userRepository
-        .findById(id)
-        .map(this::toDto)
-        .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+  public UserDto getUserById(String id) {
+    return userRepository.findById(id).map(this::toDto).orElse(null);
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Optional<UserDto> findByUsername(final String username) {
+  public Optional<UserDto> findById(String id) {
+    return userRepository.findById(id).map(this::toDto);
+  }
+
+  @Override
+  public Optional<UserDto> findByEmail(String email) {
+    return userRepository.findByEmail(email).map(this::toDto);
+  }
+
+  @Override
+  public Optional<UserDto> findByUsername(String username) {
     return userRepository.findByUsername(username).map(this::toDto);
   }
 
   @Override
+  public Optional<UserDto> findByKeycloakId(String keycloakId) {
+    return userRepository.findByKeycloakId(keycloakId).map(this::toDto);
+  }
+
+  @Override
   @Transactional
-  public UserDto createUser(final UserDto userDto) {
-    String id =
+  public UserDto createUser(UserDto userDto) {
+    String generatedId =
         userDto.id() != null
             ? userDto.id()
             : "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     UserEntity entity =
         UserEntity.builder()
-            .id(id)
+            .id(generatedId)
             .keycloakId(userDto.keycloakId())
             .username(userDto.username())
             .email(userDto.email())
             .fullName(userDto.fullName())
-            .contactNumber(userDto.contactNumber())
-            .role(userDto.role())
+            .role(userDto.role() != null ? userDto.role() : "CUSTOMER")
             .status(userDto.status() != null ? userDto.status() : "ACTIVE")
             .build();
     return toDto(userRepository.save(entity));
@@ -60,23 +68,27 @@ class UserServiceImpl implements UserApi {
   @Override
   @Transactional
   public UserDto syncJitUser(
-      final String keycloakId,
-      final String username,
-      final String email,
-      final String fullName,
-      final String role) {
-    Optional<UserEntity> existing =
-        userRepository
-            .findByKeycloakId(keycloakId)
-            .or(() -> userRepository.findByUsername(username));
-
+      String keycloakId, String username, String email, String fullName, String role) {
+    Optional<UserEntity> existing = userRepository.findByKeycloakId(keycloakId);
     if (existing.isPresent()) {
-      UserEntity entity = existing.get();
-      entity.setKeycloakId(keycloakId);
-      if (email != null) entity.setEmail(email);
-      if (fullName != null) entity.setFullName(fullName);
-      if (role != null) entity.setRole(role);
-      return toDto(userRepository.save(entity));
+      UserEntity user = existing.get();
+      boolean updated = false;
+      if (email != null && !email.equals(user.getEmail())) {
+        user.setEmail(email);
+        updated = true;
+      }
+      if (fullName != null && !fullName.equals(user.getFullName())) {
+        user.setFullName(fullName);
+        updated = true;
+      }
+      if (role != null && !role.equals(user.getRole())) {
+        user.setRole(role);
+        updated = true;
+      }
+      if (updated) {
+        userRepository.save(user);
+      }
+      return toDto(user);
     }
 
     String generatedId = "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -100,7 +112,6 @@ class UserServiceImpl implements UserApi {
         entity.getUsername(),
         entity.getEmail(),
         entity.getFullName(),
-        entity.getContactNumber(),
         entity.getRole(),
         entity.getStatus(),
         entity.getCreatedAt(),

@@ -8,7 +8,6 @@ public record UserDto(
     String username,
     String email,
     String fullName,
-    String contactNumber,
     String role,
     String status,
     Instant createdAt,

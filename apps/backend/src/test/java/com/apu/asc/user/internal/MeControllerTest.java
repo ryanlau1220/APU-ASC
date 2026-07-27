@@ -49,7 +49,6 @@ class MeControllerTest {
             "admin",
             "admin@apu-asc.com",
             "System Admin",
-            "+60123456789",
             "SYSTEM_ADMIN",
             "ACTIVE",
             null,

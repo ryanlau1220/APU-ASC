@@ -36,9 +36,6 @@ class UserEntity {
   @Column(name = "full_name", nullable = false)
   private String fullName;
 
-  @Column(name = "contact_number", nullable = false)
-  private String contactNumber;
-
   @Column(nullable = false)
   private String role;
 
