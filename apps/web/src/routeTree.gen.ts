@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as AuditLogsRouteImport } from './routes/audit-logs'
 import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -39,6 +40,11 @@ const AuditLogsRoute = AuditLogsRouteImport.update({
 const FeedbackRoute = FeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AppointmentsRoute
   '/audit-logs': typeof AuditLogsRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
   '/profile': typeof ProfileRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/appointments': typeof AppointmentsRoute
   '/audit-logs': typeof AuditLogsRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
   '/profile': typeof ProfileRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/appointments': typeof AppointmentsRoute
   '/audit-logs': typeof AuditLogsRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/payments': typeof PaymentsRoute
   '/profile': typeof ProfileRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/audit-logs'
     | '/feedback'
+    | '/forgot-password'
     | '/login'
     | '/payments'
     | '/profile'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/audit-logs'
     | '/feedback'
+    | '/forgot-password'
     | '/login'
     | '/payments'
     | '/profile'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/audit-logs'
     | '/feedback'
+    | '/forgot-password'
     | '/login'
     | '/payments'
     | '/profile'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AppointmentsRoute: typeof AppointmentsRoute
   AuditLogsRoute: typeof AuditLogsRoute
   FeedbackRoute: typeof FeedbackRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PaymentsRoute: typeof PaymentsRoute
   ProfileRoute: typeof ProfileRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/feedback'
       fullPath: '/feedback'
       preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -260,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppointmentsRoute: AppointmentsRoute,
   AuditLogsRoute: AuditLogsRoute,
   FeedbackRoute: FeedbackRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PaymentsRoute: PaymentsRoute,
   ProfileRoute: ProfileRoute,
