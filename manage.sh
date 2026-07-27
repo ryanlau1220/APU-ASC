@@ -23,6 +23,12 @@ cleanup_dev() {
 
 case "$1" in
     dev)
+        if [ -f .env ]; then
+            set -a
+            source .env
+            set +a
+        fi
+
         # Fast health check for PostgreSQL port 5433
         if ! (nc -z localhost 5433 2>/dev/null || (echo > /dev/tcp/localhost/5433) 2>/dev/null); then
             echo -e "${RED}⚠️  [WARN] PostgreSQL database is not reachable on port 5433.${RESET}"
