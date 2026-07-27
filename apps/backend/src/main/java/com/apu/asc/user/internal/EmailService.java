@@ -56,11 +56,6 @@ public class EmailService {
                         DateTimeFormatter.ofPattern(
                             "MMMM d, yyyy 'at' hh:mm:ss a 'GMT+8'", Locale.ENGLISH));
 
-            String formattedCode =
-                otpCode.length() == 6
-                    ? otpCode.substring(0, 3) + "-" + otpCode.substring(3)
-                    : otpCode;
-
             Context context = new Context();
             context.setVariable("subject", "APU-ASC Password Reset Verification Code");
             context.setVariable(
@@ -69,7 +64,7 @@ public class EmailService {
             context.setVariable(
                 "subContent",
                 "Don't share this code with anyone. Our employees will never ask for the code.");
-            context.setVariable("codeDisplay", formattedCode);
+            context.setVariable("codeDisplay", otpCode);
             context.setVariable("platformInfo", platformInfo);
             context.setVariable("locationInfo", locationInfo);
             context.setVariable("timeFormatted", formattedTime);

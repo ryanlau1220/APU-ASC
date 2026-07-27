@@ -209,7 +209,9 @@ function ForgotPasswordPage() {
                     required
                     maxLength={6}
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.trim())}
+                    onChange={(e) =>
+                      setOtp(e.target.value.replace(/[^0-9]/g, ''))
+                    }
                     placeholder="123456"
                     className="w-full pl-9 pr-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground font-mono text-center tracking-widest text-sm"
                   />
