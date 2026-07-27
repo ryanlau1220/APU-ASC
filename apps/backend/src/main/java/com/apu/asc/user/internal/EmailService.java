@@ -60,10 +60,7 @@ public class EmailService {
           } catch (MessagingException e) {
             log.error("Failed to send OTP email to {}: {}", recipientEmail, e.getMessage());
           } catch (Exception e) {
-            log.warn(
-                "SMTP delivery attempt to {} completed with note: {}",
-                recipientEmail,
-                e.getMessage());
+            log.error("SMTP delivery attempt to {} failed: {}", recipientEmail, e.getMessage(), e);
           }
         });
   }

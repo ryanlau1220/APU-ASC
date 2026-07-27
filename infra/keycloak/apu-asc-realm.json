@@ -22,7 +22,7 @@
     "ssl": "false",
     "starttls": "true",
     "user": "${SMTP_USERNAME:liujunhong20@gmail.com}",
-    "password": "${SMTP_PASSWORD:tvjg byun uipz umf}"
+    "password": "${SMTP_PASSWORD:}"
   },
   "roles": {
     "realm": [
