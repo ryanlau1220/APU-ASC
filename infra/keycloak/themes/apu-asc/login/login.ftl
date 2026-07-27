@@ -52,7 +52,7 @@
                         </div>
                     </#if>
                     <#if realm.resetPasswordAllowed>
-                        <span><a tabindex="5" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a></span>
+                        <span><a tabindex="5" href="http://localhost:3000/forgot-password">${msg("doForgotPassword")}</a></span>
                     </#if>
                 </div>
 
