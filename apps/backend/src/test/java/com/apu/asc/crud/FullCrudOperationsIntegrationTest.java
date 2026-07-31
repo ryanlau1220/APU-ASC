@@ -279,8 +279,7 @@ class FullCrudOperationsIntegrationTest {
 
     VehicleDto vehicle =
         vehicleApi.createVehicle(
-            new VehicleDto(
-                null, customer.id(), "WYY-9988", "Honda", "Civic Type R", 2023, null));
+            new VehicleDto(null, customer.id(), "WYY-9988", "Honda", "Civic Type R", 2023, null));
     createdVehicles.add(vehicle.id());
 
     VehicleDto updated =
