@@ -20,8 +20,8 @@ interface FeedbackDto {
 
 function FeedbackPage() {
   const { data: reviews = [], isLoading } = useQuery<FeedbackDto[]>({
-    queryKey: ['feedbacks'],
-    queryFn: () => bffFetch<FeedbackDto[]>('/api/v1/feedbacks'),
+    queryKey: ['feedback'],
+    queryFn: () => bffFetch<FeedbackDto[]>('/api/v1/feedback'),
   })
 
   return (
