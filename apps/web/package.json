@@ -18,7 +18,9 @@
     "check": "biome check ."
   },
   "dependencies": {
+    "@posthog/react": "^1.10.3",
     "@sentry/react": "^8.40.0",
+    "@sentry/tanstackstart-react": "^10.69.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "^5.101.4",
@@ -27,6 +29,7 @@
     "@tanstack/react-start": "latest",
     "clsx": "^2.1.1",
     "lucide-react": "^1.26.0",
+    "posthog-js": "^1.409.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.6.0",
