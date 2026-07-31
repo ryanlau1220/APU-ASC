@@ -1,5 +1,6 @@
 package com.apu.asc.user.internal;
 
+import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
 import java.util.List;
@@ -16,31 +17,40 @@ class UserServiceImpl implements UserApi {
   private final UserRepository userRepository;
 
   @Override
+  @Transactional(readOnly = true)
   public List<UserDto> findAllUsers() {
     return userRepository.findAll().stream().map(this::toDto).toList();
   }
 
   @Override
+  @Transactional(readOnly = true)
   public UserDto getUserById(String id) {
-    return userRepository.findById(id).map(this::toDto).orElse(null);
+    return userRepository
+        .findById(id)
+        .map(this::toDto)
+        .orElseThrow(() -> new ResourceNotFoundException("User", id));
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<UserDto> findById(String id) {
     return userRepository.findById(id).map(this::toDto);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<UserDto> findByEmail(String email) {
     return userRepository.findByEmail(email).map(this::toDto);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<UserDto> findByUsername(String username) {
     return userRepository.findByUsername(username).map(this::toDto);
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Optional<UserDto> findByKeycloakId(String keycloakId) {
     return userRepository.findByKeycloakId(keycloakId).map(this::toDto);
   }
@@ -63,6 +73,38 @@ class UserServiceImpl implements UserApi {
             .status(userDto.status() != null ? userDto.status() : "ACTIVE")
             .build();
     return toDto(userRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public UserDto updateUser(String id, UserDto userDto) {
+    UserEntity entity =
+        userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+
+    if (userDto.fullName() != null) entity.setFullName(userDto.fullName());
+    if (userDto.email() != null) entity.setEmail(userDto.email());
+    if (userDto.role() != null) entity.setRole(userDto.role());
+    if (userDto.status() != null) entity.setStatus(userDto.status());
+
+    return toDto(userRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public UserDto updateStatus(String id, String status) {
+    UserEntity entity =
+        userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+    entity.setStatus(status);
+    return toDto(userRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public void deleteUser(String id) {
+    UserEntity entity =
+        userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+    entity.setStatus("INACTIVE");
+    userRepository.save(entity);
   }
 
   @Override

@@ -18,6 +18,12 @@ public interface UserApi {
 
   UserDto createUser(UserDto userDto);
 
+  UserDto updateUser(String id, UserDto userDto);
+
+  UserDto updateStatus(String id, String status);
+
+  void deleteUser(String id);
+
   UserDto syncJitUser(
       String keycloakId, String username, String email, String fullName, String role);
 }
