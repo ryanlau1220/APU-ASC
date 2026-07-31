@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -108,17 +107,6 @@ public class SecurityConfig {
                         "/api/v1/audit-logs/sentry-test",
                         "/login/**",
                         "/oauth2/**")
-                    .permitAll()
-                    .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/v1/catalog/**",
-                        "/api/v1/services/**",
-                        "/api/v1/categories/**",
-                        "/api/v1/vehicles/**",
-                        "/api/v1/appointments/**",
-                        "/api/v1/payments/**",
-                        "/api/v1/users/**",
-                        "/api/v1/feedback/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
