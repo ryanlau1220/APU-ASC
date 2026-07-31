@@ -8,6 +8,8 @@ import com.apu.asc.servicecatalog.ServiceDto;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +24,14 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional(readOnly = true)
+  @Cacheable(value = "categories")
   public List<CategoryDto> findAllCategories() {
     return categoryRepository.findAll().stream().map(this::toDto).toList();
   }
 
   @Override
   @Transactional(readOnly = true)
+  @Cacheable(value = "categories", key = "#id")
   public CategoryDto getCategoryById(final String id) {
     return categoryRepository
         .findById(id)
@@ -37,6 +41,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional
+  @CacheEvict(value = "categories", allEntries = true)
   public CategoryDto createCategory(final CategoryDto categoryDto) {
     String id =
         categoryDto.id() != null
@@ -61,6 +66,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional
+  @CacheEvict(value = "categories", allEntries = true)
   public CategoryDto updateCategory(final String id, final CategoryDto categoryDto) {
     CategoryEntity entity =
         categoryRepository
@@ -83,6 +89,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional
+  @CacheEvict(value = "categories", allEntries = true)
   public void deleteCategory(final String id) {
     if (!categoryRepository.existsById(id)) {
       throw new ResourceNotFoundException("Category", id);
@@ -94,12 +101,14 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional(readOnly = true)
+  @Cacheable(value = "services")
   public List<ServiceDto> findAllServices() {
     return serviceRepository.findAll().stream().map(this::toDto).toList();
   }
 
   @Override
   @Transactional(readOnly = true)
+  @Cacheable(value = "services", key = "#id")
   public ServiceDto getServiceById(final String id) {
     return serviceRepository
         .findById(id)
@@ -109,6 +118,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional
+  @CacheEvict(value = "services", allEntries = true)
   public ServiceDto createService(final ServiceDto serviceDto) {
     String id =
         serviceDto.id() != null
@@ -138,6 +148,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional
+  @CacheEvict(value = "services", allEntries = true)
   public ServiceDto updateService(final String id, final ServiceDto serviceDto) {
     ServiceEntity entity =
         serviceRepository
@@ -165,6 +176,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional
+  @CacheEvict(value = "services", allEntries = true)
   public void deleteService(final String id) {
     ServiceEntity entity =
         serviceRepository
