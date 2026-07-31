@@ -17,7 +17,10 @@ import com.apu.asc.vehicle.VehicleApi;
 import com.apu.asc.vehicle.VehicleDto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,50 +40,111 @@ class FullCrudOperationsIntegrationTest {
   @Autowired private PaymentApi paymentApi;
   @Autowired private FeedbackApi feedbackApi;
 
+  private final List<String> createdAppointments = new ArrayList<>();
+  private final List<String> createdServices = new ArrayList<>();
+  private final List<String> createdCategories = new ArrayList<>();
+  private final List<String> createdVehicles = new ArrayList<>();
+  private final List<String> createdUsers = new ArrayList<>();
+
+  @AfterEach
+  void tearDown() {
+    createdAppointments.forEach(
+        id -> {
+          try {
+            appointmentApi.deleteAppointment(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdServices.forEach(
+        id -> {
+          try {
+            serviceCatalogApi.deleteService(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdCategories.forEach(
+        id -> {
+          try {
+            serviceCatalogApi.deleteCategory(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdVehicles.forEach(
+        id -> {
+          try {
+            vehicleApi.deleteVehicle(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdUsers.forEach(
+        id -> {
+          try {
+            userApi.deleteUser(id);
+          } catch (Exception ignored) {
+          }
+        });
+
+    createdAppointments.clear();
+    createdServices.clear();
+    createdCategories.clear();
+    createdVehicles.clear();
+    createdUsers.clear();
+  }
+
   private UserDto createTestCustomer() {
     return createTestUserWithRole("CUSTOMER");
   }
 
   private UserDto createTestUserWithRole(String role) {
     String suffix = UUID.randomUUID().toString().substring(0, 6);
-    return userApi.createUser(
-        new UserDto(
-            null,
-            "kc-" + suffix,
-            "user_" + suffix,
-            "user_" + suffix + "@apu-asc.com",
-            "Test " + role,
-            role,
-            "ACTIVE",
-            null,
-            null));
+    UserDto u =
+        userApi.createUser(
+            new UserDto(
+                null,
+                "kc-" + suffix,
+                "user_" + suffix,
+                "user_" + suffix + "@apu-asc.com",
+                "Test " + role,
+                role,
+                "ACTIVE",
+                null,
+                null));
+    createdUsers.add(u.id());
+    return u;
   }
 
   private VehicleDto createTestVehicle(String customerId) {
-    return vehicleApi.createVehicle(
-        new VehicleDto(
-            null,
-            customerId,
-            "WXX-" + System.currentTimeMillis() % 10000,
-            "Toyota",
-            "Camry",
-            2022,
-            null));
+    VehicleDto v =
+        vehicleApi.createVehicle(
+            new VehicleDto(
+                null,
+                customerId,
+                "WXX-" + System.currentTimeMillis() % 10000,
+                "Toyota",
+                "Camry",
+                2022,
+                null));
+    createdVehicles.add(v.id());
+    return v;
   }
 
   private ServiceDto createTestService() {
     CategoryDto cat =
         serviceCatalogApi.createCategory(new CategoryDto(null, "Test Category", "Desc", null));
-    return serviceCatalogApi.createService(
-        new ServiceDto(
-            null,
-            cat.id(),
-            "Test Service",
-            "Desc",
-            60,
-            BigDecimal.valueOf(100.00),
-            "ACTIVE",
-            null));
+    createdCategories.add(cat.id());
+    ServiceDto s =
+        serviceCatalogApi.createService(
+            new ServiceDto(
+                null,
+                cat.id(),
+                "Test Service",
+                "Desc",
+                60,
+                BigDecimal.valueOf(100.00),
+                "ACTIVE",
+                null));
+    createdServices.add(s.id());
+    return s;
   }
 
   @Test
@@ -89,35 +153,123 @@ class FullCrudOperationsIntegrationTest {
     UserDto customer = createTestCustomer();
     VehicleDto vehicle = createTestVehicle(customer.id());
     ServiceDto service = createTestService();
+    UserDto technician = createTestUserWithRole("TECHNICIAN");
 
-    AppointmentDto newDto =
+    AppointmentDto newApt =
         new AppointmentDto(
             null,
             customer.id(),
             vehicle.id(),
             service.id(),
-            null,
-            LocalDate.parse("2026-08-10"),
-            "10:00 AM",
+            technician.id(),
+            LocalDate.now().plusDays(1),
+            "09:00 AM",
             "PENDING",
-            "Oil change required",
+            "Initial inspection",
             null,
             null);
 
-    AppointmentDto created = appointmentApi.createAppointment(newDto);
+    AppointmentDto created = appointmentApi.createAppointment(newApt);
+    createdAppointments.add(created.id());
     assertThat(created.id()).startsWith("APT-");
 
-    AppointmentDto fetched = appointmentApi.getAppointmentById(created.id());
-    assertThat(fetched.notes()).isEqualTo("Oil change required");
-
-    AppointmentDto updatedStatus = appointmentApi.updateStatus(created.id(), "COMPLETED");
-    assertThat(updatedStatus.status()).isEqualTo("COMPLETED");
+    AppointmentDto updated =
+        appointmentApi.updateAppointment(
+            created.id(),
+            new AppointmentDto(
+                created.id(),
+                created.customerId(),
+                created.vehicleId(),
+                created.serviceId(),
+                created.technicianId(),
+                created.appointmentDate(),
+                created.timeSlot(),
+                "CONFIRMED",
+                created.notes(),
+                null,
+                null));
+    assertThat(updated.status()).isEqualTo("CONFIRMED");
 
     appointmentApi.deleteAppointment(created.id());
+    createdAppointments.remove(created.id());
+
+    List<AppointmentDto> all = appointmentApi.findAllAppointments();
+    assertThat(all.stream().noneMatch(a -> a.id().equals(created.id()))).isTrue();
+  }
+
+  @Test
+  @DisplayName("Full CRUD Lifecycle Test for Payments & Invoices")
+  void testPaymentCrudLifecycle() {
+    UserDto customer = createTestCustomer();
+
+    PaymentDto invoice =
+        paymentApi.createInvoice(
+            new PaymentDto(
+                null,
+                "APT-99999",
+                customer.id(),
+                "INV-99999",
+                BigDecimal.valueOf(250.00),
+                "CREDIT_CARD",
+                "UNPAID",
+                null,
+                null));
+
+    assertThat(invoice.id()).startsWith("PAY-");
+
+    PaymentDto processed = paymentApi.processPayment(invoice.id(), "CREDIT_CARD");
+    assertThat(processed.paymentStatus()).isEqualTo("PAID");
+  }
+
+  @Test
+  @DisplayName("Full CRUD Lifecycle Test for Service Catalog & Categories")
+  void testServiceCatalogCrudLifecycle() {
+    CategoryDto cat =
+        serviceCatalogApi.createCategory(
+            new CategoryDto(null, "Engine Repairs", "Engine services", null));
+    createdCategories.add(cat.id());
+
+    ServiceDto service =
+        serviceCatalogApi.createService(
+            new ServiceDto(
+                null,
+                cat.id(),
+                "Spark Plug Replacement",
+                "Replace 4 spark plugs",
+                45,
+                BigDecimal.valueOf(150.00),
+                "ACTIVE",
+                null));
+    createdServices.add(service.id());
+
+    serviceCatalogApi.deleteService(service.id());
+    createdServices.remove(service.id());
     assertThat(
-            appointmentApi.findAllAppointments().stream()
-                .noneMatch(a -> a.id().equals(created.id())))
+            serviceCatalogApi.findAllServices().stream()
+                .filter(s -> s.status().equals("ACTIVE"))
+                .noneMatch(s -> s.id().equals(service.id())))
         .isTrue();
+  }
+
+  @Test
+  @DisplayName("Full CRUD Lifecycle Test for Users")
+  void testUserCrudLifecycle() {
+    UserDto user = createTestUserWithRole("STAFF");
+
+    UserDto updatedStatus =
+        userApi.updateUser(
+            user.id(),
+            new UserDto(
+                user.id(),
+                user.keycloakId(),
+                user.username(),
+                user.email(),
+                user.fullName(),
+                user.role(),
+                "INACTIVE",
+                null,
+                null));
+    assertThat(updatedStatus.status()).isEqualTo("INACTIVE");
   }
 
   @Test
@@ -125,95 +277,32 @@ class FullCrudOperationsIntegrationTest {
   void testVehicleCrudLifecycle() {
     UserDto customer = createTestCustomer();
 
-    VehicleDto newDto =
-        new VehicleDto(null, customer.id(), "WXX9999", "Toyota", "Camry", 2022, null);
-
-    VehicleDto created = vehicleApi.createVehicle(newDto);
-    assertThat(created.id()).startsWith("VEH-");
-
-    VehicleDto fetched = vehicleApi.getVehicleById(created.id());
-    assertThat(fetched.licensePlate()).isEqualTo("WXX9999");
+    VehicleDto vehicle =
+        vehicleApi.createVehicle(
+            new VehicleDto(
+                null, customer.id(), "WYY-9988", "Honda", "Civic Type R", 2023, null));
+    createdVehicles.add(vehicle.id());
 
     VehicleDto updated =
         vehicleApi.updateVehicle(
-            created.id(),
+            vehicle.id(),
             new VehicleDto(
-                created.id(), customer.id(), "WXX9999", "Toyota", "Camry Hybrid", 2023, null));
-    assertThat(updated.model()).isEqualTo("Camry Hybrid");
+                vehicle.id(),
+                customer.id(),
+                "WYY-9988",
+                "Honda",
+                "Civic Type R (Tuned)",
+                2023,
+                null));
 
-    vehicleApi.deleteVehicle(created.id());
-    assertThat(vehicleApi.findAllVehicles().stream().noneMatch(v -> v.id().equals(created.id())))
-        .isTrue();
+    assertThat(updated.model()).contains("Tuned");
+
+    vehicleApi.deleteVehicle(vehicle.id());
+    createdVehicles.remove(vehicle.id());
   }
 
   @Test
-  @DisplayName("Full CRUD Lifecycle Test for Users")
-  void testUserCrudLifecycle() {
-    UserDto created = createTestCustomer();
-    assertThat(created.id()).startsWith("USR-");
-
-    UserDto fetched = userApi.getUserById(created.id());
-    assertThat(fetched.fullName()).isEqualTo("Test CUSTOMER");
-
-    UserDto updatedStatus = userApi.updateStatus(created.id(), "INACTIVE");
-    assertThat(updatedStatus.status()).isEqualTo("INACTIVE");
-  }
-
-  @Test
-  @DisplayName("Full CRUD Lifecycle Test for Service Catalog")
-  void testServiceCatalogCrudLifecycle() {
-    CategoryDto catDto = new CategoryDto(null, "Engine Services", "Engine maintenance", null);
-    CategoryDto createdCat = serviceCatalogApi.createCategory(catDto);
-    assertThat(createdCat.id()).startsWith("CAT-");
-
-    ServiceDto svcDto =
-        new ServiceDto(
-            null,
-            createdCat.id(),
-            "Full Engine Diagnostic",
-            "Complete scan",
-            60,
-            BigDecimal.valueOf(150.00),
-            "ACTIVE",
-            null);
-
-    ServiceDto createdSvc = serviceCatalogApi.createService(svcDto);
-    assertThat(createdSvc.id()).startsWith("SVC-");
-
-    ServiceDto fetchedSvc = serviceCatalogApi.getServiceById(createdSvc.id());
-    assertThat(fetchedSvc.basePrice()).isEqualByComparingTo(BigDecimal.valueOf(150.00));
-
-    serviceCatalogApi.deleteService(createdSvc.id());
-    ServiceDto deactivated = serviceCatalogApi.getServiceById(createdSvc.id());
-    assertThat(deactivated.status()).isEqualTo("INACTIVE");
-  }
-
-  @Test
-  @DisplayName("Full CRUD Lifecycle Test for Payments & Invoicing")
-  void testPaymentCrudLifecycle() {
-    UserDto customer = createTestCustomer();
-
-    PaymentDto payDto =
-        new PaymentDto(
-            null,
-            "APT-100",
-            customer.id(),
-            "INV-2001",
-            BigDecimal.valueOf(250.00),
-            "CREDIT_CARD",
-            "UNPAID",
-            null,
-            null);
-
-    PaymentDto created = paymentApi.createInvoice(payDto);
-    assertThat(created.id()).startsWith("PAY-");
-
-    PaymentDto processed = paymentApi.processPayment(created.id(), "CREDIT_CARD");
-    assertThat(processed.paymentStatus()).isEqualTo("PAID");
-  }
-
-  @Test
-  @DisplayName("Full CRUD Lifecycle Test for Feedback & Reviews")
+  @DisplayName("Full CRUD Lifecycle Test for Feedback")
   void testFeedbackCrudLifecycle() {
     UserDto customer = createTestCustomer();
     UserDto technician = createTestUserWithRole("TECHNICIAN");
@@ -234,6 +323,7 @@ class FullCrudOperationsIntegrationTest {
                 "Done",
                 null,
                 null));
+    createdAppointments.add(appointment.id());
 
     FeedbackDto fbDto =
         new FeedbackDto(

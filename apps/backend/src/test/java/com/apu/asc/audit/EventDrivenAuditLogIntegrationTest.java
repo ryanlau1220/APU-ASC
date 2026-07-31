@@ -16,8 +16,10 @@ import com.apu.asc.vehicle.VehicleDto;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,57 @@ class EventDrivenAuditLogIntegrationTest {
   @Autowired private ServiceCatalogApi serviceCatalogApi;
   @Autowired private AppointmentApi appointmentApi;
 
+  private final List<String> createdAppointments = new ArrayList<>();
+  private final List<String> createdServices = new ArrayList<>();
+  private final List<String> createdCategories = new ArrayList<>();
+  private final List<String> createdVehicles = new ArrayList<>();
+  private final List<String> createdUsers = new ArrayList<>();
+
+  @AfterEach
+  void tearDown() {
+    createdAppointments.forEach(
+        id -> {
+          try {
+            appointmentApi.deleteAppointment(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdServices.forEach(
+        id -> {
+          try {
+            serviceCatalogApi.deleteService(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdCategories.forEach(
+        id -> {
+          try {
+            serviceCatalogApi.deleteCategory(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdVehicles.forEach(
+        id -> {
+          try {
+            vehicleApi.deleteVehicle(id);
+          } catch (Exception ignored) {
+          }
+        });
+    createdUsers.forEach(
+        id -> {
+          try {
+            userApi.deleteUser(id);
+          } catch (Exception ignored) {
+          }
+        });
+
+    createdAppointments.clear();
+    createdServices.clear();
+    createdCategories.clear();
+    createdVehicles.clear();
+    createdUsers.clear();
+  }
+
   @Test
   @DisplayName("Direct AuditEvent publishing should persist audit record in partitioned database")
   void testDirectAuditEventPublishing() {
@@ -52,6 +105,7 @@ class EventDrivenAuditLogIntegrationTest {
                 "ACTIVE",
                 null,
                 null));
+    createdUsers.add(user.id());
 
     eventPublisher.publishEvent(
         new AuditEvent(
@@ -85,15 +139,19 @@ class EventDrivenAuditLogIntegrationTest {
                 "ACTIVE",
                 null,
                 null));
+    createdUsers.add(user.id());
 
     VehicleDto vehicle =
         vehicleApi.createVehicle(
             new VehicleDto(
                 null, user.id(), "WYY-" + suffix.toUpperCase(), "Honda", "Civic", 2023, null));
+    createdVehicles.add(vehicle.id());
 
     CategoryDto cat =
         serviceCatalogApi.createCategory(
             new CategoryDto(null, "Brake Service " + suffix, "Brake check", null));
+    createdCategories.add(cat.id());
+
     ServiceDto svc =
         serviceCatalogApi.createService(
             new ServiceDto(
@@ -105,6 +163,7 @@ class EventDrivenAuditLogIntegrationTest {
                 BigDecimal.valueOf(120.0),
                 "ACTIVE",
                 null));
+    createdServices.add(svc.id());
 
     AppointmentDto appointment =
         appointmentApi.createAppointment(
@@ -120,6 +179,7 @@ class EventDrivenAuditLogIntegrationTest {
                 "Check brakes",
                 null,
                 null));
+    createdAppointments.add(appointment.id());
 
     await()
         .atMost(Duration.ofSeconds(5))
