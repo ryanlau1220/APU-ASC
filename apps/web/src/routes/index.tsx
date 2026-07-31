@@ -73,8 +73,13 @@ function DashboardPage() {
   const payments = (paymentsData || []) as PaymentDto[]
 
   React.useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      window.location.href = '/oauth2/authorization/keycloak'
+    if (!loading) {
+      if (!isAuthenticated) {
+        window.location.href = '/oauth2/authorization/keycloak'
+      } else {
+        // Forward authenticated users to manager portal
+        window.location.href = '/manager'
+      }
     }
   }, [loading, isAuthenticated])
 
