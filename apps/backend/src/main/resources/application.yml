@@ -79,7 +79,7 @@ spring:
             user-name-attribute: preferred_username
       resourceserver:
         jwt:
-          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost/auth/realms/apu-asc}
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost/auth/realms/apu-asc}
           jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://localhost/auth/realms/apu-asc/protocol/openid-connect/certs}
           token-uri: ${KEYCLOAK_TOKEN_URI:http://localhost/auth/realms/apu-asc/protocol/openid-connect/token}
 
