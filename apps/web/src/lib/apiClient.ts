@@ -83,3 +83,30 @@ export async function bffFetch<T>(
 
   return res.json()
 }
+
+export const customInstance = <T>(
+  config: {
+    url: string
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+    data?: unknown
+    params?: Record<string, unknown>
+    headers?: Record<string, string>
+    signal?: AbortSignal
+  },
+  options?: RequestInit,
+): Promise<T> => {
+  let url = config.url
+  if (config.params) {
+    const query = new URLSearchParams(
+      config.params as Record<string, string>,
+    ).toString()
+    if (query) url += `?${query}`
+  }
+  return bffFetch<T>(url, {
+    method: config.method,
+    body: config.data ? JSON.stringify(config.data) : undefined,
+    headers: config.headers,
+    signal: config.signal,
+    ...options,
+  })
+}
