@@ -17,7 +17,9 @@
       "lightningcss"
     ],
     "overrides": {
-      "esbuild": "0.21.5"
+      "esbuild": "0.21.5",
+      "react": "19.2.0",
+      "react-dom": "19.2.0"
     }
   },
   "packageManager": "pnpm@9.0.0",

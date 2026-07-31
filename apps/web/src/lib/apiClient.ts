@@ -28,11 +28,15 @@ export async function bffFetch<T>(
     url = `http://localhost:8081${endpoint}`
   }
 
-  const res = await fetch(url, {
-    credentials: 'include',
+  const fetchOptions: RequestInit = {
     ...options,
     headers,
-  })
+  }
+  if (typeof window !== 'undefined') {
+    fetchOptions.credentials = 'include'
+  }
+
+  const res = await fetch(url, fetchOptions)
 
   if (res.status === 401) {
     if (typeof window !== 'undefined') {

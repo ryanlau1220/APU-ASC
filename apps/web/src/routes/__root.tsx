@@ -1,5 +1,4 @@
 import { PostHogProvider } from '@posthog/react'
-import * as Sentry from '@sentry/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import {
   createRootRouteWithContext,
@@ -13,27 +12,6 @@ import { queryClient } from '../lib/queryClient'
 import { useEventStream } from '../lib/useEventStream'
 
 import appCss from '../styles.css?url'
-
-if (typeof window !== 'undefined') {
-  Sentry.init({
-    dsn:
-      import.meta.env.VITE_SENTRY_DSN ||
-      'https://examplePublicKey@o0.ingest.sentry.io/0',
-    integrations: [Sentry.browserTracingIntegration()],
-    tracesSampleRate: 1.0,
-  })
-
-  const posthogKey = import.meta.env.VITE_POSTHOG_KEY
-  const posthogHost =
-    import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
-  if (posthogKey) {
-    posthog.init(posthogKey, {
-      api_host: posthogHost,
-      person_profiles: 'identified_only',
-      capture_pageview: true,
-    })
-  }
-}
 
 export interface UserSession {
   authenticated: boolean
@@ -51,11 +29,6 @@ export interface RouterContext {
 
 const THEME_INIT_SCRIPT = `(function(){try{var stored=window.localStorage.getItem('theme');var mode=(stored==='light'||stored==='dark'||stored==='auto')?stored:'auto';var prefersDark=window.matchMedia('(prefers-color-scheme: dark)').matches;var resolved=mode==='auto'?(prefersDark?'dark':'light'):mode;var root=document.documentElement;root.classList.remove('light','dark');root.classList.add(resolved);if(mode==='auto'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',mode)}root.style.colorScheme=resolved;}catch(e){}})();`
 
-/**
- * React context to share the user session state across the app.
- * This is populated by the AuthProvider component which fetches
- * the session on the client side (where browser cookies are available).
- */
 export const UserSessionContext = React.createContext<{
   userSession: UserSession
   loading: boolean
@@ -102,15 +75,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootComponent,
 })
 
-/**
- * Client-side auth provider. Fetches the user session after hydration
- * using the browser's JSESSIONID cookie (sent via `credentials: 'include'`).
- *
- * During SSR the auth check is impossible because the browser's cookies
- * are not available in the server-side fetch context. This component
- * bridges that gap by performing the auth check on the client and
- * providing the result via React context.
- */
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userSession, setUserSession] = React.useState<UserSession>({
     authenticated: false,
@@ -121,9 +85,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     let cancelled = false
 
-    // Use raw fetch instead of bffFetch to avoid triggering the
-    // automatic 401 → Keycloak redirect. The auth provider should
-    // silently check the session status without side effects.
     fetch('/api/v1/auth/me', { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Not authenticated')
@@ -162,6 +123,43 @@ function AppContent({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function ClientPostHogProvider({ children }: { children: React.ReactNode }) {
+  const [isMounted, setIsMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsMounted(true)
+
+    // Safely initialize Sentry on client browser only
+    import('@sentry/react').then((Sentry) => {
+      Sentry.init({
+        dsn:
+          import.meta.env.VITE_SENTRY_DSN ||
+          'https://examplePublicKey@o0.ingest.sentry.io/0',
+        integrations: [Sentry.browserTracingIntegration()],
+        tracesSampleRate: 1.0,
+      })
+    })
+
+    // Safely initialize PostHog on client browser only
+    const posthogKey = import.meta.env.VITE_POSTHOG_KEY
+    const posthogHost =
+      import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
+    if (posthogKey) {
+      posthog.init(posthogKey, {
+        api_host: posthogHost,
+        person_profiles: 'identified_only',
+        capture_pageview: true,
+      })
+    }
+  }, [])
+
+  if (!isMounted) {
+    return <>{children}</>
+  }
+
+  return <PostHogProvider client={posthog}>{children}</PostHogProvider>
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -171,13 +169,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="bg-background text-foreground font-sans antialiased selection:bg-primary/20 min-h-screen flex flex-col">
-        <PostHogProvider client={posthog}>
+        <ClientPostHogProvider>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <AppContent>{children}</AppContent>
             </AuthProvider>
           </QueryClientProvider>
-        </PostHogProvider>
+        </ClientPostHogProvider>
         <Scripts />
       </body>
     </html>
