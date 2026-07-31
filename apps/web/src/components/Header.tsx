@@ -5,7 +5,6 @@ import {
   Car,
   ChevronDown,
   CreditCard,
-  History,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -105,8 +104,9 @@ export default function Header() {
             Dashboard
           </Link>
 
+          {/* Role-based navigation items */}
           <Link
-            to="/services"
+            to="/staff/services"
             activeProps={{
               className: 'text-primary bg-primary/10 border-primary/30',
             }}
@@ -117,7 +117,7 @@ export default function Header() {
           </Link>
 
           <Link
-            to="/vehicles"
+            to="/customer/vehicles"
             activeProps={{
               className: 'text-primary bg-primary/10 border-primary/30',
             }}
@@ -128,7 +128,7 @@ export default function Header() {
           </Link>
 
           <Link
-            to="/appointments"
+            to="/customer/appointments"
             activeProps={{
               className: 'text-primary bg-primary/10 border-primary/30',
             }}
@@ -157,7 +157,7 @@ export default function Header() {
                 className="absolute left-0 mt-2 w-52 rounded-xl bg-card opacity-100 shadow-2xl border border-border p-1.5 space-y-1 z-50 font-sans"
               >
                 <Link
-                  to="/payments"
+                  to="/customer/payments"
                   onClick={() => setIsOpsOpen(false)}
                   className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
@@ -166,7 +166,7 @@ export default function Header() {
                 </Link>
 
                 <Link
-                  to="/feedback"
+                  to="/customer/feedback"
                   onClick={() => setIsOpsOpen(false)}
                   className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
@@ -175,21 +175,12 @@ export default function Header() {
                 </Link>
 
                 <Link
-                  to="/users"
+                  to="/manager/operations"
                   onClick={() => setIsOpsOpen(false)}
                   className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 >
                   <Users className="w-4 h-4 text-primary" />
-                  User Accounts
-                </Link>
-
-                <Link
-                  to="/audit-logs"
-                  onClick={() => setIsOpsOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <History className="w-4 h-4 text-primary" />
-                  Audit Logs
+                  Manager Suite
                 </Link>
               </div>
             )}

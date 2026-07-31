@@ -155,7 +155,7 @@ function DashboardPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              to="/appointments"
+              to="/manager/appointments"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
             >
               <Plus className="w-4 h-4" />
@@ -213,7 +213,7 @@ function DashboardPage() {
               </h2>
             </div>
             <Link
-              to="/appointments"
+              to="/manager/appointments"
               className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-1"
             >
               View All <ArrowUpRight className="w-3.5 h-3.5" />

@@ -10,36 +10,47 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppointmentsRouteImport } from './routes/appointments'
-import { Route as AuditLogsRouteImport } from './routes/audit-logs'
-import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as R403RouteImport } from './routes/403'
+import { Route as CustomerRouteRouteImport } from './routes/customer/route'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as PaymentsRouteImport } from './routes/payments'
+import { Route as ManagerRouteRouteImport } from './routes/manager/route'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RegisterRouteImport } from './routes/register'
-import { Route as ServicesRouteImport } from './routes/services'
-import { Route as UsersRouteImport } from './routes/users'
-import { Route as VehiclesRouteImport } from './routes/vehicles'
+import { Route as StaffRouteRouteImport } from './routes/staff/route'
+import { Route as TechnicianRouteRouteImport } from './routes/technician/route'
+import { Route as CustomerIndexRouteImport } from './routes/customer/index'
+import { Route as CustomerAppointmentsRouteImport } from './routes/customer/appointments'
+import { Route as CustomerFeedbackRouteImport } from './routes/customer/feedback'
+import { Route as CustomerPaymentsRouteImport } from './routes/customer/payments'
+import { Route as CustomerVehiclesRouteImport } from './routes/customer/vehicles'
+import { Route as ManagerIndexRouteImport } from './routes/manager/index'
+import { Route as ManagerAppointmentsRouteImport } from './routes/manager/appointments'
+import { Route as ManagerOperationsRouteImport } from './routes/manager/operations'
+import { Route as ManagerServicesRouteImport } from './routes/manager/services'
+import { Route as ManagerVehiclesRouteImport } from './routes/manager/vehicles'
+import { Route as StaffIndexRouteImport } from './routes/staff/index'
+import { Route as StaffAppointmentsRouteImport } from './routes/staff/appointments'
+import { Route as StaffPaymentsRouteImport } from './routes/staff/payments'
+import { Route as StaffServicesRouteImport } from './routes/staff/services'
+import { Route as StaffUsersRouteImport } from './routes/staff/users'
+import { Route as TechnicianIndexRouteImport } from './routes/technician/index'
+import { Route as TechnicianFeedbackRouteImport } from './routes/technician/feedback'
+import { Route as TechnicianJobsRouteImport } from './routes/technician/jobs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppointmentsRoute = AppointmentsRouteImport.update({
-  id: '/appointments',
-  path: '/appointments',
+const R403Route = R403RouteImport.update({
+  id: '/403',
+  path: '/403',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuditLogsRoute = AuditLogsRouteImport.update({
-  id: '/audit-logs',
-  path: '/audit-logs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeedbackRoute = FeedbackRouteImport.update({
-  id: '/feedback',
-  path: '/feedback',
+const CustomerRouteRoute = CustomerRouteRouteImport.update({
+  id: '/customer',
+  path: '/customer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -52,9 +63,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PaymentsRoute = PaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
+const ManagerRouteRoute = ManagerRouteRouteImport.update({
+  id: '/manager',
+  path: '/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -67,123 +78,294 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ServicesRoute = ServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
+const StaffRouteRoute = StaffRouteRouteImport.update({
+  id: '/staff',
+  path: '/staff',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UsersRoute = UsersRouteImport.update({
-  id: '/users',
-  path: '/users',
+const TechnicianRouteRoute = TechnicianRouteRouteImport.update({
+  id: '/technician',
+  path: '/technician',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VehiclesRoute = VehiclesRouteImport.update({
+const CustomerIndexRoute = CustomerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CustomerRouteRoute,
+} as any)
+const CustomerAppointmentsRoute = CustomerAppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => CustomerRouteRoute,
+} as any)
+const CustomerFeedbackRoute = CustomerFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => CustomerRouteRoute,
+} as any)
+const CustomerPaymentsRoute = CustomerPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => CustomerRouteRoute,
+} as any)
+const CustomerVehiclesRoute = CustomerVehiclesRouteImport.update({
   id: '/vehicles',
   path: '/vehicles',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => CustomerRouteRoute,
+} as any)
+const ManagerIndexRoute = ManagerIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ManagerRouteRoute,
+} as any)
+const ManagerAppointmentsRoute = ManagerAppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => ManagerRouteRoute,
+} as any)
+const ManagerOperationsRoute = ManagerOperationsRouteImport.update({
+  id: '/operations',
+  path: '/operations',
+  getParentRoute: () => ManagerRouteRoute,
+} as any)
+const ManagerServicesRoute = ManagerServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => ManagerRouteRoute,
+} as any)
+const ManagerVehiclesRoute = ManagerVehiclesRouteImport.update({
+  id: '/vehicles',
+  path: '/vehicles',
+  getParentRoute: () => ManagerRouteRoute,
+} as any)
+const StaffIndexRoute = StaffIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
+const StaffAppointmentsRoute = StaffAppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
+const StaffPaymentsRoute = StaffPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
+const StaffServicesRoute = StaffServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
+const StaffUsersRoute = StaffUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
+const TechnicianIndexRoute = TechnicianIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TechnicianRouteRoute,
+} as any)
+const TechnicianFeedbackRoute = TechnicianFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => TechnicianRouteRoute,
+} as any)
+const TechnicianJobsRoute = TechnicianJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => TechnicianRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/appointments': typeof AppointmentsRoute
-  '/audit-logs': typeof AuditLogsRoute
-  '/feedback': typeof FeedbackRoute
+  '/customer': typeof CustomerRouteRouteWithChildren
+  '/manager': typeof ManagerRouteRouteWithChildren
+  '/staff': typeof StaffRouteRouteWithChildren
+  '/technician': typeof TechnicianRouteRouteWithChildren
+  '/403': typeof R403Route
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/payments': typeof PaymentsRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
-  '/services': typeof ServicesRoute
-  '/users': typeof UsersRoute
-  '/vehicles': typeof VehiclesRoute
+  '/customer/appointments': typeof CustomerAppointmentsRoute
+  '/customer/feedback': typeof CustomerFeedbackRoute
+  '/customer/payments': typeof CustomerPaymentsRoute
+  '/customer/vehicles': typeof CustomerVehiclesRoute
+  '/manager/appointments': typeof ManagerAppointmentsRoute
+  '/manager/operations': typeof ManagerOperationsRoute
+  '/manager/services': typeof ManagerServicesRoute
+  '/manager/vehicles': typeof ManagerVehiclesRoute
+  '/staff/appointments': typeof StaffAppointmentsRoute
+  '/staff/payments': typeof StaffPaymentsRoute
+  '/staff/services': typeof StaffServicesRoute
+  '/staff/users': typeof StaffUsersRoute
+  '/technician/feedback': typeof TechnicianFeedbackRoute
+  '/technician/jobs': typeof TechnicianJobsRoute
+  '/customer/': typeof CustomerIndexRoute
+  '/manager/': typeof ManagerIndexRoute
+  '/staff/': typeof StaffIndexRoute
+  '/technician/': typeof TechnicianIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/appointments': typeof AppointmentsRoute
-  '/audit-logs': typeof AuditLogsRoute
-  '/feedback': typeof FeedbackRoute
+  '/403': typeof R403Route
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/payments': typeof PaymentsRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
-  '/services': typeof ServicesRoute
-  '/users': typeof UsersRoute
-  '/vehicles': typeof VehiclesRoute
+  '/customer/appointments': typeof CustomerAppointmentsRoute
+  '/customer/feedback': typeof CustomerFeedbackRoute
+  '/customer/payments': typeof CustomerPaymentsRoute
+  '/customer/vehicles': typeof CustomerVehiclesRoute
+  '/manager/appointments': typeof ManagerAppointmentsRoute
+  '/manager/operations': typeof ManagerOperationsRoute
+  '/manager/services': typeof ManagerServicesRoute
+  '/manager/vehicles': typeof ManagerVehiclesRoute
+  '/staff/appointments': typeof StaffAppointmentsRoute
+  '/staff/payments': typeof StaffPaymentsRoute
+  '/staff/services': typeof StaffServicesRoute
+  '/staff/users': typeof StaffUsersRoute
+  '/technician/feedback': typeof TechnicianFeedbackRoute
+  '/technician/jobs': typeof TechnicianJobsRoute
+  '/customer': typeof CustomerIndexRoute
+  '/manager': typeof ManagerIndexRoute
+  '/staff': typeof StaffIndexRoute
+  '/technician': typeof TechnicianIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/appointments': typeof AppointmentsRoute
-  '/audit-logs': typeof AuditLogsRoute
-  '/feedback': typeof FeedbackRoute
+  '/customer': typeof CustomerRouteRouteWithChildren
+  '/manager': typeof ManagerRouteRouteWithChildren
+  '/staff': typeof StaffRouteRouteWithChildren
+  '/technician': typeof TechnicianRouteRouteWithChildren
+  '/403': typeof R403Route
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/payments': typeof PaymentsRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
-  '/services': typeof ServicesRoute
-  '/users': typeof UsersRoute
-  '/vehicles': typeof VehiclesRoute
+  '/customer/appointments': typeof CustomerAppointmentsRoute
+  '/customer/feedback': typeof CustomerFeedbackRoute
+  '/customer/payments': typeof CustomerPaymentsRoute
+  '/customer/vehicles': typeof CustomerVehiclesRoute
+  '/manager/appointments': typeof ManagerAppointmentsRoute
+  '/manager/operations': typeof ManagerOperationsRoute
+  '/manager/services': typeof ManagerServicesRoute
+  '/manager/vehicles': typeof ManagerVehiclesRoute
+  '/staff/appointments': typeof StaffAppointmentsRoute
+  '/staff/payments': typeof StaffPaymentsRoute
+  '/staff/services': typeof StaffServicesRoute
+  '/staff/users': typeof StaffUsersRoute
+  '/technician/feedback': typeof TechnicianFeedbackRoute
+  '/technician/jobs': typeof TechnicianJobsRoute
+  '/customer/': typeof CustomerIndexRoute
+  '/manager/': typeof ManagerIndexRoute
+  '/staff/': typeof StaffIndexRoute
+  '/technician/': typeof TechnicianIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/appointments'
-    | '/audit-logs'
-    | '/feedback'
+    | '/customer'
+    | '/manager'
+    | '/staff'
+    | '/technician'
+    | '/403'
     | '/forgot-password'
     | '/login'
-    | '/payments'
     | '/profile'
     | '/register'
-    | '/services'
-    | '/users'
-    | '/vehicles'
+    | '/customer/appointments'
+    | '/customer/feedback'
+    | '/customer/payments'
+    | '/customer/vehicles'
+    | '/manager/appointments'
+    | '/manager/operations'
+    | '/manager/services'
+    | '/manager/vehicles'
+    | '/staff/appointments'
+    | '/staff/payments'
+    | '/staff/services'
+    | '/staff/users'
+    | '/technician/feedback'
+    | '/technician/jobs'
+    | '/customer/'
+    | '/manager/'
+    | '/staff/'
+    | '/technician/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/appointments'
-    | '/audit-logs'
-    | '/feedback'
+    | '/403'
     | '/forgot-password'
     | '/login'
-    | '/payments'
     | '/profile'
     | '/register'
-    | '/services'
-    | '/users'
-    | '/vehicles'
+    | '/customer/appointments'
+    | '/customer/feedback'
+    | '/customer/payments'
+    | '/customer/vehicles'
+    | '/manager/appointments'
+    | '/manager/operations'
+    | '/manager/services'
+    | '/manager/vehicles'
+    | '/staff/appointments'
+    | '/staff/payments'
+    | '/staff/services'
+    | '/staff/users'
+    | '/technician/feedback'
+    | '/technician/jobs'
+    | '/customer'
+    | '/manager'
+    | '/staff'
+    | '/technician'
   id:
     | '__root__'
     | '/'
-    | '/appointments'
-    | '/audit-logs'
-    | '/feedback'
+    | '/customer'
+    | '/manager'
+    | '/staff'
+    | '/technician'
+    | '/403'
     | '/forgot-password'
     | '/login'
-    | '/payments'
     | '/profile'
     | '/register'
-    | '/services'
-    | '/users'
-    | '/vehicles'
+    | '/customer/appointments'
+    | '/customer/feedback'
+    | '/customer/payments'
+    | '/customer/vehicles'
+    | '/manager/appointments'
+    | '/manager/operations'
+    | '/manager/services'
+    | '/manager/vehicles'
+    | '/staff/appointments'
+    | '/staff/payments'
+    | '/staff/services'
+    | '/staff/users'
+    | '/technician/feedback'
+    | '/technician/jobs'
+    | '/customer/'
+    | '/manager/'
+    | '/staff/'
+    | '/technician/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppointmentsRoute: typeof AppointmentsRoute
-  AuditLogsRoute: typeof AuditLogsRoute
-  FeedbackRoute: typeof FeedbackRoute
+  CustomerRouteRoute: typeof CustomerRouteRouteWithChildren
+  ManagerRouteRoute: typeof ManagerRouteRouteWithChildren
+  StaffRouteRoute: typeof StaffRouteRouteWithChildren
+  TechnicianRouteRoute: typeof TechnicianRouteRouteWithChildren
+  R403Route: typeof R403Route
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
-  PaymentsRoute: typeof PaymentsRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
-  ServicesRoute: typeof ServicesRoute
-  UsersRoute: typeof UsersRoute
-  VehiclesRoute: typeof VehiclesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -195,25 +377,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/appointments': {
-      id: '/appointments'
-      path: '/appointments'
-      fullPath: '/appointments'
-      preLoaderRoute: typeof AppointmentsRouteImport
+    '/403': {
+      id: '/403'
+      path: '/403'
+      fullPath: '/403'
+      preLoaderRoute: typeof R403RouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/audit-logs': {
-      id: '/audit-logs'
-      path: '/audit-logs'
-      fullPath: '/audit-logs'
-      preLoaderRoute: typeof AuditLogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/feedback': {
-      id: '/feedback'
-      path: '/feedback'
-      fullPath: '/feedback'
-      preLoaderRoute: typeof FeedbackRouteImport
+    '/customer': {
+      id: '/customer'
+      path: '/customer'
+      fullPath: '/customer'
+      preLoaderRoute: typeof CustomerRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -230,11 +405,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/payments': {
-      id: '/payments'
-      path: '/payments'
-      fullPath: '/payments'
-      preLoaderRoute: typeof PaymentsRouteImport
+    '/manager': {
+      id: '/manager'
+      path: '/manager'
+      fullPath: '/manager'
+      preLoaderRoute: typeof ManagerRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -251,43 +426,236 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/services': {
-      id: '/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof ServicesRouteImport
+    '/staff': {
+      id: '/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/users': {
-      id: '/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof UsersRouteImport
+    '/technician': {
+      id: '/technician'
+      path: '/technician'
+      fullPath: '/technician'
+      preLoaderRoute: typeof TechnicianRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vehicles': {
-      id: '/vehicles'
+    '/customer/': {
+      id: '/customer/'
+      path: '/'
+      fullPath: '/customer/'
+      preLoaderRoute: typeof CustomerIndexRouteImport
+      parentRoute: typeof CustomerRouteRoute
+    }
+    '/customer/appointments': {
+      id: '/customer/appointments'
+      path: '/appointments'
+      fullPath: '/customer/appointments'
+      preLoaderRoute: typeof CustomerAppointmentsRouteImport
+      parentRoute: typeof CustomerRouteRoute
+    }
+    '/customer/feedback': {
+      id: '/customer/feedback'
+      path: '/feedback'
+      fullPath: '/customer/feedback'
+      preLoaderRoute: typeof CustomerFeedbackRouteImport
+      parentRoute: typeof CustomerRouteRoute
+    }
+    '/customer/payments': {
+      id: '/customer/payments'
+      path: '/payments'
+      fullPath: '/customer/payments'
+      preLoaderRoute: typeof CustomerPaymentsRouteImport
+      parentRoute: typeof CustomerRouteRoute
+    }
+    '/customer/vehicles': {
+      id: '/customer/vehicles'
       path: '/vehicles'
-      fullPath: '/vehicles'
-      preLoaderRoute: typeof VehiclesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/customer/vehicles'
+      preLoaderRoute: typeof CustomerVehiclesRouteImport
+      parentRoute: typeof CustomerRouteRoute
+    }
+    '/manager/': {
+      id: '/manager/'
+      path: '/'
+      fullPath: '/manager/'
+      preLoaderRoute: typeof ManagerIndexRouteImport
+      parentRoute: typeof ManagerRouteRoute
+    }
+    '/manager/appointments': {
+      id: '/manager/appointments'
+      path: '/appointments'
+      fullPath: '/manager/appointments'
+      preLoaderRoute: typeof ManagerAppointmentsRouteImport
+      parentRoute: typeof ManagerRouteRoute
+    }
+    '/manager/operations': {
+      id: '/manager/operations'
+      path: '/operations'
+      fullPath: '/manager/operations'
+      preLoaderRoute: typeof ManagerOperationsRouteImport
+      parentRoute: typeof ManagerRouteRoute
+    }
+    '/manager/services': {
+      id: '/manager/services'
+      path: '/services'
+      fullPath: '/manager/services'
+      preLoaderRoute: typeof ManagerServicesRouteImport
+      parentRoute: typeof ManagerRouteRoute
+    }
+    '/manager/vehicles': {
+      id: '/manager/vehicles'
+      path: '/vehicles'
+      fullPath: '/manager/vehicles'
+      preLoaderRoute: typeof ManagerVehiclesRouteImport
+      parentRoute: typeof ManagerRouteRoute
+    }
+    '/staff/': {
+      id: '/staff/'
+      path: '/'
+      fullPath: '/staff/'
+      preLoaderRoute: typeof StaffIndexRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
+    '/staff/appointments': {
+      id: '/staff/appointments'
+      path: '/appointments'
+      fullPath: '/staff/appointments'
+      preLoaderRoute: typeof StaffAppointmentsRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
+    '/staff/payments': {
+      id: '/staff/payments'
+      path: '/payments'
+      fullPath: '/staff/payments'
+      preLoaderRoute: typeof StaffPaymentsRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
+    '/staff/services': {
+      id: '/staff/services'
+      path: '/services'
+      fullPath: '/staff/services'
+      preLoaderRoute: typeof StaffServicesRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
+    '/staff/users': {
+      id: '/staff/users'
+      path: '/users'
+      fullPath: '/staff/users'
+      preLoaderRoute: typeof StaffUsersRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
+    '/technician/': {
+      id: '/technician/'
+      path: '/'
+      fullPath: '/technician/'
+      preLoaderRoute: typeof TechnicianIndexRouteImport
+      parentRoute: typeof TechnicianRouteRoute
+    }
+    '/technician/feedback': {
+      id: '/technician/feedback'
+      path: '/feedback'
+      fullPath: '/technician/feedback'
+      preLoaderRoute: typeof TechnicianFeedbackRouteImport
+      parentRoute: typeof TechnicianRouteRoute
+    }
+    '/technician/jobs': {
+      id: '/technician/jobs'
+      path: '/jobs'
+      fullPath: '/technician/jobs'
+      preLoaderRoute: typeof TechnicianJobsRouteImport
+      parentRoute: typeof TechnicianRouteRoute
     }
   }
 }
 
+interface CustomerRouteRouteChildren {
+  CustomerAppointmentsRoute: typeof CustomerAppointmentsRoute
+  CustomerFeedbackRoute: typeof CustomerFeedbackRoute
+  CustomerPaymentsRoute: typeof CustomerPaymentsRoute
+  CustomerVehiclesRoute: typeof CustomerVehiclesRoute
+  CustomerIndexRoute: typeof CustomerIndexRoute
+}
+
+const CustomerRouteRouteChildren: CustomerRouteRouteChildren = {
+  CustomerAppointmentsRoute: CustomerAppointmentsRoute,
+  CustomerFeedbackRoute: CustomerFeedbackRoute,
+  CustomerPaymentsRoute: CustomerPaymentsRoute,
+  CustomerVehiclesRoute: CustomerVehiclesRoute,
+  CustomerIndexRoute: CustomerIndexRoute,
+}
+
+const CustomerRouteRouteWithChildren = CustomerRouteRoute._addFileChildren(
+  CustomerRouteRouteChildren,
+)
+
+interface ManagerRouteRouteChildren {
+  ManagerAppointmentsRoute: typeof ManagerAppointmentsRoute
+  ManagerOperationsRoute: typeof ManagerOperationsRoute
+  ManagerServicesRoute: typeof ManagerServicesRoute
+  ManagerVehiclesRoute: typeof ManagerVehiclesRoute
+  ManagerIndexRoute: typeof ManagerIndexRoute
+}
+
+const ManagerRouteRouteChildren: ManagerRouteRouteChildren = {
+  ManagerAppointmentsRoute: ManagerAppointmentsRoute,
+  ManagerOperationsRoute: ManagerOperationsRoute,
+  ManagerServicesRoute: ManagerServicesRoute,
+  ManagerVehiclesRoute: ManagerVehiclesRoute,
+  ManagerIndexRoute: ManagerIndexRoute,
+}
+
+const ManagerRouteRouteWithChildren = ManagerRouteRoute._addFileChildren(
+  ManagerRouteRouteChildren,
+)
+
+interface StaffRouteRouteChildren {
+  StaffAppointmentsRoute: typeof StaffAppointmentsRoute
+  StaffPaymentsRoute: typeof StaffPaymentsRoute
+  StaffServicesRoute: typeof StaffServicesRoute
+  StaffUsersRoute: typeof StaffUsersRoute
+  StaffIndexRoute: typeof StaffIndexRoute
+}
+
+const StaffRouteRouteChildren: StaffRouteRouteChildren = {
+  StaffAppointmentsRoute: StaffAppointmentsRoute,
+  StaffPaymentsRoute: StaffPaymentsRoute,
+  StaffServicesRoute: StaffServicesRoute,
+  StaffUsersRoute: StaffUsersRoute,
+  StaffIndexRoute: StaffIndexRoute,
+}
+
+const StaffRouteRouteWithChildren = StaffRouteRoute._addFileChildren(
+  StaffRouteRouteChildren,
+)
+
+interface TechnicianRouteRouteChildren {
+  TechnicianFeedbackRoute: typeof TechnicianFeedbackRoute
+  TechnicianJobsRoute: typeof TechnicianJobsRoute
+  TechnicianIndexRoute: typeof TechnicianIndexRoute
+}
+
+const TechnicianRouteRouteChildren: TechnicianRouteRouteChildren = {
+  TechnicianFeedbackRoute: TechnicianFeedbackRoute,
+  TechnicianJobsRoute: TechnicianJobsRoute,
+  TechnicianIndexRoute: TechnicianIndexRoute,
+}
+
+const TechnicianRouteRouteWithChildren = TechnicianRouteRoute._addFileChildren(
+  TechnicianRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppointmentsRoute: AppointmentsRoute,
-  AuditLogsRoute: AuditLogsRoute,
-  FeedbackRoute: FeedbackRoute,
+  CustomerRouteRoute: CustomerRouteRouteWithChildren,
+  ManagerRouteRoute: ManagerRouteRouteWithChildren,
+  StaffRouteRoute: StaffRouteRouteWithChildren,
+  TechnicianRouteRoute: TechnicianRouteRouteWithChildren,
+  R403Route: R403Route,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
-  PaymentsRoute: PaymentsRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
-  ServicesRoute: ServicesRoute,
-  UsersRoute: UsersRoute,
-  VehiclesRoute: VehiclesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
