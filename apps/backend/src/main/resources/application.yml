@@ -83,13 +83,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, prometheus
+  tracing:
+    sampling:
+      probability: 1.0
   health:
     mail:
       enabled: false
   endpoint:
     health:
       show-details: always
+
+sentry:
+  dsn: ${SENTRY_DSN:https://examplePublicKey@o0.ingest.sentry.io/0}
+  traces-sample-rate: 1.0
+  exception-resolver-order: -2147483647
 
 springdoc:
   api-docs:
@@ -100,7 +108,7 @@ springdoc:
 
 logging:
   pattern:
-    console: "[%d{HH:mm:ss} UTC] %clr(%-5level): %msg%n"
+    console: "[%d{HH:mm:ss} UTC] [%X{traceId:-},%X{spanId:-}] %clr(%-5level): %msg%n"
   level:
     root: INFO
     com.apu.asc: INFO
