@@ -20,13 +20,25 @@ class AuditLogEventListener {
   @Async
   @EventListener
   public void handleAuditEvent(AuditEvent event) {
-    log.info(
-        "[AUDIT EVENT] User: {}, Action: {}, Entity: {}, ID: {}",
-        event.userId(),
-        event.actionType(),
-        event.entityName(),
-        event.entityId());
-    auditLogApi.logAction(
-        event.userId(), event.actionType(), event.entityName(), event.entityId(), event.details());
+    try {
+      log.info(
+          "[AUDIT EVENT] User: {}, Action: {}, Entity: {}, ID: {}",
+          event.userId(),
+          event.actionType(),
+          event.entityName(),
+          event.entityId());
+      auditLogApi.logAction(
+          event.userId(),
+          event.actionType(),
+          event.entityName(),
+          event.entityId(),
+          event.details());
+    } catch (Exception e) {
+      log.warn(
+          "Could not persist audit log for action: {} entity: {} ({})",
+          event.actionType(),
+          event.entityName(),
+          e.getMessage());
+    }
   }
 }

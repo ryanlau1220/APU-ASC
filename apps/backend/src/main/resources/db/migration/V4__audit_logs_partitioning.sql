@@ -1,11 +1,12 @@
 -- Migration: V4__audit_logs_partitioning.sql
 -- Description: Convert audit_logs table to Range Partitioning by month with indexing
 
--- 1. Drop existing unpartitioned table if empty or backup data
+-- 1. Drop existing unpartitioned table and foreign keys if any
+ALTER TABLE IF EXISTS audit_logs DROP CONSTRAINT IF EXISTS audit_logs_user_id_fkey;
 CREATE TABLE IF NOT EXISTS audit_logs_backup AS SELECT * FROM audit_logs;
 DROP TABLE IF EXISTS audit_logs CASCADE;
 
--- 2. Create partitioned parent table
+-- 2. Create partitioned parent table without strict FK locks to allow system and post-deletion compliance logs
 CREATE TABLE audit_logs (
     id VARCHAR(50) NOT NULL,
     user_id VARCHAR(50),
