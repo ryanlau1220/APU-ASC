@@ -2,15 +2,22 @@ package com.apu.asc.payment.internal;
 
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.user.UserApi;
+import com.apu.asc.user.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,12 +30,31 @@ import org.springframework.web.bind.annotation.RestController;
 class PaymentController {
 
   private final PaymentApi paymentApi;
+  private final UserApi userApi;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
   @Operation(summary = "Get all payments")
   public ResponseEntity<List<PaymentDto>> getAllPayments() {
     return ResponseEntity.ok(paymentApi.findAllPayments());
+  }
+
+  @GetMapping("/{id}")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @Operation(summary = "Get payment/invoice by ID")
+  public ResponseEntity<PaymentDto> getPaymentById(@PathVariable final String id) {
+    return ResponseEntity.ok(paymentApi.getPaymentById(id));
+  }
+
+  @GetMapping("/my")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @Operation(summary = "Get my payments/invoices")
+  public ResponseEntity<List<PaymentDto>> getMyPayments(Authentication authentication) {
+    String currentUserId = resolveUserId(authentication);
+    if (currentUserId == null) {
+      return ResponseEntity.ok(List.of());
+    }
+    return ResponseEntity.ok(paymentApi.getByCustomer(currentUserId));
   }
 
   @GetMapping("/appointment/{appointmentId}")
@@ -42,8 +68,17 @@ class PaymentController {
   @PostMapping
   @PreAuthorize("hasRole('STAFF')")
   @Operation(summary = "Create invoice for appointment")
-  public ResponseEntity<PaymentDto> createInvoice(@RequestBody final PaymentDto paymentDto) {
-    return ResponseEntity.ok(paymentApi.createInvoice(paymentDto));
+  public ResponseEntity<PaymentDto> createInvoice(@Valid @RequestBody final PaymentDto paymentDto) {
+    PaymentDto created = paymentApi.createInvoice(paymentDto);
+    return ResponseEntity.created(URI.create("/api/v1/payments/" + created.id())).body(created);
+  }
+
+  @PutMapping("/{id}")
+  @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
+  @Operation(summary = "Update payment/invoice details")
+  public ResponseEntity<PaymentDto> updatePayment(
+      @PathVariable final String id, @Valid @RequestBody final PaymentDto paymentDto) {
+    return ResponseEntity.ok(paymentApi.updatePayment(id, paymentDto));
   }
 
   @PostMapping("/{id}/pay")
@@ -52,5 +87,26 @@ class PaymentController {
   public ResponseEntity<PaymentDto> processPayment(
       @PathVariable final String id, @RequestParam final String method) {
     return ResponseEntity.ok(paymentApi.processPayment(id, method));
+  }
+
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('MANAGER')")
+  @Operation(summary = "Delete invoice/payment record")
+  public ResponseEntity<Void> deletePayment(@PathVariable final String id) {
+    paymentApi.deletePayment(id);
+    return ResponseEntity.noContent().build();
+  }
+
+  private String resolveUserId(Authentication authentication) {
+    if (authentication == null || !authentication.isAuthenticated()) {
+      return null;
+    }
+    String name = authentication.getName();
+    return userApi
+        .findByUsername(name)
+        .or(() -> userApi.findByEmail(name))
+        .or(() -> userApi.findByKeycloakId(name))
+        .map(UserDto::id)
+        .orElse(name);
   }
 }
