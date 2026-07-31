@@ -1,6 +1,7 @@
 package com.apu.asc.config;
 
 import com.apu.asc.user.CustomOidcUserService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +52,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @Slf4j
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class SecurityConfig {
 
   private final CustomOidcUserService customOidcUserService;

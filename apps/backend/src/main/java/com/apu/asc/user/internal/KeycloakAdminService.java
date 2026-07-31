@@ -54,8 +54,11 @@ public class KeycloakAdminService {
             entity,
             new ParameterizedTypeReference<Map<String, Object>>() {});
 
-    if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-      return (String) response.getBody().get("access_token");
+    Map<String, Object> responseBody = response.getBody();
+    if (response.getStatusCode().is2xxSuccessful()
+        && responseBody != null
+        && responseBody.containsKey("access_token")) {
+      return (String) responseBody.get("access_token");
     }
     throw new IllegalStateException("Failed to obtain Keycloak Admin Access Token");
   }
@@ -76,10 +79,12 @@ public class KeycloakAdminService {
               entity,
               new ParameterizedTypeReference<List<Map<String, Object>>>() {});
 
+      List<Map<String, Object>> users = response.getBody();
       if (response.getStatusCode().is2xxSuccessful()
-          && response.getBody() != null
-          && !response.getBody().isEmpty()) {
-        return (String) response.getBody().get(0).get("id");
+          && users != null
+          && !users.isEmpty()
+          && users.get(0) != null) {
+        return (String) users.get(0).get("id");
       }
     } catch (Exception e) {
       log.warn("Failed to find Keycloak user ID by email {}: {}", email, e.getMessage());

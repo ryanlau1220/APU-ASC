@@ -1,5 +1,6 @@
 package com.apu.asc.user.internal;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -19,6 +20,7 @@ import org.thymeleaf.context.Context;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class EmailService {
 
   private final JavaMailSender mailSender;

@@ -1,6 +1,8 @@
 package com.apu.asc.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class CustomOidcUserService extends OidcUserService {
 
   private final UserApi userApi;
@@ -59,7 +62,8 @@ public class CustomOidcUserService extends OidcUserService {
         String tokenVal = userRequest.getAccessToken().getTokenValue();
         String[] parts = tokenVal.split("\\.");
         if (parts.length >= 2) {
-          String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
+          String payloadJson =
+              new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
           Map<String, Object> tokenClaims = objectMapper.readValue(payloadJson, Map.class);
           if (tokenClaims.get("realm_access") instanceof Map<?, ?> map) {
             realmAccess = (Map<String, Object>) map;
