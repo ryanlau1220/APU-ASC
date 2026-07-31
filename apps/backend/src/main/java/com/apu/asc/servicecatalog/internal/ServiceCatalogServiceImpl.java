@@ -1,5 +1,6 @@
 package com.apu.asc.servicecatalog.internal;
 
+import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.servicecatalog.CategoryDto;
 import com.apu.asc.servicecatalog.ServiceCatalogApi;
@@ -7,6 +8,7 @@ import com.apu.asc.servicecatalog.ServiceDto;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   private final CategoryRepository categoryRepository;
   private final ServiceRepository serviceRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -45,7 +48,15 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
             .name(categoryDto.name())
             .description(categoryDto.description())
             .build();
-    return toDto(categoryRepository.save(entity));
+    CategoryDto created = toDto(categoryRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            null,
+            "CATEGORY_CREATED",
+            "CATEGORY",
+            created.id(),
+            "Created catalog category: " + created.name()));
+    return created;
   }
 
   @Override
@@ -59,7 +70,15 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
     if (categoryDto.name() != null) entity.setName(categoryDto.name());
     if (categoryDto.description() != null) entity.setDescription(categoryDto.description());
 
-    return toDto(categoryRepository.save(entity));
+    CategoryDto updated = toDto(categoryRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            null,
+            "CATEGORY_UPDATED",
+            "CATEGORY",
+            updated.id(),
+            "Updated catalog category: " + updated.name()));
+    return updated;
   }
 
   @Override
@@ -69,6 +88,8 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
       throw new ResourceNotFoundException("Category", id);
     }
     categoryRepository.deleteById(id);
+    eventPublisher.publishEvent(
+        new AuditEvent("SYSTEM", "CATEGORY_DELETED", "CATEGORY", id, "Deleted catalog category"));
   }
 
   @Override
@@ -104,7 +125,15 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
             .basePrice(serviceDto.basePrice())
             .status(serviceDto.status() != null ? serviceDto.status() : "ACTIVE")
             .build();
-    return toDto(serviceRepository.save(entity));
+    ServiceDto created = toDto(serviceRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            null,
+            "SERVICE_CREATED",
+            "SERVICE",
+            created.id(),
+            "Created service offering: " + created.name() + " (" + created.basePrice() + ")"));
+    return created;
   }
 
   @Override
@@ -123,7 +152,15 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
     if (serviceDto.basePrice() != null) entity.setBasePrice(serviceDto.basePrice());
     if (serviceDto.status() != null) entity.setStatus(serviceDto.status());
 
-    return toDto(serviceRepository.save(entity));
+    ServiceDto updated = toDto(serviceRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            null,
+            "SERVICE_UPDATED",
+            "SERVICE",
+            updated.id(),
+            "Updated service details for " + updated.name()));
+    return updated;
   }
 
   @Override
@@ -135,6 +172,13 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
             .orElseThrow(() -> new ResourceNotFoundException("Service", id));
     entity.setStatus("INACTIVE");
     serviceRepository.save(entity);
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            null,
+            "SERVICE_DEACTIVATED",
+            "SERVICE",
+            id,
+            "Deactivated service offering " + entity.getName()));
   }
 
   private CategoryDto toDto(CategoryEntity entity) {

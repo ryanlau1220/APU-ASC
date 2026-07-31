@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceCatalogServiceImplTest {
@@ -23,11 +24,14 @@ class ServiceCatalogServiceImplTest {
 
   @Mock private ServiceRepository serviceRepository;
 
+  @Mock private ApplicationEventPublisher eventPublisher;
+
   private ServiceCatalogServiceImpl serviceCatalogService;
 
   @BeforeEach
   void setUp() {
-    serviceCatalogService = new ServiceCatalogServiceImpl(categoryRepository, serviceRepository);
+    serviceCatalogService =
+        new ServiceCatalogServiceImpl(categoryRepository, serviceRepository, eventPublisher);
   }
 
   @Test
