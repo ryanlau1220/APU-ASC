@@ -1,3 +1,4 @@
+import { PostHogProvider } from '@posthog/react'
 import * as Sentry from '@sentry/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import {
@@ -6,6 +7,7 @@ import {
   Outlet,
   Scripts,
 } from '@tanstack/react-router'
+import posthog from 'posthog-js'
 import * as React from 'react'
 import { queryClient } from '../lib/queryClient'
 import { useEventStream } from '../lib/useEventStream'
@@ -20,6 +22,17 @@ if (typeof window !== 'undefined') {
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 1.0,
   })
+
+  const posthogKey = import.meta.env.VITE_POSTHOG_KEY
+  const posthogHost =
+    import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
+  if (posthogKey) {
+    posthog.init(posthogKey, {
+      api_host: posthogHost,
+      person_profiles: 'identified_only',
+      capture_pageview: true,
+    })
+  }
 }
 
 export interface UserSession {
@@ -158,11 +171,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="bg-background text-foreground font-sans antialiased selection:bg-primary/20 min-h-screen flex flex-col">
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <AppContent>{children}</AppContent>
-          </AuthProvider>
-        </QueryClientProvider>
+        <PostHogProvider client={posthog}>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <AppContent>{children}</AppContent>
+            </AuthProvider>
+          </QueryClientProvider>
+        </PostHogProvider>
         <Scripts />
       </body>
     </html>
