@@ -26,6 +26,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     log.debug("[SSE/NETWORK] Client connection closed: {}", ex.getMessage());
   }
 
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex) {
+    ProblemDetail problemDetail =
+        ProblemDetail.forStatusAndDetail(
+            org.springframework.http.HttpStatus.NOT_FOUND, ex.getMessage());
+    problemDetail.setType(URI.create("https://apu-asc.com/errors/resource-not-found"));
+    problemDetail.setTitle("Resource Not Found");
+    return problemDetail;
+  }
+
   @Override
   protected ResponseEntity<Object> handleAsyncRequestTimeoutException(
       AsyncRequestTimeoutException ex,
