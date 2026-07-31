@@ -109,7 +109,7 @@ springdoc:
 
 logging:
   pattern:
-    console: "[%d{HH:mm:ss} UTC] [%X{traceId:-},%X{spanId:-}] %clr(%-5level): %msg%n"
+    console: "[%d{HH:mm:ss} UTC] [%X{traceId:-sys}] %clr(%-5level): %msg%n"
   level:
     root: INFO
     com.apu.asc: INFO
