@@ -59,4 +59,11 @@ class AuditLogController {
     }
     return ResponseEntity.ok(auditLogApi.findByUserId(authentication.getName()));
   }
+
+  @GetMapping("/sentry-test")
+  @Operation(summary = "Test Sentry backend exception capture")
+  public ResponseEntity<String> testSentry() {
+    io.sentry.Sentry.captureException(new RuntimeException("APU-ASC Sentry Test Exception"));
+    return ResponseEntity.ok("Sentry test exception captured successfully");
+  }
 }

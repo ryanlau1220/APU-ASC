@@ -105,6 +105,7 @@ public class SecurityConfig {
                         "/actuator/**",
                         "/api/v1/auth/**",
                         "/api/v1/events/stream",
+                        "/api/v1/audit-logs/sentry-test",
                         "/login/**",
                         "/oauth2/**")
                     .permitAll()
