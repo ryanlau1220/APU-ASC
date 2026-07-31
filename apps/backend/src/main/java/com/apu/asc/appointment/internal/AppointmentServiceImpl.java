@@ -2,6 +2,7 @@ package com.apu.asc.appointment.internal;
 
 import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.appointment.AppointmentDto;
+import com.apu.asc.common.exception.ResourceNotFoundException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,15 @@ class AppointmentServiceImpl implements AppointmentApi {
   @Transactional(readOnly = true)
   public List<AppointmentDto> findAllAppointments() {
     return appointmentRepository.findAll().stream().map(this::toDto).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public AppointmentDto getAppointmentById(final String id) {
+    return appointmentRepository
+        .findById(id)
+        .map(this::toDto)
+        .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
   }
 
   @Override
@@ -54,6 +64,47 @@ class AppointmentServiceImpl implements AppointmentApi {
             .notes(appointmentDto.notes())
             .build();
     return toDto(appointmentRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public AppointmentDto updateAppointment(final String id, final AppointmentDto appointmentDto) {
+    AppointmentEntity entity =
+        appointmentRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
+
+    if (appointmentDto.vehicleId() != null) entity.setVehicleId(appointmentDto.vehicleId());
+    if (appointmentDto.serviceId() != null) entity.setServiceId(appointmentDto.serviceId());
+    if (appointmentDto.technicianId() != null)
+      entity.setTechnicianId(appointmentDto.technicianId());
+    if (appointmentDto.appointmentDate() != null)
+      entity.setAppointmentDate(appointmentDto.appointmentDate());
+    if (appointmentDto.timeSlot() != null) entity.setTimeSlot(appointmentDto.timeSlot());
+    if (appointmentDto.status() != null) entity.setStatus(appointmentDto.status());
+    if (appointmentDto.notes() != null) entity.setNotes(appointmentDto.notes());
+
+    return toDto(appointmentRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public AppointmentDto updateStatus(final String id, final String status) {
+    AppointmentEntity entity =
+        appointmentRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
+    entity.setStatus(status);
+    return toDto(appointmentRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public void deleteAppointment(final String id) {
+    if (!appointmentRepository.existsById(id)) {
+      throw new ResourceNotFoundException("Appointment", id);
+    }
+    appointmentRepository.deleteById(id);
   }
 
   private AppointmentDto toDto(AppointmentEntity entity) {
