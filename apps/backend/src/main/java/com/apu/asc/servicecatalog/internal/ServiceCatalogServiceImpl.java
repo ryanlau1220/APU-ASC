@@ -1,5 +1,6 @@
 package com.apu.asc.servicecatalog.internal;
 
+import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.servicecatalog.CategoryDto;
 import com.apu.asc.servicecatalog.ServiceCatalogApi;
 import com.apu.asc.servicecatalog.ServiceDto;
@@ -23,6 +24,15 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public CategoryDto getCategoryById(final String id) {
+    return categoryRepository
+        .findById(id)
+        .map(this::toDto)
+        .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+  }
+
+  @Override
   @Transactional
   public CategoryDto createCategory(final CategoryDto categoryDto) {
     String id =
@@ -39,6 +49,29 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
   }
 
   @Override
+  @Transactional
+  public CategoryDto updateCategory(final String id, final CategoryDto categoryDto) {
+    CategoryEntity entity =
+        categoryRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+
+    if (categoryDto.name() != null) entity.setName(categoryDto.name());
+    if (categoryDto.description() != null) entity.setDescription(categoryDto.description());
+
+    return toDto(categoryRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public void deleteCategory(final String id) {
+    if (!categoryRepository.existsById(id)) {
+      throw new ResourceNotFoundException("Category", id);
+    }
+    categoryRepository.deleteById(id);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public List<ServiceDto> findAllServices() {
     return serviceRepository.findAll().stream().map(this::toDto).toList();
@@ -50,7 +83,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
     return serviceRepository
         .findById(id)
         .map(this::toDto)
-        .orElseThrow(() -> new RuntimeException("Service not found with ID: " + id));
+        .orElseThrow(() -> new ResourceNotFoundException("Service", id));
   }
 
   @Override
@@ -72,6 +105,36 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
             .status(serviceDto.status() != null ? serviceDto.status() : "ACTIVE")
             .build();
     return toDto(serviceRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public ServiceDto updateService(final String id, final ServiceDto serviceDto) {
+    ServiceEntity entity =
+        serviceRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Service", id));
+
+    if (serviceDto.categoryId() != null) entity.setCategoryId(serviceDto.categoryId());
+    if (serviceDto.name() != null) entity.setName(serviceDto.name());
+    if (serviceDto.description() != null) entity.setDescription(serviceDto.description());
+    if (serviceDto.durationMinutes() != null)
+      entity.setDurationMinutes(serviceDto.durationMinutes());
+    if (serviceDto.basePrice() != null) entity.setBasePrice(serviceDto.basePrice());
+    if (serviceDto.status() != null) entity.setStatus(serviceDto.status());
+
+    return toDto(serviceRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
+  public void deleteService(final String id) {
+    ServiceEntity entity =
+        serviceRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Service", id));
+    entity.setStatus("INACTIVE");
+    serviceRepository.save(entity);
   }
 
   private CategoryDto toDto(CategoryEntity entity) {
