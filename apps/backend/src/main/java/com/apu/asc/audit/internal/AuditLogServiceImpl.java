@@ -2,6 +2,7 @@ package com.apu.asc.audit.internal;
 
 import com.apu.asc.audit.AuditLogApi;
 import com.apu.asc.audit.AuditLogDto;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +22,43 @@ class AuditLogServiceImpl implements AuditLogApi {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public List<AuditLogDto> findByUserId(final String userId) {
+    return auditLogRepository.findByUserId(userId).stream().map(this::toDto).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<AuditLogDto> findByEntityName(final String entityName) {
+    return auditLogRepository.findByEntityName(entityName).stream().map(this::toDto).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<AuditLogDto> findByActionType(final String actionType) {
+    return auditLogRepository.findByActionType(actionType).stream().map(this::toDto).toList();
+  }
+
+  @Override
   @Transactional
   public AuditLogDto logAction(
-      final String userId, final String actionType, final String entityName, final String details) {
+      final String userId,
+      final String actionType,
+      final String entityName,
+      final String entityId,
+      final String details) {
+    String logId = "AUD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String formattedDetails =
+        entityId != null ? "[Entity ID: " + entityId + "] " + details : details;
+
     AuditLogEntity log =
         AuditLogEntity.builder()
-            .id("AUD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+            .id(logId)
             .userId(userId)
             .actionType(actionType)
             .entityName(entityName)
-            .details(details)
+            .details(formattedDetails)
+            .createdAt(Instant.now())
             .build();
     return toDto(auditLogRepository.save(log));
   }
