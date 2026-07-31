@@ -10,15 +10,17 @@ Tech Stack:
 - Validation: Hibernate Validation + RFC 9457 Problem Details + Zod
 - ORM: JPA Entities + Hibernate
 - Migrations: Flyway
+- Cache Layer: Valkey + Spring Cache
 - Logging: Logback + SLF4J
 - Identity Management: Keycloak
 - Email Delivery: Jakarta Mail + Thymeleaf
 - Object Storage: MinIO
 - Observability Layer: Micrometer + OTel + PostHog + pg_cron
 - Reverse Proxy: Traefik
-- Testing: JUnit 5 + Vitest
+- Testing: JUnit 5 + Vitest + Playwright
 - OpenAPI Docs: Scalar
-- Tools: Turborepo, Biome, Spotless, Checkstyle, SpotBugs, PMD
+- Rate Limiting: bucket4j
+- Tools: Turborepo, Biome, Spotless, Checkstyle, SpotBugs, PMD, OpenApi-Typescript, Orval
 
 To run project
 1. ./manage.sh docker
@@ -47,6 +49,7 @@ Port Management
 - 5433: PostgreSQL
 - 8080: Keycloak Console
 - 9001: MinIO Console
+- 6379: Valkey
 
 Project URL
 - Web: http://localhost:3000
