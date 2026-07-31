@@ -119,6 +119,23 @@
             <artifactId>s3</artifactId>
         </dependency>
 
+        <!-- Sentry Error Tracking -->
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
+            <version>7.14.0</version>
+        </dependency>
+
+        <!-- Distributed Tracing & Telemetry -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+
         <!-- OpenAPI 3.1 & Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>
