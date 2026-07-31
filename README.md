@@ -14,6 +14,7 @@ Tech Stack:
 - Identity Management: Keycloak
 - Email Delivery: Jakarta Mail + Thymeleaf
 - Object Storage: MinIO
+- Observability Layer: Micrometer + OTel + PostHog + pg_cron
 - Reverse Proxy: Traefik
 - Testing: JUnit 5 + Vitest
 - OpenAPI Docs: Scalar
