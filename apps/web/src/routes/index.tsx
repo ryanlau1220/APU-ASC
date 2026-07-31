@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   ArrowUpRight,
@@ -12,38 +11,23 @@ import {
   Plus,
   ShieldCheck,
 } from 'lucide-react'
+import {
+  useGetAllAppointments,
+  useGetAllPayments,
+  useGetAllVehicles,
+  useGetServices,
+} from '../api/generated/endpoints'
+import type {
+  AppointmentDto,
+  PaymentDto,
+  ServiceDto,
+  VehicleDto,
+} from '../api/generated/models'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
-import { bffFetch } from '../lib/apiClient'
 import { useUserSession } from './__root'
 
 export const Route = createFileRoute('/')({ component: DashboardPage })
-
-interface AppointmentDto {
-  id: string
-  customerId: string
-  vehicleId: string
-  serviceId: string
-  technicianId: string
-  appointmentDate: string
-  timeSlot: string
-  status: string
-  notes: string
-}
-
-interface ServiceDto {
-  id: string
-}
-
-interface VehicleDto {
-  id: string
-}
-
-interface PaymentDto {
-  id: string
-  amount: number
-  paymentStatus: string
-}
 
 function DashboardPage() {
   const { userSession } = useUserSession()
@@ -59,31 +43,32 @@ function DashboardPage() {
     roles.includes('ROLE_WORKSHOP_MANAGER') ||
     roles.includes('ROLE_SYSTEM_ADMIN')
 
-  const { data: appointments = [] } = useQuery<AppointmentDto[]>({
-    queryKey: ['appointments'],
-    queryFn: () => bffFetch<AppointmentDto[]>('/api/v1/appointments'),
-    enabled: isAuthenticated && isStaffOrManager,
-    retry: false,
+  const { data: appointmentsData = [] } = useGetAllAppointments({
+    query: {
+      enabled: isAuthenticated && isStaffOrManager,
+      retry: false,
+    },
   })
+  const appointments = (appointmentsData || []) as AppointmentDto[]
 
-  const { data: services = [] } = useQuery<ServiceDto[]>({
-    queryKey: ['services'],
-    queryFn: () => bffFetch<ServiceDto[]>('/api/v1/catalog/services'),
-  })
+  const { data: servicesData = [] } = useGetServices()
+  const services = (servicesData || []) as ServiceDto[]
 
-  const { data: vehicles = [] } = useQuery<VehicleDto[]>({
-    queryKey: ['vehicles'],
-    queryFn: () => bffFetch<VehicleDto[]>('/api/v1/vehicles'),
-    enabled: isAuthenticated && isStaffOrManager,
-    retry: false,
+  const { data: vehiclesData = [] } = useGetAllVehicles({
+    query: {
+      enabled: isAuthenticated && isStaffOrManager,
+      retry: false,
+    },
   })
+  const vehicles = (vehiclesData || []) as VehicleDto[]
 
-  const { data: payments = [] } = useQuery<PaymentDto[]>({
-    queryKey: ['payments'],
-    queryFn: () => bffFetch<PaymentDto[]>('/api/v1/payments'),
-    enabled: isAuthenticated && isStaffOrManager,
-    retry: false,
+  const { data: paymentsData = [] } = useGetAllPayments({
+    query: {
+      enabled: isAuthenticated && isStaffOrManager,
+      retry: false,
+    },
   })
+  const payments = (paymentsData || []) as PaymentDto[]
 
   const totalRevenue = payments
     .filter((p) => p.paymentStatus === 'PAID')
