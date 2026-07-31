@@ -2,16 +2,18 @@ services:
   traefik:
     image: traefik:v3.0
     container_name: apu-asc-traefik
+    user: "0:0"
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=apu-asc_apu-asc-net"
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
       - "8088:8080" # Traefik dashboard
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - apu-asc-net
 
@@ -57,7 +59,7 @@ services:
       - ./infra/keycloak/themes/apu-asc:/opt/keycloak/themes/apu-asc:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.rule=PathPrefix(`/auth`)"
+      - 'traefik.http.routers.keycloak.rule=PathPrefix(`/auth`)'
       - "traefik.http.routers.keycloak.entrypoints=web"
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
     depends_on:

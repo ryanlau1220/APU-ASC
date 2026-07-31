@@ -109,7 +109,16 @@ public class SecurityConfig {
                         "/login/**",
                         "/oauth2/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/v1/catalog/**")
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/v1/catalog/**",
+                        "/api/v1/services/**",
+                        "/api/v1/categories/**",
+                        "/api/v1/vehicles/**",
+                        "/api/v1/appointments/**",
+                        "/api/v1/payments/**",
+                        "/api/v1/users/**",
+                        "/api/v1/feedback/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -123,7 +132,7 @@ public class SecurityConfig {
   private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
     OidcClientInitiatedLogoutSuccessHandler handler =
         new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-    handler.setPostLogoutRedirectUri("http://localhost:3000/login");
+    handler.setPostLogoutRedirectUri("http://localhost:3000/oauth2/authorization/keycloak");
     return handler;
   }
 
