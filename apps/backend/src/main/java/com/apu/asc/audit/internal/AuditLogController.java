@@ -8,14 +8,16 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/audit-logs")
 @RequiredArgsConstructor
-@Tag(name = "System Audit Logs", description = "System operation and audit log APIs")
+@Tag(name = "System Audit Logs", description = "System operation and compliance audit log APIs")
 class AuditLogController {
 
   private final AuditLogApi auditLogApi;
@@ -25,5 +27,36 @@ class AuditLogController {
   @Operation(summary = "Get system audit logs")
   public ResponseEntity<List<AuditLogDto>> getAuditLogs() {
     return ResponseEntity.ok(auditLogApi.findAllAuditLogs());
+  }
+
+  @GetMapping("/user/{userId}")
+  @PreAuthorize("hasRole('MANAGER')")
+  @Operation(summary = "Get audit logs by user ID")
+  public ResponseEntity<List<AuditLogDto>> getLogsByUser(@PathVariable final String userId) {
+    return ResponseEntity.ok(auditLogApi.findByUserId(userId));
+  }
+
+  @GetMapping("/entity/{entityName}")
+  @PreAuthorize("hasRole('MANAGER')")
+  @Operation(summary = "Get audit logs by entity type")
+  public ResponseEntity<List<AuditLogDto>> getLogsByEntity(@PathVariable final String entityName) {
+    return ResponseEntity.ok(auditLogApi.findByEntityName(entityName));
+  }
+
+  @GetMapping("/action/{actionType}")
+  @PreAuthorize("hasRole('MANAGER')")
+  @Operation(summary = "Get audit logs by action type")
+  public ResponseEntity<List<AuditLogDto>> getLogsByAction(@PathVariable final String actionType) {
+    return ResponseEntity.ok(auditLogApi.findByActionType(actionType));
+  }
+
+  @GetMapping("/my")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @Operation(summary = "Get my user audit log history")
+  public ResponseEntity<List<AuditLogDto>> getMyAuditLogs(Authentication authentication) {
+    if (authentication == null || !authentication.isAuthenticated()) {
+      return ResponseEntity.ok(List.of());
+    }
+    return ResponseEntity.ok(auditLogApi.findByUserId(authentication.getName()));
   }
 }
