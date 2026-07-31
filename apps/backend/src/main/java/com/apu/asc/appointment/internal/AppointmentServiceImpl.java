@@ -2,10 +2,13 @@ package com.apu.asc.appointment.internal;
 
 import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.appointment.AppointmentDto;
+import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
+import com.apu.asc.config.SseController;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 class AppointmentServiceImpl implements AppointmentApi {
 
   private final AppointmentRepository appointmentRepository;
+  private final SseController sseController;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -63,7 +68,17 @@ class AppointmentServiceImpl implements AppointmentApi {
             .status(appointmentDto.status() != null ? appointmentDto.status() : "PENDING")
             .notes(appointmentDto.notes())
             .build();
-    return toDto(appointmentRepository.save(entity));
+
+    AppointmentDto created = toDto(appointmentRepository.save(entity));
+    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            created.customerId(),
+            "APPOINTMENT_CREATED",
+            "APPOINTMENT",
+            created.id(),
+            "Booked appointment on " + created.appointmentDate()));
+    return created;
   }
 
   @Override
@@ -74,17 +89,24 @@ class AppointmentServiceImpl implements AppointmentApi {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
 
-    if (appointmentDto.vehicleId() != null) entity.setVehicleId(appointmentDto.vehicleId());
-    if (appointmentDto.serviceId() != null) entity.setServiceId(appointmentDto.serviceId());
-    if (appointmentDto.technicianId() != null)
-      entity.setTechnicianId(appointmentDto.technicianId());
     if (appointmentDto.appointmentDate() != null)
       entity.setAppointmentDate(appointmentDto.appointmentDate());
     if (appointmentDto.timeSlot() != null) entity.setTimeSlot(appointmentDto.timeSlot());
-    if (appointmentDto.status() != null) entity.setStatus(appointmentDto.status());
     if (appointmentDto.notes() != null) entity.setNotes(appointmentDto.notes());
+    if (appointmentDto.technicianId() != null)
+      entity.setTechnicianId(appointmentDto.technicianId());
+    if (appointmentDto.status() != null) entity.setStatus(appointmentDto.status());
 
-    return toDto(appointmentRepository.save(entity));
+    AppointmentDto updated = toDto(appointmentRepository.save(entity));
+    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.customerId(),
+            "APPOINTMENT_UPDATED",
+            "APPOINTMENT",
+            updated.id(),
+            "Updated appointment details"));
+    return updated;
   }
 
   @Override
@@ -94,17 +116,37 @@ class AppointmentServiceImpl implements AppointmentApi {
         appointmentRepository
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
+
     entity.setStatus(status);
-    return toDto(appointmentRepository.save(entity));
+    AppointmentDto updated = toDto(appointmentRepository.save(entity));
+    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.customerId(),
+            "APPOINTMENT_STATUS_UPDATED",
+            "APPOINTMENT",
+            updated.id(),
+            "Status changed to " + status));
+    return updated;
   }
 
   @Override
   @Transactional
   public void deleteAppointment(final String id) {
-    if (!appointmentRepository.existsById(id)) {
-      throw new ResourceNotFoundException("Appointment", id);
-    }
-    appointmentRepository.deleteById(id);
+    AppointmentEntity entity =
+        appointmentRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
+
+    appointmentRepository.delete(entity);
+    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            entity.getCustomerId(),
+            "APPOINTMENT_DELETED",
+            "APPOINTMENT",
+            id,
+            "Cancelled/deleted appointment"));
   }
 
   private AppointmentDto toDto(AppointmentEntity entity) {

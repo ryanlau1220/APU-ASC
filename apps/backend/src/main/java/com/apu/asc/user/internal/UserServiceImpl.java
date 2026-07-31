@@ -1,5 +1,6 @@
 package com.apu.asc.user.internal;
 
+import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 class UserServiceImpl implements UserApi {
 
   private final UserRepository userRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -72,7 +75,15 @@ class UserServiceImpl implements UserApi {
             .role(userDto.role() != null ? userDto.role() : "CUSTOMER")
             .status(userDto.status() != null ? userDto.status() : "ACTIVE")
             .build();
-    return toDto(userRepository.save(entity));
+    UserDto created = toDto(userRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            created.id(),
+            "USER_CREATED",
+            "USER",
+            created.id(),
+            "Created user with role: " + created.role()));
+    return created;
   }
 
   @Override
@@ -86,7 +97,11 @@ class UserServiceImpl implements UserApi {
     if (userDto.role() != null) entity.setRole(userDto.role());
     if (userDto.status() != null) entity.setStatus(userDto.status());
 
-    return toDto(userRepository.save(entity));
+    UserDto updated = toDto(userRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            id, "USER_UPDATED", "USER", id, "Updated user metadata for " + updated.email()));
+    return updated;
   }
 
   @Override
@@ -95,7 +110,10 @@ class UserServiceImpl implements UserApi {
     UserEntity entity =
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
     entity.setStatus(status);
-    return toDto(userRepository.save(entity));
+    UserDto updated = toDto(userRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(id, "USER_STATUS_UPDATED", "USER", id, "Updated status to " + status));
+    return updated;
   }
 
   @Override
@@ -105,6 +123,8 @@ class UserServiceImpl implements UserApi {
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
     entity.setStatus("INACTIVE");
     userRepository.save(entity);
+    eventPublisher.publishEvent(
+        new AuditEvent(id, "USER_DEACTIVATED", "USER", id, "Deactivated user account"));
   }
 
   @Override
@@ -129,6 +149,13 @@ class UserServiceImpl implements UserApi {
       }
       if (updated) {
         userRepository.save(user);
+        eventPublisher.publishEvent(
+            new AuditEvent(
+                user.getId(),
+                "USER_JIT_UPDATED",
+                "USER",
+                user.getId(),
+                "Updated JIT user profile"));
       }
       return toDto(user);
     }
@@ -144,7 +171,11 @@ class UserServiceImpl implements UserApi {
             .role(role != null ? role : "CUSTOMER")
             .status("ACTIVE")
             .build();
-    return toDto(userRepository.save(newEntity));
+    UserDto created = toDto(userRepository.save(newEntity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            created.id(), "USER_JIT_PROVISIONED", "USER", created.id(), "JIT Provisioned user"));
+    return created;
   }
 
   private UserDto toDto(UserEntity entity) {

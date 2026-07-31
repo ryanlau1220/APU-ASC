@@ -1,5 +1,6 @@
 package com.apu.asc.payment.internal;
 
+import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
@@ -7,6 +8,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 class PaymentServiceImpl implements PaymentApi {
 
   private final PaymentRepository paymentRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -68,7 +71,15 @@ class PaymentServiceImpl implements PaymentApi {
             .paymentStatus(
                 paymentDto.paymentStatus() != null ? paymentDto.paymentStatus() : "UNPAID")
             .build();
-    return toDto(paymentRepository.save(entity));
+    PaymentDto created = toDto(paymentRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            created.customerId(),
+            "INVOICE_CREATED",
+            "PAYMENT",
+            created.id(),
+            "Generated invoice " + created.invoiceNumber() + " for amount " + created.amount()));
+    return created;
   }
 
   @Override
@@ -83,7 +94,15 @@ class PaymentServiceImpl implements PaymentApi {
     if (paymentDto.paymentMethod() != null) entity.setPaymentMethod(paymentDto.paymentMethod());
     if (paymentDto.paymentStatus() != null) entity.setPaymentStatus(paymentDto.paymentStatus());
 
-    return toDto(paymentRepository.save(entity));
+    PaymentDto updated = toDto(paymentRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.customerId(),
+            "INVOICE_UPDATED",
+            "PAYMENT",
+            updated.id(),
+            "Updated payment/invoice details"));
+    return updated;
   }
 
   @Override
@@ -96,16 +115,32 @@ class PaymentServiceImpl implements PaymentApi {
     payment.setPaymentMethod(method);
     payment.setPaymentStatus("PAID");
     payment.setPaidAt(Instant.now());
-    return toDto(paymentRepository.save(payment));
+    PaymentDto updated = toDto(paymentRepository.save(payment));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.customerId(),
+            "PAYMENT_PROCESSED",
+            "PAYMENT",
+            updated.id(),
+            "Processed payment of " + updated.amount() + " via " + method));
+    return updated;
   }
 
   @Override
   @Transactional
   public void deletePayment(final String id) {
-    if (!paymentRepository.existsById(id)) {
-      throw new ResourceNotFoundException("Payment", id);
-    }
+    PaymentEntity payment =
+        paymentRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Payment", id));
     paymentRepository.deleteById(id);
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            payment.getCustomerId(),
+            "PAYMENT_DELETED",
+            "PAYMENT",
+            id,
+            "Deleted payment/invoice record"));
   }
 
   private PaymentDto toDto(PaymentEntity entity) {

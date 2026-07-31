@@ -1,11 +1,13 @@
 package com.apu.asc.vehicle.internal;
 
+import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.vehicle.VehicleApi;
 import com.apu.asc.vehicle.VehicleDto;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 class VehicleServiceImpl implements VehicleApi {
 
   private final VehicleRepository vehicleRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -52,7 +55,21 @@ class VehicleServiceImpl implements VehicleApi {
             .model(vehicleDto.model())
             .yearOfManufacture(vehicleDto.yearOfManufacture())
             .build();
-    return toDto(vehicleRepository.save(entity));
+    VehicleDto created = toDto(vehicleRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            created.customerId(),
+            "VEHICLE_REGISTERED",
+            "VEHICLE",
+            created.id(),
+            "Registered vehicle "
+                + created.licensePlate()
+                + " ("
+                + created.make()
+                + " "
+                + created.model()
+                + ")"));
+    return created;
   }
 
   @Override
@@ -69,16 +86,32 @@ class VehicleServiceImpl implements VehicleApi {
     if (vehicleDto.yearOfManufacture() != 0)
       entity.setYearOfManufacture(vehicleDto.yearOfManufacture());
 
-    return toDto(vehicleRepository.save(entity));
+    VehicleDto updated = toDto(vehicleRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.customerId(),
+            "VEHICLE_UPDATED",
+            "VEHICLE",
+            updated.id(),
+            "Updated vehicle details for " + updated.licensePlate()));
+    return updated;
   }
 
   @Override
   @Transactional
   public void deleteVehicle(final String id) {
-    if (!vehicleRepository.existsById(id)) {
-      throw new ResourceNotFoundException("Vehicle", id);
-    }
+    VehicleEntity entity =
+        vehicleRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Vehicle", id));
     vehicleRepository.deleteById(id);
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            entity.getCustomerId(),
+            "VEHICLE_DELETED",
+            "VEHICLE",
+            id,
+            "Deregistered/deleted vehicle " + entity.getLicensePlate()));
   }
 
   private VehicleDto toDto(VehicleEntity entity) {
