@@ -3,6 +3,7 @@ package com.apu.asc.audit.internal;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
@@ -14,6 +15,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "audit_logs")
+@IdClass(AuditLogId.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,7 +37,8 @@ class AuditLogEntity {
   @Column(columnDefinition = "TEXT")
   private String details;
 
-  @Column(name = "created_at", updatable = false)
+  @Id
+  @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
   @PrePersist
