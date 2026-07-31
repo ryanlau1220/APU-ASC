@@ -1,5 +1,6 @@
 package com.apu.asc.payment.internal;
 
+import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
 import java.time.Instant;
@@ -23,12 +24,26 @@ class PaymentServiceImpl implements PaymentApi {
 
   @Override
   @Transactional(readOnly = true)
+  public PaymentDto getPaymentById(final String id) {
+    return paymentRepository
+        .findById(id)
+        .map(this::toDto)
+        .orElseThrow(() -> new ResourceNotFoundException("Payment", id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public PaymentDto getByAppointment(final String appointmentId) {
     return paymentRepository
         .findByAppointmentId(appointmentId)
         .map(this::toDto)
-        .orElseThrow(
-            () -> new RuntimeException("Payment not found for appointment: " + appointmentId));
+        .orElseThrow(() -> new ResourceNotFoundException("Payment for appointment", appointmentId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<PaymentDto> getByCustomer(final String customerId) {
+    return paymentRepository.findByCustomerId(customerId).stream().map(this::toDto).toList();
   }
 
   @Override
@@ -58,15 +73,39 @@ class PaymentServiceImpl implements PaymentApi {
 
   @Override
   @Transactional
+  public PaymentDto updatePayment(final String id, final PaymentDto paymentDto) {
+    PaymentEntity entity =
+        paymentRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Payment", id));
+
+    if (paymentDto.amount() != null) entity.setAmount(paymentDto.amount());
+    if (paymentDto.paymentMethod() != null) entity.setPaymentMethod(paymentDto.paymentMethod());
+    if (paymentDto.paymentStatus() != null) entity.setPaymentStatus(paymentDto.paymentStatus());
+
+    return toDto(paymentRepository.save(entity));
+  }
+
+  @Override
+  @Transactional
   public PaymentDto processPayment(final String paymentId, final String method) {
     PaymentEntity payment =
         paymentRepository
             .findById(paymentId)
-            .orElseThrow(() -> new RuntimeException("Payment not found: " + paymentId));
+            .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
     payment.setPaymentMethod(method);
     payment.setPaymentStatus("PAID");
     payment.setPaidAt(Instant.now());
     return toDto(paymentRepository.save(payment));
+  }
+
+  @Override
+  @Transactional
+  public void deletePayment(final String id) {
+    if (!paymentRepository.existsById(id)) {
+      throw new ResourceNotFoundException("Payment", id);
+    }
+    paymentRepository.deleteById(id);
   }
 
   private PaymentDto toDto(PaymentEntity entity) {
