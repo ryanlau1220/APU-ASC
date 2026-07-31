@@ -72,7 +72,10 @@ spring:
             redirect-uri: "${OAUTH2_REDIRECT_URI:http://localhost:3000/login/oauth2/code/{registrationId}}"
         provider:
           keycloak:
-            issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost/auth/realms/apu-asc}
+            authorization-uri: ${KEYCLOAK_AUTH_URI:http://localhost/auth/realms/apu-asc/protocol/openid-connect/auth}
+            token-uri: ${KEYCLOAK_TOKEN_URI:http://localhost/auth/realms/apu-asc/protocol/openid-connect/token}
+            user-info-uri: ${KEYCLOAK_USERINFO_URI:http://localhost/auth/realms/apu-asc/protocol/openid-connect/userinfo}
+            jwk-set-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI:http://localhost/auth/realms/apu-asc/protocol/openid-connect/certs}
             user-name-attribute: preferred_username
       resourceserver:
         jwt:

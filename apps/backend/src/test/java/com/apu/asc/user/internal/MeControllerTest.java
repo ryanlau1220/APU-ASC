@@ -30,6 +30,10 @@ class MeControllerTest {
   @MockBean private UserApi userApi;
   @MockBean private CustomOidcUserService customOidcUserService;
 
+  @MockBean
+  private org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
+      clientRegistrationRepository;
+
   @Test
   @DisplayName("Should return 200 OK with authenticated=false for guest session hydration")
   void shouldReturnAuthenticatedFalseForUnauthenticatedRequest() throws Exception {
