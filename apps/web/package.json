@@ -18,6 +18,7 @@
     "check": "biome check ."
   },
   "dependencies": {
+    "@sentry/react": "^8.40.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "^5.101.4",
