@@ -77,7 +77,7 @@ class EventDrivenAuditLogIntegrationTest {
     createdUsers.forEach(
         id -> {
           try {
-            userApi.deleteUser(id);
+            userApi.hardDeleteUser(id);
           } catch (Exception ignored) {
           }
         });
