@@ -144,3 +144,11 @@ s3:
   access-key: ${S3_ACCESS_KEY:minioadmin}
   secret-key: ${S3_SECRET_KEY:minioadminpassword}
   bucket: ${S3_BUCKET:apu-asc-assets}
+
+keycloak:
+  admin:
+    server-url: ${KEYCLOAK_ADMIN_SERVER_URL:http://localhost/auth}
+    username: ${KEYCLOAK_ADMIN_USERNAME:admin}
+    password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
+    realm: ${KEYCLOAK_ADMIN_REALM:apu-asc}
+
