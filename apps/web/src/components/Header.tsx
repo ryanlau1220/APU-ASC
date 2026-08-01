@@ -18,15 +18,82 @@ import {
 import * as React from 'react'
 import { useUserSession } from '../routes/__root'
 
+export interface NavItem {
+  label: string
+  to: string
+  icon: React.ComponentType<{ className?: string }>
+}
+
+const CUSTOMER_NAV: NavItem[] = [
+  { label: 'Dashboard', to: '/customer', icon: LayoutDashboard },
+  { label: 'Appointments', to: '/customer/appointments', icon: Calendar },
+  { label: 'Vehicles', to: '/customer/vehicles', icon: Car },
+  { label: 'Invoices', to: '/customer/payments', icon: CreditCard },
+  { label: 'Feedback', to: '/customer/feedback', icon: MessageSquare },
+]
+
+const MANAGER_NAV: NavItem[] = [
+  { label: 'Dashboard', to: '/manager', icon: LayoutDashboard },
+  { label: 'Master Schedule', to: '/manager/appointments', icon: Calendar },
+  { label: 'Service Catalog', to: '/manager/services', icon: BookOpen },
+]
+
+const STAFF_NAV: NavItem[] = [
+  { label: 'Dashboard', to: '/staff', icon: LayoutDashboard },
+  { label: 'Counter Intake', to: '/staff/appointments', icon: Calendar },
+  { label: 'Customer Accounts', to: '/staff/users', icon: Users },
+  { label: 'Payments', to: '/staff/payments', icon: CreditCard },
+]
+
+const TECHNICIAN_NAV: NavItem[] = [
+  { label: 'Dashboard', to: '/technician', icon: LayoutDashboard },
+  { label: 'Bay Work Orders', to: '/technician/jobs', icon: Wrench },
+]
+
+export function getRoleNavItems(roles: string[] = []): NavItem[] {
+  if (
+    roles.includes('MANAGER') ||
+    roles.includes('ROLE_MANAGER') ||
+    roles.includes('WORKSHOP_MANAGER') ||
+    roles.includes('SYSTEM_ADMIN')
+  ) {
+    return MANAGER_NAV
+  }
+  if (roles.includes('STAFF') || roles.includes('ROLE_STAFF')) {
+    return STAFF_NAV
+  }
+  if (roles.includes('TECHNICIAN') || roles.includes('ROLE_TECHNICIAN')) {
+    return TECHNICIAN_NAV
+  }
+  return CUSTOMER_NAV
+}
+
+export function getRoleHomeRoute(roles: string[] = []): string {
+  if (
+    roles.includes('MANAGER') ||
+    roles.includes('ROLE_MANAGER') ||
+    roles.includes('WORKSHOP_MANAGER') ||
+    roles.includes('SYSTEM_ADMIN')
+  ) {
+    return '/manager'
+  }
+  if (roles.includes('STAFF') || roles.includes('ROLE_STAFF')) {
+    return '/staff'
+  }
+  if (roles.includes('TECHNICIAN') || roles.includes('ROLE_TECHNICIAN')) {
+    return '/technician'
+  }
+  return '/customer'
+}
+
 export default function Header() {
   const { userSession } = useUserSession()
   const isAuthenticated = userSession?.authenticated ?? false
+  const roles = userSession?.roles ?? []
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
-  const [isOpsOpen, setIsOpsOpen] = React.useState<boolean>(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState<boolean>(false)
 
-  const opsRef = React.useRef<HTMLDivElement>(null)
   const userMenuRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
@@ -40,9 +107,6 @@ export default function Header() {
   // Click outside listener for dropdowns
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (opsRef.current && !opsRef.current.contains(event.target as Node)) {
-        setIsOpsOpen(false)
-      }
       if (
         userMenuRef.current &&
         !userMenuRef.current.contains(event.target as Node)
@@ -73,11 +137,14 @@ export default function Header() {
     window.location.href = '/oauth2/authorization/keycloak'
   }
 
+  const homeRoute = getRoleHomeRoute(roles)
+  const navItems = getRoleNavItems(roles)
+
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-3">
+        {/* Brand Logo - Navigates to user's role-specific portal home */}
+        <Link to={homeRoute as never} className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-bold text-xl">
             <Wrench className="w-5 h-5" />
           </div>
@@ -91,101 +158,35 @@ export default function Header() {
           </div>
         </Link>
 
-        {/* Primary Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1">
-          <Link
-            to="/"
-            activeProps={{
-              className: 'text-primary bg-primary/10 border-primary/30',
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            Dashboard
-          </Link>
+        {/* Primary Role-Scoped Navigation Links */}
+        {isAuthenticated && (
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const isDashboardLink =
+                item.to === '/customer' ||
+                item.to === '/manager' ||
+                item.to === '/staff' ||
+                item.to === '/technician'
 
-          {/* Role-based navigation items */}
-          <Link
-            to="/staff/services"
-            activeProps={{
-              className: 'text-primary bg-primary/10 border-primary/30',
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
-          >
-            <BookOpen className="w-4 h-4" />
-            Services
-          </Link>
-
-          <Link
-            to="/customer/vehicles"
-            activeProps={{
-              className: 'text-primary bg-primary/10 border-primary/30',
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
-          >
-            <Car className="w-4 h-4" />
-            Vehicles
-          </Link>
-
-          <Link
-            to="/customer/appointments"
-            activeProps={{
-              className: 'text-primary bg-primary/10 border-primary/30',
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
-          >
-            <Calendar className="w-4 h-4" />
-            Appointments
-          </Link>
-
-          {/* Operations Dropdown */}
-          <div ref={opsRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setIsOpsOpen(!isOpsOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
-            >
-              Operations
-              <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform ${isOpsOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {isOpsOpen && (
-              <div
-                role="menu"
-                className="absolute left-0 mt-2 w-52 rounded-xl bg-card opacity-100 shadow-2xl border border-border p-1.5 space-y-1 z-50 font-sans"
-              >
+              return (
                 <Link
-                  to="/customer/payments"
-                  onClick={() => setIsOpsOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  key={item.to}
+                  to={item.to as never}
+                  activeOptions={isDashboardLink ? { exact: true } : undefined}
+                  activeProps={{
+                    className:
+                      'text-primary bg-primary/10 border-primary/30 font-semibold',
+                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-colors border border-transparent"
                 >
-                  <CreditCard className="w-4 h-4 text-primary" />
-                  Payments & Invoices
+                  <Icon className="w-4 h-4" />
+                  {item.label}
                 </Link>
-
-                <Link
-                  to="/customer/feedback"
-                  onClick={() => setIsOpsOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4 text-primary" />
-                  Service Feedback
-                </Link>
-
-                <Link
-                  to="/manager/operations"
-                  onClick={() => setIsOpsOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <Users className="w-4 h-4 text-primary" />
-                  Manager Suite
-                </Link>
-              </div>
-            )}
-          </div>
-        </nav>
+              )
+            })}
+          </nav>
+        )}
 
         {/* Actions Header */}
         <div className="flex items-center gap-3">
