@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import {
   Car,
   CheckCircle2,
@@ -31,6 +31,14 @@ function ProfilePage() {
   const [saved, setSaved] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
 
+  // Active Portal View Selection for Managers
+  const [selectedPortal, setSelectedPortal] = React.useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_portal_view') || 'MANAGER'
+    }
+    return 'MANAGER'
+  })
+
   // Password Reset State
   const [oldPassword, setOldPassword] = React.useState('')
   const [newPassword, setNewPassword] = React.useState('')
@@ -43,11 +51,26 @@ function ProfilePage() {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate profile update
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('active_portal_view', selectedPortal)
+    }
+
+    // Save profile & redirect to selected portal
     setTimeout(() => {
       setLoading(false)
       setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+
+      const portalRoutes: Record<string, string> = {
+        MANAGER: '/manager/',
+        STAFF: '/staff/',
+        TECHNICIAN: '/technician/',
+        CUSTOMER: '/customer/',
+      }
+      const targetRoute = portalRoutes[selectedPortal] || '/manager/'
+
+      setTimeout(() => {
+        window.location.href = targetRoute
+      }, 1000)
     }, 500)
   }
 
@@ -223,77 +246,85 @@ function ProfilePage() {
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    As a Manager, you have full access across all role-based
-                    views. Click any portal below to switch view directly:
+                    As a Manager, select your target portal view below and click{' '}
+                    <strong>Save Profile Changes</strong> to switch view
+                    directly:
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <Link
-                      to={'/manager/' as never}
-                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                        <Shield className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                          Manager
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">
-                          Executive Suite
-                        </div>
-                      </div>
-                    </Link>
-
-                    <Link
-                      to={'/staff/' as never}
-                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                        <Users className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                          Staff
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">
-                          Counter Intake
-                        </div>
-                      </div>
-                    </Link>
-
-                    <Link
-                      to={'/technician/' as never}
-                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                        <Wrench className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                          Technician
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">
-                          Workshop Bays
-                        </div>
-                      </div>
-                    </Link>
-
-                    <Link
-                      to={'/customer/' as never}
-                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                        <Car className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                          Customer
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">
-                          Self Service
-                        </div>
-                      </div>
-                    </Link>
+                    {[
+                      {
+                        key: 'MANAGER',
+                        label: 'Manager',
+                        subtext: 'Executive Suite',
+                        icon: Shield,
+                        route: '/manager/',
+                      },
+                      {
+                        key: 'STAFF',
+                        label: 'Staff',
+                        subtext: 'Counter Intake',
+                        icon: Users,
+                        route: '/staff/',
+                      },
+                      {
+                        key: 'TECHNICIAN',
+                        label: 'Technician',
+                        subtext: 'Workshop Bays',
+                        icon: Wrench,
+                        route: '/technician/',
+                      },
+                      {
+                        key: 'CUSTOMER',
+                        label: 'Customer',
+                        subtext: 'Self Service',
+                        icon: Car,
+                        route: '/customer/',
+                      },
+                    ].map((portal) => {
+                      const isSelected = selectedPortal === portal.key
+                      const IconComp = portal.icon
+                      return (
+                        <button
+                          key={portal.key}
+                          type="button"
+                          onClick={() => setSelectedPortal(portal.key)}
+                          className={`p-3 rounded-lg border text-left transition-all relative flex items-center gap-2.5 ${
+                            isSelected
+                              ? 'border-primary bg-primary/10 ring-1 ring-primary/40 shadow-sm'
+                              : 'border-border bg-muted/30 hover:border-primary/40 hover:bg-muted/70'
+                          }`}
+                        >
+                          <div
+                            className={`w-7 h-7 rounded-md flex items-center justify-center font-bold text-xs ${
+                              isSelected
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            <IconComp className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-xs font-bold ${
+                                  isSelected
+                                    ? 'text-primary'
+                                    : 'text-foreground'
+                                }`}
+                              >
+                                {portal.label}
+                              </span>
+                              {isSelected && (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                              )}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground truncate">
+                              {portal.subtext}
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
