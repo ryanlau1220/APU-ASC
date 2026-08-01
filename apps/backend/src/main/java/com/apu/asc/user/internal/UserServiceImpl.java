@@ -18,6 +18,8 @@ class UserServiceImpl implements UserApi {
 
   private final UserRepository userRepository;
   private final ApplicationEventPublisher eventPublisher;
+  private final KeycloakAdminService keycloakAdminService;
+  private final EmailService emailService;
 
   @Override
   @Transactional(readOnly = true)
@@ -65,17 +67,35 @@ class UserServiceImpl implements UserApi {
         userDto.id() != null
             ? userDto.id()
             : "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+    String userRole = userDto.role() != null ? userDto.role() : "CUSTOMER";
+
+    // Provision user in Keycloak if not provided
+    String keycloakId = userDto.keycloakId();
+    if (keycloakId == null || keycloakId.isBlank()) {
+      keycloakId =
+          keycloakAdminService.createKeycloakUser(
+              userDto.username(), userDto.email(), userDto.fullName(), userRole);
+    }
+
     UserEntity entity =
         UserEntity.builder()
             .id(generatedId)
-            .keycloakId(userDto.keycloakId())
+            .keycloakId(keycloakId)
             .username(userDto.username())
             .email(userDto.email())
             .fullName(userDto.fullName())
-            .role(userDto.role() != null ? userDto.role() : "CUSTOMER")
+            .role(userRole)
             .status(userDto.status() != null ? userDto.status() : "ACTIVE")
             .build();
+
     UserDto created = toDto(userRepository.save(entity));
+
+    // Dispatch Welcome Password Setup Email Invite
+    if (created.email() != null && !created.email().isBlank()) {
+      emailService.sendWelcomeInviteEmail(created.email(), created.username(), created.role());
+    }
+
     eventPublisher.publishEvent(
         new AuditEvent(
             created.id(),
