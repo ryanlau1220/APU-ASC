@@ -82,6 +82,50 @@ public class EmailService {
         });
   }
 
+  public void sendWelcomeInviteEmail(String recipientEmail, String username, String role) {
+    CompletableFuture.runAsync(
+        () -> {
+          try {
+            var message = mailSender.createMimeMessage();
+            var helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            String sender =
+                StringUtils.hasText(fromEmail) ? fromEmail.trim() : "noreply@apu-asc.com";
+
+            helper.setFrom(sender);
+            helper.setTo(recipientEmail);
+            helper.setSubject("Welcome to APU-ASC - Account Invitation Setup");
+
+            String formattedTime =
+                ZonedDateTime.now(ZoneId.of("Asia/Kuala_Lumpur"))
+                    .format(
+                        DateTimeFormatter.ofPattern(
+                            "MMMM d, yyyy 'at' hh:mm:ss a 'GMT+8'", Locale.ENGLISH));
+
+            Context context = new Context();
+            context.setVariable("subject", "Welcome to APU-ASC Automotive Service Centre");
+            context.setVariable(
+                "mainContent",
+                "Your " + role + " account ('" + username + "') has been provisioned. Please complete your password setup to activate your account.");
+            context.setVariable(
+                "subContent",
+                "Navigate to http://localhost:3000/invite?email=" + recipientEmail + " to configure your private password.");
+            context.setVariable("codeDisplay", "INVITED");
+            context.setVariable("platformInfo", "APU-ASC Account Invitation");
+            context.setVariable("locationInfo", "Kuala Lumpur, Malaysia");
+            context.setVariable("timeFormatted", formattedTime);
+
+            String htmlContent = templateEngine.process("email/transactional-email", context);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Successfully sent welcome invite email to {}", recipientEmail);
+          } catch (Exception e) {
+            log.error("SMTP delivery attempt to {} failed: {}", recipientEmail, e.getMessage(), e);
+          }
+        });
+  }
+
   private String parsePlatform(String userAgent) {
     if (!StringUtils.hasText(userAgent)) {
       return "Web Portal on Desktop Device";
