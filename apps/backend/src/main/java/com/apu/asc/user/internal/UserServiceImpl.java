@@ -63,6 +63,16 @@ class UserServiceImpl implements UserApi {
   @Override
   @Transactional
   public UserDto createUser(UserDto userDto) {
+    if (userDto.username() != null && userRepository.findByUsername(userDto.username()).isPresent()) {
+      throw new IllegalArgumentException(
+          "Username '" + userDto.username() + "' is already registered.");
+    }
+
+    if (userDto.email() != null && userRepository.findByEmail(userDto.email()).isPresent()) {
+      throw new IllegalArgumentException(
+          "Email address '" + userDto.email() + "' is already registered.");
+    }
+
     String generatedId =
         userDto.id() != null
             ? userDto.id()
@@ -145,6 +155,12 @@ class UserServiceImpl implements UserApi {
     userRepository.save(entity);
     eventPublisher.publishEvent(
         new AuditEvent(id, "USER_DEACTIVATED", "USER", id, "Deactivated user account"));
+  }
+
+  @Override
+  @Transactional
+  public void hardDeleteUser(String id) {
+    userRepository.findById(id).ifPresent(userRepository::delete);
   }
 
   @Override
