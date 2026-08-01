@@ -2,7 +2,6 @@ services:
   traefik:
     image: traefik:v3.0
     container_name: apu-asc-traefik
-    user: "0:0"
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -59,8 +58,7 @@ services:
       - ./infra/keycloak/themes/apu-asc:/opt/keycloak/themes/apu-asc:ro
     labels:
       - "traefik.enable=true"
-      - 'traefik.http.routers.keycloak.rule=PathPrefix(`/auth`)'
-      - "traefik.http.routers.keycloak.entrypoints=web"
+      - traefik.http.routers.keycloak.rule=PathPrefix(`/auth`)
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
     depends_on:
       - postgres
