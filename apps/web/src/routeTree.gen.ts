@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as R403RouteImport } from './routes/403'
 import { Route as CustomerRouteRouteImport } from './routes/customer/route'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as InviteRouteImport } from './routes/invite'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ManagerRouteRouteImport } from './routes/manager/route'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -56,6 +57,11 @@ const CustomerRouteRoute = CustomerRouteRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/technician': typeof TechnicianRouteRouteWithChildren
   '/403': typeof R403Route
   '/forgot-password': typeof ForgotPasswordRoute
+  '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/403': typeof R403Route
   '/forgot-password': typeof ForgotPasswordRoute
+  '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -244,6 +252,7 @@ export interface FileRoutesById {
   '/technician': typeof TechnicianRouteRouteWithChildren
   '/403': typeof R403Route
   '/forgot-password': typeof ForgotPasswordRoute
+  '/invite': typeof InviteRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -276,6 +285,7 @@ export interface FileRouteTypes {
     | '/technician'
     | '/403'
     | '/forgot-password'
+    | '/invite'
     | '/login'
     | '/profile'
     | '/register'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/'
     | '/403'
     | '/forgot-password'
+    | '/invite'
     | '/login'
     | '/profile'
     | '/register'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/technician'
     | '/403'
     | '/forgot-password'
+    | '/invite'
     | '/login'
     | '/profile'
     | '/register'
@@ -363,6 +375,7 @@ export interface RootRouteChildren {
   TechnicianRouteRoute: typeof TechnicianRouteRouteWithChildren
   R403Route: typeof R403Route
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
@@ -396,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -653,6 +673,7 @@ const rootRouteChildren: RootRouteChildren = {
   TechnicianRouteRoute: TechnicianRouteRouteWithChildren,
   R403Route: R403Route,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
