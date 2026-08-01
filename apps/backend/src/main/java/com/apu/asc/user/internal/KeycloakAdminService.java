@@ -152,7 +152,8 @@ public class KeycloakAdminService {
         return keycloakId;
       }
     } catch (Exception e) {
-      log.warn("Keycloak user creation skipped or failed for username {}: {}", username, e.getMessage());
+      log.warn(
+          "Keycloak user creation skipped or failed for username {}: {}", username, e.getMessage());
     }
     return null;
   }
@@ -194,7 +195,11 @@ public class KeycloakAdminService {
         log.info("Assigned role {} to Keycloak user ID {}", roleName, keycloakUserId);
       }
     } catch (Exception e) {
-      log.warn("Failed to assign role {} to Keycloak user {}: {}", roleName, keycloakUserId, e.getMessage());
+      log.warn(
+          "Failed to assign role {} to Keycloak user {}: {}",
+          roleName,
+          keycloakUserId,
+          e.getMessage());
     }
   }
 }

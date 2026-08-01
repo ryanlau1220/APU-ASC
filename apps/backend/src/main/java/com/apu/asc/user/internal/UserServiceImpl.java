@@ -63,7 +63,8 @@ class UserServiceImpl implements UserApi {
   @Override
   @Transactional
   public UserDto createUser(UserDto userDto) {
-    if (userDto.username() != null && userRepository.findByUsername(userDto.username()).isPresent()) {
+    if (userDto.username() != null
+        && userRepository.findByUsername(userDto.username()).isPresent()) {
       throw new IllegalArgumentException(
           "Username '" + userDto.username() + "' is already registered.");
     }

@@ -106,10 +106,16 @@ public class EmailService {
             context.setVariable("subject", "Welcome to APU-ASC Automotive Service Centre");
             context.setVariable(
                 "mainContent",
-                "Your " + role + " account ('" + username + "') has been provisioned. Please complete your password setup to activate your account.");
+                "Your "
+                    + role
+                    + " account ('"
+                    + username
+                    + "') has been provisioned. Please complete your password setup to activate your account.");
             context.setVariable(
                 "subContent",
-                "Navigate to http://localhost:3000/invite?email=" + recipientEmail + " to configure your private password.");
+                "Navigate to http://localhost:3000/invite?email="
+                    + recipientEmail
+                    + " to configure your private password.");
             context.setVariable("codeDisplay", "INVITED");
             context.setVariable("platformInfo", "APU-ASC Account Invitation");
             context.setVariable("locationInfo", "Kuala Lumpur, Malaysia");
