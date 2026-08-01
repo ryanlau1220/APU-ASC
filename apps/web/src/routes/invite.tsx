@@ -14,7 +14,7 @@ function InviteAccountSetupPage() {
       : new URLSearchParams()
   const initialEmail = searchParams.get('email') || ''
 
-  const [email, setEmail] = React.useState(initialEmail)
+  const email = initialEmail
   const [newPassword, setNewPassword] = React.useState('')
   const [confirmPassword, setConfirmPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
@@ -118,10 +118,10 @@ function InviteAccountSetupPage() {
                 id="invite-email"
                 type="email"
                 required
+                readOnly
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. employee@apu-asc.com"
-                className="w-full px-3 py-2 rounded-lg bg-input border border-border outline-none focus:border-primary transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-muted text-muted-foreground border border-border outline-none cursor-not-allowed opacity-80"
               />
             </div>
 
