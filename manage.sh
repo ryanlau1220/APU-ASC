@@ -36,6 +36,12 @@ case "$1" in
             exit 1
         fi
 
+        echo -e "${YELLOW}Waiting for Keycloak OIDC issuer to become ready...${RESET}"
+        until curl -s -f -H "Host: localhost" http://127.0.0.1/auth/realms/apu-asc/.well-known/openid-configuration >/dev/null 2>&1; do
+            sleep 1
+        done
+        echo -e "${GREEN}✓ [OK] Keycloak OIDC Service is READY!${RESET}"
+
         # Automatically free ports 8081 and 3000 from lingering background processes
         fuser -k 8081/tcp 3000/tcp 2>/dev/null || true
 
