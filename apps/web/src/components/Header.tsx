@@ -10,6 +10,7 @@ import {
   LogOut,
   MessageSquare,
   Moon,
+  ShieldCheck,
   Sun,
   User as UserIcon,
   Users,
@@ -25,7 +26,7 @@ export interface NavItem {
 }
 
 const CUSTOMER_NAV: NavItem[] = [
-  { label: 'Dashboard', to: '/customer', icon: LayoutDashboard },
+  { label: 'Dashboard', to: '/customer/', icon: LayoutDashboard },
   { label: 'Appointments', to: '/customer/appointments', icon: Calendar },
   { label: 'Vehicles', to: '/customer/vehicles', icon: Car },
   { label: 'Invoices', to: '/customer/payments', icon: CreditCard },
@@ -33,21 +34,29 @@ const CUSTOMER_NAV: NavItem[] = [
 ]
 
 const MANAGER_NAV: NavItem[] = [
-  { label: 'Dashboard', to: '/manager', icon: LayoutDashboard },
+  { label: 'Dashboard', to: '/manager/', icon: LayoutDashboard },
   { label: 'Master Schedule', to: '/manager/appointments', icon: Calendar },
+  { label: 'Vehicles', to: '/manager/vehicles', icon: Car },
   { label: 'Service Catalog', to: '/manager/services', icon: BookOpen },
+  { label: 'Operations Suite', to: '/manager/operations', icon: ShieldCheck },
 ]
 
 const STAFF_NAV: NavItem[] = [
-  { label: 'Dashboard', to: '/staff', icon: LayoutDashboard },
+  { label: 'Dashboard', to: '/staff/', icon: LayoutDashboard },
   { label: 'Counter Intake', to: '/staff/appointments', icon: Calendar },
+  { label: 'Service Catalog', to: '/staff/services', icon: BookOpen },
   { label: 'Customer Accounts', to: '/staff/users', icon: Users },
   { label: 'Payments', to: '/staff/payments', icon: CreditCard },
 ]
 
 const TECHNICIAN_NAV: NavItem[] = [
-  { label: 'Dashboard', to: '/technician', icon: LayoutDashboard },
+  { label: 'Dashboard', to: '/technician/', icon: LayoutDashboard },
   { label: 'Bay Work Orders', to: '/technician/jobs', icon: Wrench },
+  {
+    label: 'Feedback & Notes',
+    to: '/technician/feedback',
+    icon: MessageSquare,
+  },
 ]
 
 export function getRoleNavItems(roles: string[] = []): NavItem[] {
@@ -75,15 +84,15 @@ export function getRoleHomeRoute(roles: string[] = []): string {
     roles.includes('WORKSHOP_MANAGER') ||
     roles.includes('SYSTEM_ADMIN')
   ) {
-    return '/manager'
+    return '/manager/'
   }
   if (roles.includes('STAFF') || roles.includes('ROLE_STAFF')) {
-    return '/staff'
+    return '/staff/'
   }
   if (roles.includes('TECHNICIAN') || roles.includes('ROLE_TECHNICIAN')) {
-    return '/technician'
+    return '/technician/'
   }
-  return '/customer'
+  return '/customer/'
 }
 
 export default function Header() {
@@ -163,11 +172,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon
-              const isDashboardLink =
-                item.to === '/customer' ||
-                item.to === '/manager' ||
-                item.to === '/staff' ||
-                item.to === '/technician'
+              const isDashboardLink = item.to.endsWith('/')
 
               return (
                 <Link
