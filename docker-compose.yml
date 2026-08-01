@@ -5,8 +5,8 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--providers.docker.network=apu-asc-net"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=apu-asc_apu-asc-net"
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
@@ -51,14 +51,19 @@ services:
       SMTP_FROM: ${SPRING_MAIL_USERNAME:-liujunhong20@gmail.com}
       SMTP_USERNAME: ${SPRING_MAIL_USERNAME:-liujunhong20@gmail.com}
       SMTP_PASSWORD: ${SPRING_MAIL_PASSWORD}
-    ports:
-      - "8080:8080"
     volumes:
       - ./infra/keycloak/apu-asc-realm.json:/opt/keycloak/data/import/apu-asc-realm.json:ro
       - ./infra/keycloak/themes/apu-asc:/opt/keycloak/themes/apu-asc:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /auth/realms/apu-asc/.well-known/openid-configuration HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && head -c 20 <&3 | grep -q '200 OK'"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
     labels:
       - "traefik.enable=true"
-      - traefik.http.routers.keycloak.rule=PathPrefix(`/auth`)
+      - "traefik.http.routers.keycloak.rule=PathPrefix(`/auth`)"
+      - "traefik.http.routers.keycloak.service=keycloak"
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
     depends_on:
       - postgres
@@ -92,6 +97,7 @@ services:
 
 networks:
   apu-asc-net:
+    name: apu-asc-net
     driver: bridge
 
 volumes:

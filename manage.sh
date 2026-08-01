@@ -37,8 +37,8 @@ case "$1" in
         fi
 
         echo -e "${YELLOW}Waiting for Keycloak OIDC issuer to become ready...${RESET}"
-        until curl -s -f -H "Host: localhost" http://127.0.0.1/auth/realms/apu-asc/.well-known/openid-configuration >/dev/null 2>&1; do
-            sleep 1
+        until [ "$(docker inspect --format='{{.State.Health.Status}}' apu-asc-keycloak 2>/dev/null)" = "healthy" ]; do
+            sleep 2
         done
         echo -e "${GREEN}✓ [OK] Keycloak OIDC Service is READY!${RESET}"
 
