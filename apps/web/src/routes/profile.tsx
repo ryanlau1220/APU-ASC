@@ -1,12 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
+  Car,
   CheckCircle2,
   KeyRound,
+  LayoutDashboard,
   Lock,
   Mail,
   Save,
   Shield,
   User as UserIcon,
+  Users,
+  Wrench,
 } from 'lucide-react'
 import * as React from 'react'
 import Footer from '../components/Footer'
@@ -185,14 +189,114 @@ function ProfilePage() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-3">
               <span className="font-semibold text-foreground block">
                 Assigned Role & Privileges
               </span>
-              <div className="p-3 rounded-lg bg-muted border border-border flex items-center gap-2 text-xs font-semibold text-foreground">
-                <Shield className="w-4 h-4 text-primary" />
-                {(userSession?.roles?.[0] || 'CUSTOMER').replace('ROLE_', '')}
+              <div className="p-3 rounded-lg bg-muted border border-border flex items-center justify-between text-xs font-semibold text-foreground">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary" />
+                  <span>
+                    {(userSession?.roles?.[0] || 'CUSTOMER').replace(
+                      'ROLE_',
+                      '',
+                    )}
+                  </span>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/30">
+                  ACTIVE IDENTITY
+                </span>
               </div>
+
+              {(userSession?.roles?.includes('MANAGER') ||
+                userSession?.roles?.includes('ROLE_MANAGER') ||
+                userSession?.roles?.includes('WORKSHOP_MANAGER') ||
+                userSession?.roles?.includes('SYSTEM_ADMIN')) && (
+                <div className="p-4 rounded-xl border border-border bg-card space-y-3 mt-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                      <LayoutDashboard className="w-4 h-4 text-primary" />
+                      Executive Portal Switcher
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      Manager Multi-Portal Access
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    As a Manager, you have full access across all role-based
+                    views. Click any portal below to switch view directly:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <Link
+                      to={'/manager/' as never}
+                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
+                    >
+                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                        <Shield className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                          Manager
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Executive Suite
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to={'/staff/' as never}
+                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
+                    >
+                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                          Staff
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Counter Intake
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to={'/technician/' as never}
+                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
+                    >
+                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                        <Wrench className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                          Technician
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Workshop Bays
+                        </div>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to={'/customer/' as never}
+                      className="p-3 rounded-lg border border-border hover:border-primary/50 bg-muted/40 hover:bg-muted transition-colors flex items-center gap-2.5 group"
+                    >
+                      <div className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                        <Car className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                          Customer
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          Self Service
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="pt-2 flex justify-end">

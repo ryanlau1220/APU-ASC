@@ -248,59 +248,14 @@ export default function Header() {
                     Edit Profile
                   </Link>
 
-                  {(roles.includes('MANAGER') ||
-                    roles.includes('ROLE_MANAGER') ||
-                    roles.includes('WORKSHOP_MANAGER') ||
-                    roles.includes('SYSTEM_ADMIN')) && (
-                    <div className="border-t border-border pt-1.5 mt-1.5 space-y-0.5">
-                      <div className="px-3 py-1 text-[10px] font-bold text-muted-foreground tracking-wider uppercase">
-                        Switch Portal View
-                      </div>
-                      <Link
-                        to={'/manager/' as never}
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                        Manager Portal
-                      </Link>
-                      <Link
-                        to={'/staff/' as never}
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <Users className="w-3.5 h-3.5 text-primary" />
-                        Staff Portal
-                      </Link>
-                      <Link
-                        to={'/technician/' as never}
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <Wrench className="w-3.5 h-3.5 text-primary" />
-                        Technician Portal
-                      </Link>
-                      <Link
-                        to={'/customer/' as never}
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <Car className="w-3.5 h-3.5 text-primary" />
-                        Customer Portal
-                      </Link>
-                    </div>
-                  )}
-
-                  <div className="border-t border-border pt-1 mt-1">
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-status-pending hover:bg-status-pending/10 transition-colors text-left"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-status-pending hover:bg-status-pending/10 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
                 </div>
               )}
             </div>
