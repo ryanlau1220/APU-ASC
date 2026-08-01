@@ -24,6 +24,8 @@ public interface UserApi {
 
   void deleteUser(String id);
 
+  void hardDeleteUser(String id);
+
   UserDto syncJitUser(
       String keycloakId, String username, String email, String fullName, String role);
 }

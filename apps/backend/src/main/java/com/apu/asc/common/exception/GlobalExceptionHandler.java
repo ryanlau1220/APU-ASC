@@ -36,6 +36,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return problemDetail;
   }
 
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+    ProblemDetail problemDetail =
+        ProblemDetail.forStatusAndDetail(
+            org.springframework.http.HttpStatus.BAD_REQUEST, ex.getMessage());
+    problemDetail.setType(URI.create("https://apu-asc.com/errors/bad-request"));
+    problemDetail.setTitle("Bad Request");
+    return problemDetail;
+  }
+
   @Override
   protected ResponseEntity<Object> handleAsyncRequestTimeoutException(
       AsyncRequestTimeoutException ex,
