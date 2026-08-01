@@ -27,24 +27,24 @@ export interface NavItem {
 
 const CUSTOMER_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/customer/', icon: LayoutDashboard },
-  { label: 'Appointments', to: '/customer/appointments', icon: Calendar },
   { label: 'Vehicles', to: '/customer/vehicles', icon: Car },
+  { label: 'Appointments', to: '/customer/appointments', icon: Calendar },
   { label: 'Invoices', to: '/customer/payments', icon: CreditCard },
   { label: 'Feedback', to: '/customer/feedback', icon: MessageSquare },
 ]
 
 const MANAGER_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/manager/', icon: LayoutDashboard },
+  { label: 'Service Catalog', to: '/manager/services', icon: BookOpen },
   { label: 'Master Schedule', to: '/manager/appointments', icon: Calendar },
   { label: 'Vehicles', to: '/manager/vehicles', icon: Car },
-  { label: 'Service Catalog', to: '/manager/services', icon: BookOpen },
   { label: 'Operations Suite', to: '/manager/operations', icon: ShieldCheck },
 ]
 
 const STAFF_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/staff/', icon: LayoutDashboard },
+  { label: 'Services', to: '/staff/services', icon: BookOpen },
   { label: 'Counter Intake', to: '/staff/appointments', icon: Calendar },
-  { label: 'Service Catalog', to: '/staff/services', icon: BookOpen },
   { label: 'Customer Accounts', to: '/staff/users', icon: Users },
   { label: 'Payments', to: '/staff/payments', icon: CreditCard },
 ]
