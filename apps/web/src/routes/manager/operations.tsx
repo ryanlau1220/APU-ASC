@@ -175,12 +175,10 @@ function ManagerOperationsContent() {
                     }
                     className="w-full px-3 py-2 rounded-lg bg-background border border-border focus:border-primary outline-none"
                   >
-                    <option value="STAFF">Staff (Counter & Intake)</option>
-                    <option value="TECHNICIAN">
-                      Technician (Workshop Bay)
-                    </option>
-                    <option value="MANAGER">Workshop Manager</option>
-                    <option value="CUSTOMER">Customer Profile</option>
+                    <option value="STAFF">Staff</option>
+                    <option value="TECHNICIAN">Technician</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="CUSTOMER">Customer</option>
                   </select>
                 </div>
 
