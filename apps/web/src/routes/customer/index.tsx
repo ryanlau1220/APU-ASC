@@ -9,9 +9,9 @@ import {
   User,
 } from 'lucide-react'
 import {
-  useGetAllAppointments,
-  useGetAllPayments,
-  useGetAllVehicles,
+  useGetMyAppointments,
+  useGetMyPayments,
+  useGetMyVehicles,
 } from '../../api/generated/endpoints'
 import type {
   AppointmentDto,
@@ -28,22 +28,15 @@ export const Route = createFileRoute('/customer/')({
 
 function CustomerDashboardContent() {
   const { userSession } = useUserSession()
-  const customerId = userSession?.id || userSession?.keycloakId || ''
 
-  const { data: vehiclesData = [] } = useGetAllVehicles()
-  const myVehicles = ((vehiclesData || []) as VehicleDto[]).filter(
-    (v) => v.customerId === customerId || !customerId,
-  )
+  const { data: vehiclesData = [] } = useGetMyVehicles()
+  const myVehicles = (vehiclesData || []) as VehicleDto[]
 
-  const { data: appointmentsData = [] } = useGetAllAppointments()
-  const myAppointments = ((appointmentsData || []) as AppointmentDto[]).filter(
-    (a) => a.customerId === customerId || !customerId,
-  )
+  const { data: appointmentsData = [] } = useGetMyAppointments()
+  const myAppointments = (appointmentsData || []) as AppointmentDto[]
 
-  const { data: paymentsData = [] } = useGetAllPayments()
-  const myPayments = ((paymentsData || []) as PaymentDto[]).filter(
-    (p) => p.customerId === customerId || !customerId,
-  )
+  const { data: paymentsData = [] } = useGetMyPayments()
+  const myPayments = (paymentsData || []) as PaymentDto[]
 
   const pendingPayments = myPayments.filter((p) => p.paymentStatus !== 'PAID')
 

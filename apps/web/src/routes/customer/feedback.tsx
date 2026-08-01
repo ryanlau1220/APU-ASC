@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { MessageSquare, Star } from 'lucide-react'
 import * as React from 'react'
 import {
-  useGetAllAppointments,
+  useGetMyAppointments,
   useSubmitFeedback,
 } from '../../api/generated/endpoints'
 import type { AppointmentDto } from '../../api/generated/models'
@@ -24,13 +24,10 @@ function CustomerFeedbackContent() {
   const [comments, setComments] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
 
-  const { data: appointmentsData = [] } = useGetAllAppointments()
+  const { data: appointmentsData = [] } = useGetMyAppointments()
   const completedAppointments = (
     (appointmentsData || []) as AppointmentDto[]
-  ).filter(
-    (a) =>
-      (a.customerId === customerId || !customerId) && a.status === 'COMPLETED',
-  )
+  ).filter((a) => a.status === 'COMPLETED')
 
   const submitFeedbackMutation = useSubmitFeedback({
     mutation: {

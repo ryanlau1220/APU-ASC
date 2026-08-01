@@ -2,28 +2,22 @@ import { createFileRoute } from '@tanstack/react-router'
 import { CheckCircle2, CreditCard, DollarSign, ShieldCheck } from 'lucide-react'
 import * as React from 'react'
 import {
-  useGetAllPayments,
+  useGetMyPayments,
   useProcessPayment,
 } from '../../api/generated/endpoints'
 import type { PaymentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
-import { useUserSession } from '../__root'
 
 export const Route = createFileRoute('/customer/payments')({
   component: CustomerPaymentsContent,
 })
 
 function CustomerPaymentsContent() {
-  const { userSession } = useUserSession()
-  const customerId =
-    userSession?.id || userSession?.keycloakId || 'USR-CUSTOMER'
   const [message, setMessage] = React.useState<string | null>(null)
 
-  const { data: paymentsData = [], refetch } = useGetAllPayments()
-  const myPayments = ((paymentsData || []) as PaymentDto[]).filter(
-    (p) => p.customerId === customerId || !customerId,
-  )
+  const { data: paymentsData = [], refetch } = useGetMyPayments()
+  const myPayments = (paymentsData || []) as PaymentDto[]
 
   const processPaymentMutation = useProcessPayment({
     mutation: {

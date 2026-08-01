@@ -3,7 +3,7 @@ import { Calendar, Car, Plus, ShieldCheck, User } from 'lucide-react'
 import * as React from 'react'
 import {
   useCreateVehicle,
-  useGetAllVehicles,
+  useGetMyVehicles,
 } from '../../api/generated/endpoints'
 import type { VehicleDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -26,10 +26,8 @@ function CustomerVehiclesContent() {
   const [vin, setVin] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
 
-  const { data: vehiclesData = [], refetch } = useGetAllVehicles()
-  const myVehicles = ((vehiclesData || []) as VehicleDto[]).filter(
-    (v) => v.customerId === customerId || !customerId,
-  )
+  const { data: vehiclesData = [], refetch } = useGetMyVehicles()
+  const myVehicles = (vehiclesData || []) as VehicleDto[]
 
   const createVehicleMutation = useCreateVehicle({
     mutation: {

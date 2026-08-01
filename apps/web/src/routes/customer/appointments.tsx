@@ -3,8 +3,8 @@ import { Calendar, CheckCircle2, Clock, Plus } from 'lucide-react'
 import * as React from 'react'
 import {
   useCreateAppointment,
-  useGetAllAppointments,
-  useGetAllVehicles,
+  useGetMyAppointments,
+  useGetMyVehicles,
   useGetServices,
 } from '../../api/generated/endpoints'
 import type {
@@ -32,18 +32,14 @@ function CustomerAppointmentsContent() {
   const [notes, setNotes] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
 
-  const { data: vehiclesData = [] } = useGetAllVehicles()
-  const myVehicles = ((vehiclesData || []) as VehicleDto[]).filter(
-    (v) => v.customerId === customerId || !customerId,
-  )
+  const { data: vehiclesData = [] } = useGetMyVehicles()
+  const myVehicles = (vehiclesData || []) as VehicleDto[]
 
   const { data: servicesData = [] } = useGetServices()
   const services = (servicesData || []) as ServiceDto[]
 
-  const { data: appointmentsData = [], refetch } = useGetAllAppointments()
-  const myAppointments = ((appointmentsData || []) as AppointmentDto[]).filter(
-    (a) => a.customerId === customerId || !customerId,
-  )
+  const { data: appointmentsData = [], refetch } = useGetMyAppointments()
+  const myAppointments = (appointmentsData || []) as AppointmentDto[]
 
   const createAppointmentMutation = useCreateAppointment({
     mutation: {
