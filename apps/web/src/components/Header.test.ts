@@ -27,13 +27,13 @@ describe('Role-Based Header Navigation Unit Tests', () => {
   })
 
   describe('getRoleNavItems', () => {
-    it('should return Customer specific links for CUSTOMER', () => {
+    it('should return Customer specific links for CUSTOMER with Vehicles as 2nd item', () => {
       const items = getRoleNavItems(['CUSTOMER'])
       const routes = items.map((i) => i.to)
 
-      expect(routes).toContain('/customer/')
-      expect(routes).toContain('/customer/appointments')
-      expect(routes).toContain('/customer/vehicles')
+      expect(routes[0]).toBe('/customer/')
+      expect(routes[1]).toBe('/customer/vehicles')
+      expect(routes[2]).toBe('/customer/appointments')
       expect(routes).toContain('/customer/payments')
       expect(routes).toContain('/customer/feedback')
 
@@ -42,14 +42,14 @@ describe('Role-Based Header Navigation Unit Tests', () => {
       expect(routes).not.toContain('/staff/users')
     })
 
-    it('should return Manager specific links for MANAGER', () => {
+    it('should return Manager specific links for MANAGER with Service Catalog as 2nd item', () => {
       const items = getRoleNavItems(['MANAGER'])
       const routes = items.map((i) => i.to)
 
-      expect(routes).toContain('/manager/')
+      expect(routes[0]).toBe('/manager/')
+      expect(routes[1]).toBe('/manager/services')
       expect(routes).toContain('/manager/appointments')
       expect(routes).toContain('/manager/vehicles')
-      expect(routes).toContain('/manager/services')
       expect(routes).toContain('/manager/operations')
 
       // Should NOT contain customer feedback or staff intake
@@ -57,13 +57,13 @@ describe('Role-Based Header Navigation Unit Tests', () => {
       expect(routes).not.toContain('/staff/users')
     })
 
-    it('should return Staff specific links for STAFF', () => {
+    it('should return Staff specific links for STAFF with Services as 2nd item', () => {
       const items = getRoleNavItems(['STAFF'])
       const routes = items.map((i) => i.to)
 
-      expect(routes).toContain('/staff/')
+      expect(routes[0]).toBe('/staff/')
+      expect(routes[1]).toBe('/staff/services')
       expect(routes).toContain('/staff/appointments')
-      expect(routes).toContain('/staff/services')
       expect(routes).toContain('/staff/users')
       expect(routes).toContain('/staff/payments')
     })
@@ -72,9 +72,9 @@ describe('Role-Based Header Navigation Unit Tests', () => {
       const items = getRoleNavItems(['TECHNICIAN'])
       const routes = items.map((i) => i.to)
 
-      expect(routes).toContain('/technician/')
-      expect(routes).toContain('/technician/jobs')
-      expect(routes).toContain('/technician/feedback')
+      expect(routes[0]).toBe('/technician/')
+      expect(routes[1]).toBe('/technician/jobs')
+      expect(routes[2]).toBe('/technician/feedback')
     })
   })
 })
