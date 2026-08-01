@@ -34,7 +34,13 @@ function ProfilePage() {
   // Active Portal View Selection for Managers
   const [selectedPortal, setSelectedPortal] = React.useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('active_portal_view') || 'MANAGER'
+      const stored = localStorage.getItem('active_portal_view')
+      if (stored) return stored
+      const ref = document.referrer || ''
+      if (ref.includes('/customer')) return 'CUSTOMER'
+      if (ref.includes('/staff')) return 'STAFF'
+      if (ref.includes('/technician')) return 'TECHNICIAN'
+      if (ref.includes('/manager')) return 'MANAGER'
     }
     return 'MANAGER'
   })

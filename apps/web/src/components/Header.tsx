@@ -59,15 +59,47 @@ const TECHNICIAN_NAV: NavItem[] = [
   },
 ]
 
-export function getRoleNavItems(roles: string[] = []): NavItem[] {
-  if (
+export function getRoleNavItems(
+  roles: string[] = [],
+  pathname?: string,
+): NavItem[] {
+  const isManager =
     roles.includes('MANAGER') ||
     roles.includes('ROLE_MANAGER') ||
     roles.includes('WORKSHOP_MANAGER') ||
     roles.includes('SYSTEM_ADMIN')
-  ) {
+
+  // Only Managers/Admins can dynamically switch portal nav views
+  if (isManager) {
+    const currentPath =
+      pathname ||
+      (typeof window !== 'undefined' ? window.location.pathname : '')
+
+    if (currentPath.startsWith('/customer')) {
+      return CUSTOMER_NAV
+    }
+    if (currentPath.startsWith('/staff')) {
+      return STAFF_NAV
+    }
+    if (currentPath.startsWith('/technician')) {
+      return TECHNICIAN_NAV
+    }
+    if (currentPath.startsWith('/manager')) {
+      return MANAGER_NAV
+    }
+
+    if (typeof window !== 'undefined') {
+      const activeView = localStorage.getItem('active_portal_view')
+      if (activeView === 'CUSTOMER') return CUSTOMER_NAV
+      if (activeView === 'STAFF') return STAFF_NAV
+      if (activeView === 'TECHNICIAN') return TECHNICIAN_NAV
+      if (activeView === 'MANAGER') return MANAGER_NAV
+    }
+
     return MANAGER_NAV
   }
+
+  // Non-manager roles strictly receive their dedicated role nav
   if (roles.includes('STAFF') || roles.includes('ROLE_STAFF')) {
     return STAFF_NAV
   }
@@ -77,15 +109,45 @@ export function getRoleNavItems(roles: string[] = []): NavItem[] {
   return CUSTOMER_NAV
 }
 
-export function getRoleHomeRoute(roles: string[] = []): string {
-  if (
+export function getRoleHomeRoute(
+  roles: string[] = [],
+  pathname?: string,
+): string {
+  const isManager =
     roles.includes('MANAGER') ||
     roles.includes('ROLE_MANAGER') ||
     roles.includes('WORKSHOP_MANAGER') ||
     roles.includes('SYSTEM_ADMIN')
-  ) {
+
+  if (isManager) {
+    const currentPath =
+      pathname ||
+      (typeof window !== 'undefined' ? window.location.pathname : '')
+
+    if (currentPath.startsWith('/customer')) {
+      return '/customer/'
+    }
+    if (currentPath.startsWith('/staff')) {
+      return '/staff/'
+    }
+    if (currentPath.startsWith('/technician')) {
+      return '/technician/'
+    }
+    if (currentPath.startsWith('/manager')) {
+      return '/manager/'
+    }
+
+    if (typeof window !== 'undefined') {
+      const activeView = localStorage.getItem('active_portal_view')
+      if (activeView === 'CUSTOMER') return '/customer/'
+      if (activeView === 'STAFF') return '/staff/'
+      if (activeView === 'TECHNICIAN') return '/technician/'
+      if (activeView === 'MANAGER') return '/manager/'
+    }
+
     return '/manager/'
   }
+
   if (roles.includes('STAFF') || roles.includes('ROLE_STAFF')) {
     return '/staff/'
   }
