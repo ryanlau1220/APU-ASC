@@ -8,8 +8,10 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -39,8 +41,27 @@ class UserController {
   @GetMapping("/{id}")
   @PreAuthorize("hasAnyRole('MANAGER', 'STAFF', 'CUSTOMER', 'TECHNICIAN')")
   @Operation(summary = "Get user by ID", description = "Retrieves user details by ID")
-  public ResponseEntity<UserDto> getUserById(@PathVariable final String id) {
-    return ResponseEntity.ok(userApi.getUserById(id));
+  public ResponseEntity<UserDto> getUserById(
+      @PathVariable final String id, Authentication authentication) {
+    UserDto user = userApi.getUserById(id);
+    boolean isStaffOrManager =
+        authentication.getAuthorities().stream()
+            .anyMatch(
+                a ->
+                    a.getAuthority().equals("ROLE_MANAGER")
+                        || a.getAuthority().equals("ROLE_STAFF")
+                        || a.getAuthority().equals("ROLE_SYSTEM_ADMIN"));
+    if (!isStaffOrManager) {
+      String principalName = authentication.getName();
+      boolean isSelf =
+          (user.username() != null && user.username().equalsIgnoreCase(principalName))
+              || (user.id() != null && user.id().equals(principalName))
+              || (user.keycloakId() != null && user.keycloakId().equals(principalName));
+      if (!isSelf) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+      }
+    }
+    return ResponseEntity.ok(user);
   }
 
   @PostMapping
@@ -52,10 +73,41 @@ class UserController {
   }
 
   @PutMapping("/{id}")
-  @PreAuthorize("hasRole('MANAGER')")
+  @PreAuthorize("hasAnyRole('MANAGER', 'STAFF', 'CUSTOMER', 'TECHNICIAN')")
   @Operation(summary = "Update user details", description = "Updates user role or metadata")
   public ResponseEntity<UserDto> updateUser(
-      @PathVariable final String id, @Valid @RequestBody final UserDto userDto) {
+      @PathVariable final String id,
+      @Valid @RequestBody UserDto userDto,
+      Authentication authentication) {
+    UserDto existing = userApi.getUserById(id);
+    boolean isManager =
+        authentication.getAuthorities().stream()
+            .anyMatch(
+                a ->
+                    a.getAuthority().equals("ROLE_MANAGER")
+                        || a.getAuthority().equals("ROLE_SYSTEM_ADMIN"));
+    if (!isManager) {
+      String principalName = authentication.getName();
+      boolean isSelf =
+          (existing.username() != null && existing.username().equalsIgnoreCase(principalName))
+              || (existing.id() != null && existing.id().equals(principalName))
+              || (existing.keycloakId() != null && existing.keycloakId().equals(principalName));
+      if (!isSelf) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+      }
+      // Non-managers cannot escalate roles or status
+      userDto =
+          new UserDto(
+              existing.id(),
+              existing.keycloakId(),
+              existing.username(),
+              userDto.email() != null ? userDto.email() : existing.email(),
+              userDto.fullName() != null ? userDto.fullName() : existing.fullName(),
+              existing.role(),
+              existing.status(),
+              existing.createdAt(),
+              existing.updatedAt());
+    }
     return ResponseEntity.ok(userApi.updateUser(id, userDto));
   }
 
