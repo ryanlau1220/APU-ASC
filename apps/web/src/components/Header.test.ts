@@ -3,11 +3,9 @@ import { getRoleHomeRoute, getRoleNavItems } from './Header'
 
 describe('Role-Based Header Navigation Unit Tests', () => {
   describe('getRoleHomeRoute', () => {
-    it('should return /manager/ for MANAGER, WORKSHOP_MANAGER, and SYSTEM_ADMIN roles', () => {
+    it('should return /manager/ for MANAGER and SYSTEM_ADMIN roles', () => {
       expect(getRoleHomeRoute(['MANAGER'])).toBe('/manager/')
-      expect(getRoleHomeRoute(['WORKSHOP_MANAGER'])).toBe('/manager/')
       expect(getRoleHomeRoute(['SYSTEM_ADMIN'])).toBe('/manager/')
-      expect(getRoleHomeRoute(['ROLE_MANAGER'])).toBe('/manager/')
     })
 
     it('should return /staff/ for STAFF role', () => {

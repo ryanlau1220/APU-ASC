@@ -35,10 +35,6 @@
         "description": "Workshop Manager with administrative control"
       },
       {
-        "name": "WORKSHOP_MANAGER",
-        "description": "Workshop Manager with administrative control"
-      },
-      {
         "name": "STAFF",
         "description": "Counter Staff with booking & billing privileges"
       },

@@ -63,10 +63,7 @@ export function getRoleNavItems(
   roles: string[] = [],
   pathname?: string,
 ): NavItem[] {
-  const isManager =
-    roles.includes('MANAGER') ||
-    roles.includes('WORKSHOP_MANAGER') ||
-    roles.includes('SYSTEM_ADMIN')
+  const isManager = roles.includes('MANAGER') || roles.includes('SYSTEM_ADMIN')
 
   // Only Managers/Admins can dynamically switch portal nav views
   if (isManager) {
@@ -112,11 +109,7 @@ export function getRoleHomeRoute(
   roles: string[] = [],
   pathname?: string,
 ): string {
-  const isManager =
-    roles.includes('MANAGER') ||
-    roles.includes('ROLE_MANAGER') ||
-    roles.includes('WORKSHOP_MANAGER') ||
-    roles.includes('SYSTEM_ADMIN')
+  const isManager = roles.includes('MANAGER') || roles.includes('SYSTEM_ADMIN')
 
   if (isManager) {
     const currentPath =

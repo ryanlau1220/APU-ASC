@@ -8,12 +8,7 @@ export default function Footer() {
   const isInternalUser =
     roles.includes('MANAGER') ||
     roles.includes('STAFF') ||
-    roles.includes('WORKSHOP_MANAGER') ||
-    roles.includes('SYSTEM_ADMIN') ||
-    roles.includes('ROLE_MANAGER') ||
-    roles.includes('ROLE_STAFF') ||
-    roles.includes('ROLE_WORKSHOP_MANAGER') ||
-    roles.includes('ROLE_SYSTEM_ADMIN')
+    roles.includes('SYSTEM_ADMIN')
 
   return (
     <footer className="border-t border-border bg-card py-6 mt-auto transition-colors">

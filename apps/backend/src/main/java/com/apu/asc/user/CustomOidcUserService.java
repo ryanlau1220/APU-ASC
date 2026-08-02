@@ -82,16 +82,8 @@ public class CustomOidcUserService extends OidcUserService {
         if ("SYSTEM_ADMIN".equals(roleStr) || "MANAGER".equals(roleStr)) {
           authorities.add(new SimpleGrantedAuthority("ROLE_SYSTEM_ADMIN"));
           authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
-          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
           authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
-          primaryRole = "SYSTEM_ADMIN";
-        } else if ("WORKSHOP_MANAGER".equals(roleStr)) {
-          authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
-          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
-          authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
-          if (!"SYSTEM_ADMIN".equals(primaryRole)) {
-            primaryRole = "WORKSHOP_MANAGER";
-          }
+          primaryRole = "MANAGER";
         } else if ("STAFF".equals(roleStr)) {
           authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
           if ("CUSTOMER".equals(primaryRole)) {

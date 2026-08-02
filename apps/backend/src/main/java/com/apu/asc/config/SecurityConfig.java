@@ -175,7 +175,7 @@ public class SecurityConfig {
 
   static class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
     private static final Set<String> APP_ROLES =
-        Set.of("CUSTOMER", "STAFF", "TECHNICIAN", "MANAGER", "WORKSHOP_MANAGER", "SYSTEM_ADMIN");
+        Set.of("CUSTOMER", "STAFF", "TECHNICIAN", "MANAGER", "SYSTEM_ADMIN");
 
     @Override
     @SuppressWarnings("unchecked")
@@ -201,11 +201,6 @@ public class SecurityConfig {
         if ("SYSTEM_ADMIN".equals(roleStr) || "MANAGER".equals(roleStr)) {
           authorities.add(new SimpleGrantedAuthority("ROLE_SYSTEM_ADMIN"));
           authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
-          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
-          authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
-        } else if ("WORKSHOP_MANAGER".equals(roleStr)) {
-          authorities.add(new SimpleGrantedAuthority("ROLE_MANAGER"));
-          authorities.add(new SimpleGrantedAuthority("ROLE_WORKSHOP_MANAGER"));
           authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
         }
       }

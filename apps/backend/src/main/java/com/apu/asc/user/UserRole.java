@@ -5,7 +5,6 @@ public enum UserRole {
   STAFF,
   TECHNICIAN,
   MANAGER,
-  WORKSHOP_MANAGER,
   SYSTEM_ADMIN;
 
   public static UserRole fromString(String role) {

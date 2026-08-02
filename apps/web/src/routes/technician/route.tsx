@@ -7,14 +7,7 @@ export const Route = createFileRoute('/technician')({
 
 function TechnicianLayout() {
   return (
-    <RequireAuth
-      allowedRoles={[
-        'TECHNICIAN',
-        'MANAGER',
-        'WORKSHOP_MANAGER',
-        'SYSTEM_ADMIN',
-      ]}
-    >
+    <RequireAuth allowedRoles={['TECHNICIAN', 'MANAGER', 'SYSTEM_ADMIN']}>
       <Outlet />
     </RequireAuth>
   )

@@ -259,8 +259,6 @@ function ProfilePage() {
               </div>
 
               {(userSession?.roles?.includes('MANAGER') ||
-                userSession?.roles?.includes('ROLE_MANAGER') ||
-                userSession?.roles?.includes('WORKSHOP_MANAGER') ||
                 userSession?.roles?.includes('SYSTEM_ADMIN')) && (
                 <div className="p-4 rounded-xl border border-border bg-card space-y-3 mt-4">
                   <div className="flex items-center justify-between">
