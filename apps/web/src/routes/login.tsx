@@ -3,7 +3,12 @@ import { LogIn, Moon, ShieldCheck, Sun, Wrench } from 'lucide-react'
 import * as React from 'react'
 import Footer from '../components/Footer'
 
-export const Route = createFileRoute('/login')({ component: LoginPage })
+export const Route = createFileRoute('/login')({
+  head: () => ({
+    meta: [{ title: 'Sign In | APU Automotive Service Centre' }],
+  }),
+  component: LoginPage,
+})
 
 function LoginPage() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')

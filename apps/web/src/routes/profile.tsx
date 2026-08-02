@@ -18,7 +18,14 @@ import Header from '../components/Header'
 import { bffFetch } from '../lib/apiClient'
 import { useUserSession } from './__root'
 
-export const Route = createFileRoute('/profile')({ component: ProfilePage })
+export const Route = createFileRoute('/profile')({
+  head: () => ({
+    meta: [
+      { title: 'User Profile & Settings | APU Automotive Service Centre' },
+    ],
+  }),
+  component: ProfilePage,
+})
 
 function ProfilePage() {
   const { userSession } = useUserSession()

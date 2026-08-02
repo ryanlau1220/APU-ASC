@@ -12,7 +12,12 @@ import {
 import * as React from 'react'
 import Footer from '../components/Footer'
 
-export const Route = createFileRoute('/register')({ component: RegisterPage })
+export const Route = createFileRoute('/register')({
+  head: () => ({
+    meta: [{ title: 'Register Account | APU Automotive Service Centre' }],
+  }),
+  component: RegisterPage,
+})
 
 function RegisterPage() {
   const navigate = useNavigate()
