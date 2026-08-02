@@ -53,7 +53,12 @@ function ProfilePage() {
   const [passSuccess, setPassSuccess] = React.useState('')
   const [passError, setPassError] = React.useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  React.useEffect(() => {
+    if (userSession?.fullName) setFullName(userSession.fullName)
+    if (userSession?.email) setEmail(userSession.email)
+  }, [userSession])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
@@ -61,9 +66,14 @@ function ProfilePage() {
       localStorage.setItem('active_portal_view', selectedPortal)
     }
 
-    // Save profile & redirect to selected portal
-    setTimeout(() => {
-      setLoading(false)
+    try {
+      if (userSession?.id) {
+        await bffFetch(`/api/v1/users/${userSession.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullName, email }),
+        })
+      }
       setSaved(true)
 
       const portalRoutes: Record<string, string> = {
@@ -77,7 +87,11 @@ function ProfilePage() {
       setTimeout(() => {
         window.location.href = targetRoute
       }, 1000)
-    }, 500)
+    } catch (err) {
+      console.error('Failed to save profile changes:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleChangePassword = async (e: React.FormEvent) => {
