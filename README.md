@@ -14,11 +14,11 @@ Tech Stack:
 - Logging: Logback + SLF4J
 - Identity Management: Keycloak
 - Email Delivery: Jakarta Mail + Thymeleaf
-- Object Storage: MinIO
+- Object Storage: MinIO + AWS S3 SDK
 - Observability Layer: Micrometer + OTel + PostHog + pg_cron
 - Reverse Proxy: Traefik
 - Testing: JUnit 5 + Vitest + Playwright
-- OpenAPI Docs: Scalar
+- OpenAPI Docs: SpringDoc + Scalar
 - Rate Limiting: bucket4j
 - Tools: Turborepo, Biome, Spotless, Checkstyle, SpotBugs, PMD, OpenApi-Typescript, Orval
 
