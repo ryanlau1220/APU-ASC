@@ -60,10 +60,40 @@ function ProfilePage() {
   const [passSuccess, setPassSuccess] = React.useState('')
   const [passError, setPassError] = React.useState('')
 
+  // Avatar Upload State
+  const [avatarFile, setAvatarFile] = React.useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = React.useState<string>('')
+  const [avatarUploading, setAvatarUploading] = React.useState(false)
+  const [avatarSuccess, setAvatarSuccess] = React.useState('')
+
   React.useEffect(() => {
     if (userSession?.fullName) setFullName(userSession.fullName)
     if (userSession?.email) setEmail(userSession.email)
   }, [userSession])
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return
+    setAvatarUploading(true)
+    setAvatarSuccess('')
+
+    const formData = new FormData()
+    formData.append('file', avatarFile)
+
+    try {
+      await bffFetch('/api/v1/users/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+      setAvatarSuccess('Avatar picture updated! Reloading session...')
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+    } catch (err) {
+      console.error('Avatar upload failed:', err)
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -186,6 +216,64 @@ function ProfilePage() {
             <UserIcon className="w-5 h-5 text-primary" />
             Profile Details
           </h2>
+
+          {/* Avatar Upload Section */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-muted/40 border border-border">
+            <div className="relative group w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/40 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
+              {avatarPreview || userSession?.avatarUrl ? (
+                <img
+                  src={avatarPreview || userSession?.avatarUrl}
+                  alt="Profile Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <UserIcon className="w-9 h-9 text-primary" />
+              )}
+            </div>
+            <div className="space-y-2 text-center sm:text-left flex-1">
+              <div className="font-semibold text-sm text-foreground">
+                Profile Picture
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Upload a JPEG or PNG image. Stored securely in MinIO Object
+                Storage.
+              </p>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-1">
+                <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors shadow-sm">
+                  <UserIcon className="w-3.5 h-3.5" />
+                  Choose File
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setAvatarFile(file)
+                        setAvatarPreview(URL.createObjectURL(file))
+                      }
+                    }}
+                  />
+                </label>
+                {avatarFile && (
+                  <button
+                    type="button"
+                    onClick={handleAvatarUpload}
+                    disabled={avatarUploading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-status-completed text-white text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {avatarUploading ? 'Uploading...' : 'Save Picture'}
+                  </button>
+                )}
+              </div>
+              {avatarSuccess && (
+                <div className="text-xs font-medium text-status-completed flex items-center gap-1 mt-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {avatarSuccess}
+                </div>
+              )}
+            </div>
+          </div>
 
           {saved && (
             <div className="p-4 rounded-lg bg-status-completed/10 border border-status-completed/30 text-status-completed text-xs font-medium flex items-center gap-2">
