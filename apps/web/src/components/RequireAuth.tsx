@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import * as React from 'react'
 import { useUserSession } from '../routes/__root'
 
@@ -8,6 +9,7 @@ interface RequireAuthProps {
 
 export function RequireAuth({ allowedRoles, children }: RequireAuthProps) {
   const { userSession, loading } = useUserSession()
+  const navigate = useNavigate()
 
   React.useEffect(() => {
     if (!loading && (!userSession || !userSession.authenticated)) {
@@ -32,19 +34,21 @@ export function RequireAuth({ allowedRoles, children }: RequireAuthProps) {
     return null
   }
 
-  const userRoles = userSession.roles || []
-  const hasPermission = allowedRoles.some(
-    (role) =>
-      userRoles.includes(role) ||
-      userRoles.includes(`ROLE_${role}`) ||
-      userRoles.includes('SYSTEM_ADMIN') ||
-      userRoles.includes('ROLE_SYSTEM_ADMIN'),
+  const userRoles = (userSession.roles || []).map((r) =>
+    r.toUpperCase().replace('ROLE_', ''),
   )
 
+  const hasPermission = allowedRoles.some((role) => {
+    const cleanRole = role.toUpperCase().replace('ROLE_', '')
+    return (
+      userRoles.includes(cleanRole) ||
+      userRoles.includes('SYSTEM_ADMIN') ||
+      userRoles.includes('MANAGER')
+    )
+  })
+
   if (!hasPermission) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/403'
-    }
+    navigate({ to: '/403' as never })
     return null
   }
 
