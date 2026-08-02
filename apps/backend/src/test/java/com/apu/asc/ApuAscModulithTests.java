@@ -8,6 +8,7 @@ class ApuAscModulithTests {
   @Test
   void verifyModulithArchitecture() {
     ApplicationModules modules = ApplicationModules.of(ApuAscApplication.class);
+    modules.forEach(System.out::println);
     modules.verify();
   }
 }
