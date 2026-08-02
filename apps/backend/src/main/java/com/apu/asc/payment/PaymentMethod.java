@@ -1,6 +1,7 @@
 package com.apu.asc.payment;
 
 public enum PaymentMethod {
+  PENDING,
   CREDIT_CARD,
   DEBIT_CARD,
   ONLINE_BANKING,
@@ -9,12 +10,12 @@ public enum PaymentMethod {
 
   public static PaymentMethod fromString(String method) {
     if (method == null || method.isBlank()) {
-      return CREDIT_CARD;
+      return PENDING;
     }
     try {
       return PaymentMethod.valueOf(method.toUpperCase().replace(" ", "_"));
     } catch (IllegalArgumentException e) {
-      return CREDIT_CARD;
+      return PENDING;
     }
   }
 }
