@@ -58,6 +58,9 @@ public class SecurityConfig {
 
   private final ClientRegistrationRepository clientRegistrationRepository;
 
+  @Value("${cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}")
+  private String allowedOrigins;
+
   @Value(
       "${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:http://localhost/auth/realms/apu-asc/protocol/openid-connect/certs}")
   private String jwkSetUri;
@@ -101,13 +104,16 @@ public class SecurityConfig {
                         "/scalar",
                         "/docs",
                         "/docs/**",
-                        "/actuator/**",
+                        "/actuator/health",
+                        "/actuator/health/**",
                         "/api/v1/auth/**",
                         "/api/v1/events/stream",
                         "/api/v1/audit-logs/sentry-test",
                         "/login/**",
                         "/oauth2/**")
                     .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .hasAnyRole("MANAGER", "SYSTEM_ADMIN")
                     .anyRequest()
                     .authenticated())
         .oauth2ResourceServer(
@@ -143,7 +149,8 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(List.of("*"));
+    List<String> origins = List.of(allowedOrigins.split(","));
+    configuration.setAllowedOrigins(origins);
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("*"));
     configuration.setAllowCredentials(true);
@@ -167,6 +174,9 @@ public class SecurityConfig {
   }
 
   static class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+    private static final Set<String> APP_ROLES =
+        Set.of("CUSTOMER", "STAFF", "TECHNICIAN", "MANAGER", "WORKSHOP_MANAGER", "SYSTEM_ADMIN");
+
     @Override
     @SuppressWarnings("unchecked")
     public Collection<GrantedAuthority> convert(Jwt jwt) {
@@ -183,6 +193,10 @@ public class SecurityConfig {
       Set<GrantedAuthority> authorities = new HashSet<>();
       for (String roleName : roles) {
         String roleStr = roleName.toUpperCase();
+        if (!APP_ROLES.contains(roleStr)) {
+          continue; // Filter out default/internal Keycloak roles (e.g., default-roles-apu-asc,
+          // offline_access)
+        }
         authorities.add(new SimpleGrantedAuthority("ROLE_" + roleStr));
         if ("SYSTEM_ADMIN".equals(roleStr) || "MANAGER".equals(roleStr)) {
           authorities.add(new SimpleGrantedAuthority("ROLE_SYSTEM_ADMIN"));
