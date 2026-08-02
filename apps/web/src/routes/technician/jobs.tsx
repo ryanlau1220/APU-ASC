@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { CheckCircle2, Clock, Wrench } from 'lucide-react'
 import * as React from 'react'
 import {
-  useGetAllAppointments,
+  useGetMyAppointments,
   useUpdateAppointmentStatus,
 } from '../../api/generated/endpoints'
 import type { AppointmentDto } from '../../api/generated/models'
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/technician/jobs')({
 function TechnicianJobsContent() {
   const [message, setMessage] = React.useState<string | null>(null)
 
-  const { data: appointmentsData = [], refetch } = useGetAllAppointments()
+  const { data: appointmentsData = [], refetch } = useGetMyAppointments()
   const myJobs = (appointmentsData || []) as AppointmentDto[]
 
   const updateStatusMutation = useUpdateAppointmentStatus({

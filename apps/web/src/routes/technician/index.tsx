@@ -1,25 +1,17 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Calendar, CheckCircle2, Clock, Wrench } from 'lucide-react'
-import { useGetAllAppointments } from '../../api/generated/endpoints'
+import { useGetMyAppointments } from '../../api/generated/endpoints'
 import type { AppointmentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
-import { useUserSession } from '../__root'
 
 export const Route = createFileRoute('/technician/')({
   component: TechnicianDashboardContent,
 })
 
 function TechnicianDashboardContent() {
-  const { userSession } = useUserSession()
-  const techId = userSession?.id || userSession?.keycloakId || ''
-
-  const { data: appointmentsData = [] } = useGetAllAppointments()
-  const allAppointments = (appointmentsData || []) as AppointmentDto[]
-
-  const myJobs = allAppointments.filter(
-    (a) => a.technicianId === techId || !techId || !a.technicianId,
-  )
+  const { data: appointmentsData = [] } = useGetMyAppointments()
+  const myJobs = (appointmentsData || []) as AppointmentDto[]
 
   const activeJobs = myJobs.filter((a) => a.status === 'IN_PROGRESS')
   const completedJobs = myJobs.filter((a) => a.status === 'COMPLETED')
