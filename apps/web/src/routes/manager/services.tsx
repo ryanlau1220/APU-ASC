@@ -316,8 +316,8 @@ function ManagerServicesContent() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm(`Delete category ${c.name}?`)) {
-                          deleteCategoryMutation.mutate({ id: c.id! })
+                        if (c.id && confirm(`Delete category ${c.name}?`)) {
+                          deleteCategoryMutation.mutate({ id: c.id })
                         }
                       }}
                       className="text-muted-foreground hover:text-status-cancelled transition-colors"
