@@ -11,8 +11,11 @@ export async function bffFetch<T>(
   const method = (options.method || 'GET').toUpperCase()
   const isMutating = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)
 
+  const isFormData =
+    typeof FormData !== 'undefined' && options.body instanceof FormData
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string>),
   }
 
