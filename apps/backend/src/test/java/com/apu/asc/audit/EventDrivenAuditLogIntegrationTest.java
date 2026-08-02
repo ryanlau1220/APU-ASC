@@ -11,6 +11,8 @@ import com.apu.asc.servicecatalog.ServiceCatalogApi;
 import com.apu.asc.servicecatalog.ServiceDto;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
+import com.apu.asc.user.internal.EmailService;
+import com.apu.asc.user.internal.KeycloakAdminService;
 import com.apu.asc.vehicle.VehicleApi;
 import com.apu.asc.vehicle.VehicleDto;
 import java.math.BigDecimal;
@@ -24,6 +26,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -37,6 +40,8 @@ class EventDrivenAuditLogIntegrationTest {
   @Autowired private VehicleApi vehicleApi;
   @Autowired private ServiceCatalogApi serviceCatalogApi;
   @Autowired private AppointmentApi appointmentApi;
+  @MockBean private EmailService emailService;
+  @MockBean private KeycloakAdminService keycloakAdminService;
 
   private final List<String> createdAppointments = new ArrayList<>();
   private final List<String> createdServices = new ArrayList<>();
