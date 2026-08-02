@@ -45,7 +45,7 @@ class AuthController {
   private final OtpCacheService otpCacheService;
   private final EmailService emailService;
   private final KeycloakAdminService keycloakAdminService;
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final RestTemplate restTemplate;
   private final SecureRandom secureRandom = new SecureRandom();
 
   @Value(
