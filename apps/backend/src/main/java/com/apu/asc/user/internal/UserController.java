@@ -88,6 +88,7 @@ class UserController {
       @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
       Authentication authentication) {
     AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    accessPolicy.requireSelfOrOperational(currentUser, currentUser.id());
     String avatarUrl = s3StorageService.uploadAvatar(file, currentUser.id());
     UserDto existing = userApi.getUserById(currentUser.id());
     UserDto updated =

@@ -92,6 +92,7 @@ export const customInstance = <T>(
     params?: Record<string, unknown>
     headers?: Record<string, string>
     signal?: AbortSignal
+    responseType?: string
   },
   options?: RequestInit,
 ): Promise<T> => {

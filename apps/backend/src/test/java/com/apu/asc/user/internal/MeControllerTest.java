@@ -56,6 +56,7 @@ class MeControllerTest {
             "SYSTEM_ADMIN",
             "ACTIVE",
             null,
+            null,
             null);
 
     given(userApi.findByUsername(anyString())).willReturn(Optional.of(mockDto));
