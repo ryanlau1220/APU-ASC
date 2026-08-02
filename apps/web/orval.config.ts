@@ -3,7 +3,7 @@ import { defineConfig } from 'orval'
 export default defineConfig({
   apuAsc: {
     input: {
-      target: './openapi.json',
+      target: process.env.OPENAPI_URL || 'http://localhost:8081/v3/api-docs',
     },
     output: {
       mode: 'split',
