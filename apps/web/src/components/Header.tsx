@@ -157,23 +157,17 @@ export function getRoleHomeRoute(
   return '/customer/'
 }
 
+import { useTheme } from '../lib/useTheme'
+
 export default function Header() {
   const { userSession } = useUserSession()
   const isAuthenticated = userSession?.authenticated ?? false
   const roles = userSession?.roles ?? []
 
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
+  const { theme, toggleTheme } = useTheme()
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState<boolean>(false)
 
   const userMenuRef = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    const root = document.documentElement
-    const isDark =
-      root.classList.contains('dark') ||
-      root.getAttribute('data-theme') === 'dark'
-    setTheme(isDark ? 'dark' : 'light')
-  }, [])
 
   // Click outside listener for dropdowns
   React.useEffect(() => {
@@ -188,16 +182,6 @@ export default function Header() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light'
-    const root = document.documentElement
-    root.classList.remove('light', 'dark')
-    root.classList.add(nextTheme)
-    root.setAttribute('data-theme', nextTheme)
-    localStorage.setItem('theme', nextTheme)
-    setTheme(nextTheme)
-  }
 
   const handleLogout = () => {
     setIsUserMenuOpen(false)
