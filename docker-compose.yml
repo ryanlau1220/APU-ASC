@@ -24,6 +24,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
     ports:
+      # Host port 5433 mapped for direct local Spring Boot development outside Docker
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -52,6 +53,7 @@ services:
       SMTP_USERNAME: ${SPRING_MAIL_USERNAME:-liujunhong20@gmail.com}
       SMTP_PASSWORD: ${SPRING_MAIL_PASSWORD}
     volumes:
+      # Keycloak realm & theme volumes mounted from host (database state persisted in postgres)
       - ./infra/keycloak/apu-asc-realm.json:/opt/keycloak/data/import/apu-asc-realm.json:ro
       - ./infra/keycloak/themes/apu-asc:/opt/keycloak/themes/apu-asc:ro
     healthcheck:
