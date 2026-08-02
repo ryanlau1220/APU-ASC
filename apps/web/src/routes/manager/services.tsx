@@ -4,10 +4,12 @@ import * as React from 'react'
 import {
   useCreateCategory,
   useCreateService,
+  useDeleteCategory,
   useDeleteService,
+  useGetCategories,
   useGetServices,
 } from '../../api/generated/endpoints'
-import type { ServiceDto } from '../../api/generated/models'
+import type { CategoryDto, ServiceDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 
@@ -26,6 +28,10 @@ function ManagerServicesContent() {
 
   const { data: servicesData = [], refetch } = useGetServices()
   const services = (servicesData || []) as ServiceDto[]
+
+  const { data: categoriesData = [], refetch: refetchCategories } =
+    useGetCategories()
+  const categories = (categoriesData || []) as CategoryDto[]
 
   const createServiceMutation = useCreateService({
     mutation: {
@@ -54,11 +60,24 @@ function ManagerServicesContent() {
     },
   })
 
+  const deleteCategoryMutation = useDeleteCategory({
+    mutation: {
+      onSuccess: () => {
+        setMessage('Category deleted successfully!')
+        refetchCategories()
+      },
+      onError: (err: Error) => {
+        setMessage(err.message || 'Failed to delete category.')
+      },
+    },
+  })
+
   const createCategoryMutation = useCreateCategory({
     mutation: {
       onSuccess: () => {
         setMessage('Category created successfully!')
         setCatName('')
+        refetchCategories()
       },
       onError: (err: Error) => {
         setMessage(err.message || 'Failed to create category.')
@@ -279,6 +298,37 @@ function ManagerServicesContent() {
                   : 'Add Category'}
               </button>
             </form>
+
+            {/* Existing Categories List */}
+            <div className="pt-4 border-t border-border space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Existing Categories ({categories.length})
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {categories.map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex items-center justify-between p-2 rounded-lg bg-muted/50 border border-border text-xs"
+                  >
+                    <span className="font-semibold text-foreground">
+                      {c.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Delete category ${c.name}?`)) {
+                          deleteCategoryMutation.mutate({ id: c.id! })
+                        }
+                      }}
+                      className="text-muted-foreground hover:text-status-cancelled transition-colors"
+                      title="Delete Category"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </section>
         </div>
 
