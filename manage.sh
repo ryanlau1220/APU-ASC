@@ -62,10 +62,8 @@ case "$1" in
         ;;
     docker)
         echo -e "${YELLOW}Starting Docker Compose infrastructure stack (PostgreSQL, Keycloak, MinIO, Traefik)...${RESET}"
-        echo -e "${YELLOW}Press Ctrl+C to stop all containers gracefully.${RESET}"
-        docker compose up || true
-        echo -e "${YELLOW}Shutting down Docker Compose containers...${RESET}"
-        docker compose down
+        docker compose up -d
+        echo -e "${GREEN}✓ [OK] Docker infrastructure containers started successfully in detached mode.${RESET}"
         ;;
     build)
         echo "Building backend Fat JAR..."
