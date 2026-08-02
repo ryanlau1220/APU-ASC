@@ -7,5 +7,5 @@
  */
 
 export type ProcessPaymentParams = {
-  method: string
-}
+method: string;
+};

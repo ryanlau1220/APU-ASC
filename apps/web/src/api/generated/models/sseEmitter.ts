@@ -7,5 +7,5 @@
  */
 
 export interface SseEmitter {
-  timeout?: number
+  timeout?: number;
 }

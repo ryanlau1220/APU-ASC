@@ -7,12 +7,12 @@
  */
 
 export interface ServiceDto {
-  id?: string
-  categoryId?: string
-  name?: string
-  description?: string
-  durationMinutes?: number
-  basePrice?: number
-  status?: string
-  createdAt?: string
+  id?: string;
+  categoryId?: string;
+  name?: string;
+  description?: string;
+  durationMinutes?: number;
+  basePrice?: number;
+  status?: string;
+  createdAt?: string;
 }

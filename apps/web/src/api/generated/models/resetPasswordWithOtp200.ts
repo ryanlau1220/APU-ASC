@@ -6,6 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ResetPasswordWithOtp200 = {
-  [key: string]: { [key: string]: unknown }
-}
+export type ResetPasswordWithOtp200 = {[key: string]: { [key: string]: unknown }};

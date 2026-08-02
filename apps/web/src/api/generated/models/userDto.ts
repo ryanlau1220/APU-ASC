@@ -7,13 +7,13 @@
  */
 
 export interface UserDto {
-  id?: string
-  keycloakId?: string
-  username?: string
-  email?: string
-  fullName?: string
-  role?: string
-  status?: string
-  createdAt?: string
-  updatedAt?: string
+  id?: string;
+  keycloakId?: string;
+  username?: string;
+  email?: string;
+  fullName?: string;
+  role?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

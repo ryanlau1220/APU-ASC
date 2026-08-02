@@ -7,16 +7,16 @@
  */
 
 export interface ResetPasswordOtpRequest {
-  email: string
+  email: string;
   /**
    * @minLength 6
    * @maxLength 6
    */
-  otp: string
+  otp: string;
   /**
    * @minLength 8
    * @maxLength 2147483647
    */
-  newPassword: string
-  confirmPassword: string
+  newPassword: string;
+  confirmPassword: string;
 }

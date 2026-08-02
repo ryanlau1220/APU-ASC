@@ -7,10 +7,10 @@
  */
 
 export interface AuditLogDto {
-  id?: string
-  userId?: string
-  actionType?: string
-  entityName?: string
-  details?: string
-  createdAt?: string
+  id?: string;
+  userId?: string;
+  actionType?: string;
+  entityName?: string;
+  details?: string;
+  createdAt?: string;
 }

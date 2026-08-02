@@ -6,6 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface ForgotPasswordOtpRequest {
-  email: string;
-}
+export type UpdateAppointmentStatusParams = {
+status: string;
+};

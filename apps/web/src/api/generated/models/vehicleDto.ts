@@ -7,11 +7,11 @@
  */
 
 export interface VehicleDto {
-  id?: string
-  customerId?: string
-  licensePlate?: string
-  make?: string
-  model?: string
-  yearOfManufacture?: number
-  createdAt?: string
+  id?: string;
+  customerId?: string;
+  licensePlate?: string;
+  make?: string;
+  model?: string;
+  yearOfManufacture?: number;
+  createdAt?: string;
 }

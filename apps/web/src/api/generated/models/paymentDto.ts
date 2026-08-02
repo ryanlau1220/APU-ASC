@@ -7,13 +7,13 @@
  */
 
 export interface PaymentDto {
-  id?: string
-  appointmentId?: string
-  customerId?: string
-  invoiceNumber?: string
-  amount?: number
-  paymentMethod?: string
-  paymentStatus?: string
-  paidAt?: string
-  createdAt?: string
+  id?: string;
+  appointmentId?: string;
+  customerId?: string;
+  invoiceNumber?: string;
+  amount?: number;
+  paymentMethod?: string;
+  paymentStatus?: string;
+  paidAt?: string;
+  createdAt?: string;
 }

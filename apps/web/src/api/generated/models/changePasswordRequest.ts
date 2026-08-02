@@ -7,11 +7,11 @@
  */
 
 export interface ChangePasswordRequest {
-  oldPassword: string
+  oldPassword: string;
   /**
    * @minLength 8
    * @maxLength 2147483647
    */
-  newPassword: string
-  confirmPassword: string
+  newPassword: string;
+  confirmPassword: string;
 }

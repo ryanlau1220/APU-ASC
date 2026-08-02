@@ -7,12 +7,12 @@
  */
 
 export interface FeedbackDto {
-  id?: string
-  appointmentId?: string
-  customerId?: string
-  technicianId?: string
-  rating?: number
-  comments?: string
-  technicianDiagnosticNotes?: string
-  createdAt?: string
+  id?: string;
+  appointmentId?: string;
+  customerId?: string;
+  technicianId?: string;
+  rating?: number;
+  comments?: string;
+  technicianDiagnosticNotes?: string;
+  createdAt?: string;
 }
