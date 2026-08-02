@@ -3,11 +3,11 @@ import { useEffect } from 'react'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8081'
 
-export function useEventStream() {
+export function useEventStream(enabled: boolean = true) {
   const queryClient = useQueryClient()
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !enabled) return
 
     const sseUrl = `${BACKEND_URL}/api/v1/events/stream`
     const eventSource = new EventSource(sseUrl, { withCredentials: true })
@@ -29,5 +29,5 @@ export function useEventStream() {
     return () => {
       eventSource.close()
     }
-  }, [queryClient])
+  }, [queryClient, enabled])
 }

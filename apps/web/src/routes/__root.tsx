@@ -119,7 +119,8 @@ function RootComponent() {
 }
 
 function AppContent({ children }: { children: React.ReactNode }) {
-  useEventStream()
+  const { userSession } = useUserSession()
+  useEventStream(userSession?.authenticated ?? false)
   return <>{children}</>
 }
 
