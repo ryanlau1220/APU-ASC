@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication & Registration", description = "Current user session hydration")
+@Slf4j
 class MeController {
 
   private final UserApi userApi;
@@ -55,20 +57,25 @@ class MeController {
     List<String> roles =
         authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority)
-            .filter(a -> a.startsWith("ROLE_"))
-            .map(a -> a.substring(5))
+            .map(a -> a.startsWith("ROLE_") ? a.substring(5) : a)
+            .map(String::toUpperCase)
+            .distinct()
             .toList();
 
     UserDto userDto = null;
-    if (username != null) {
+    if (username != null && !username.isBlank()) {
       try {
         userDto = userApi.findByUsername(username).orElse(null);
-      } catch (Exception ignored) {
+      } catch (Exception e) {
+        log.warn(
+            "Database user lookup failed during session hydration for username {}: {}",
+            username,
+            e.getMessage());
       }
     }
 
     if (roles.isEmpty() && userDto != null && userDto.role() != null) {
-      roles = List.of(userDto.role());
+      roles = List.of(userDto.role().toUpperCase().replace("ROLE_", ""));
     }
 
     return ResponseEntity.ok(
@@ -76,7 +83,7 @@ class MeController {
             "authenticated",
             true,
             "id",
-            userDto != null ? userDto.id() : sub,
+            userDto != null ? userDto.id() : sub != null ? sub : "",
             "keycloakId",
             sub != null ? sub : "",
             "username",
@@ -84,7 +91,7 @@ class MeController {
             "email",
             email != null ? email : "",
             "fullName",
-            userDto != null ? userDto.fullName() : username,
+            userDto != null ? userDto.fullName() : username != null ? username : "",
             "roles",
             roles));
   }
