@@ -64,7 +64,7 @@ class FeedbackController {
   }
 
   @PostMapping
-  @PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN')")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'TECHNICIAN', 'MANAGER')")
   @Operation(summary = "Submit feedback or diagnostic report")
   public ResponseEntity<FeedbackDto> submitFeedback(
       @Valid @RequestBody final FeedbackDto feedbackDto) {
