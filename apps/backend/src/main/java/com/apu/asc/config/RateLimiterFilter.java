@@ -20,11 +20,18 @@ import org.springframework.stereotype.Component;
 @Order(1)
 public class RateLimiterFilter implements Filter {
 
-  private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+  private final Map<String, Bucket> generalBuckets = new ConcurrentHashMap<>();
+  private final Map<String, Bucket> strictBuckets = new ConcurrentHashMap<>();
 
-  private Bucket createNewBucket() {
+  private Bucket createGeneralBucket() {
     Bandwidth limit =
         Bandwidth.builder().capacity(100).refillGreedy(100, Duration.ofMinutes(1)).build();
+    return Bucket.builder().addLimit(limit).build();
+  }
+
+  private Bucket createStrictBucket() {
+    Bandwidth limit =
+        Bandwidth.builder().capacity(5).refillGreedy(5, Duration.ofMinutes(1)).build();
     return Bucket.builder().addLimit(limit).build();
   }
 
@@ -35,8 +42,21 @@ public class RateLimiterFilter implements Filter {
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 
     String clientIp = httpRequest.getRemoteAddr();
-    String key = clientIp != null ? clientIp : "anonymous";
-    Bucket bucket = buckets.computeIfAbsent(key, k -> createNewBucket());
+    String ipKey = clientIp != null ? clientIp : "anonymous";
+    String uri = httpRequest.getRequestURI();
+
+    boolean isStrictEndpoint =
+        uri != null
+            && (uri.startsWith("/api/v1/auth/forgot-password")
+                || uri.startsWith("/api/v1/auth/login")
+                || uri.startsWith("/api/v1/auth/register"));
+
+    Bucket bucket;
+    if (isStrictEndpoint) {
+      bucket = strictBuckets.computeIfAbsent(ipKey, k -> createStrictBucket());
+    } else {
+      bucket = generalBuckets.computeIfAbsent(ipKey, k -> createGeneralBucket());
+    }
 
     if (bucket.tryConsume(1)) {
       chain.doFilter(request, response);
