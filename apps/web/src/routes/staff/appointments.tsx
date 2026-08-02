@@ -4,7 +4,7 @@ import * as React from 'react'
 import {
   useCreateAppointment,
   useGetAllAppointments,
-  useUpdateStatus,
+  useUpdateAppointmentStatus,
 } from '../../api/generated/endpoints'
 import type { AppointmentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -43,7 +43,7 @@ function StaffAppointmentsContent() {
     },
   })
 
-  const updateStatusMutation = useUpdateStatus({
+  const updateStatusMutation = useUpdateAppointmentStatus({
     mutation: {
       onSuccess: () => {
         setMessage('Appointment status updated!')

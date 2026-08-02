@@ -3,7 +3,7 @@ import { CheckCircle2, Clock, Wrench } from 'lucide-react'
 import * as React from 'react'
 import {
   useGetAllAppointments,
-  useUpdateStatus,
+  useUpdateAppointmentStatus,
 } from '../../api/generated/endpoints'
 import type { AppointmentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -19,7 +19,7 @@ function TechnicianJobsContent() {
   const { data: appointmentsData = [], refetch } = useGetAllAppointments()
   const myJobs = (appointmentsData || []) as AppointmentDto[]
 
-  const updateStatusMutation = useUpdateStatus({
+  const updateStatusMutation = useUpdateAppointmentStatus({
     mutation: {
       onSuccess: () => {
         setMessage('Job status updated successfully!')

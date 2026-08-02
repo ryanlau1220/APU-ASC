@@ -4,7 +4,7 @@ import * as React from 'react'
 import {
   useDeleteAppointment,
   useGetAllAppointments,
-  useUpdateStatus,
+  useUpdateAppointmentStatus,
 } from '../../api/generated/endpoints'
 import type { AppointmentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -20,7 +20,7 @@ function ManagerAppointmentsContent() {
   const { data: appointmentsData = [], refetch } = useGetAllAppointments()
   const appointments = (appointmentsData || []) as AppointmentDto[]
 
-  const updateStatusMutation = useUpdateStatus({
+  const updateStatusMutation = useUpdateAppointmentStatus({
     mutation: {
       onSuccess: () => {
         setMessage('Appointment status updated!')

@@ -5,7 +5,7 @@ import {
   useCreateUser,
   useGetAllPayments,
   useGetAllUsers,
-  useUpdateStatus,
+  useUpdateUserStatus,
 } from '../../api/generated/endpoints'
 import type { PaymentDto, UserDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -50,7 +50,7 @@ function ManagerOperationsContent() {
     },
   })
 
-  const updateStatusMutation = useUpdateStatus({
+  const updateStatusMutation = useUpdateUserStatus({
     mutation: {
       onSuccess: () => {
         setMessage('User status updated successfully!')
