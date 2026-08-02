@@ -97,7 +97,7 @@ class AppointmentController {
 
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
-  @Operation(summary = "Update appointment status")
+  @Operation(summary = "Update appointment status", operationId = "updateAppointmentStatus")
   public ResponseEntity<AppointmentDto> updateStatus(
       @PathVariable final String id, @RequestParam final String status) {
     return ResponseEntity.ok(appointmentApi.updateStatus(id, status));
