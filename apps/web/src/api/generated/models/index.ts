@@ -29,5 +29,6 @@ export * from './updateAppointmentStatusParams';
 export * from './updateStatus1Params';
 export * from './updateStatusParams';
 export * from './updateUserStatusParams';
+export * from './uploadAvatarBody';
 export * from './userDto';
 export * from './vehicleDto';

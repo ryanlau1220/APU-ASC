@@ -27,6 +27,7 @@ import { Route as CustomerPaymentsRouteImport } from './routes/customer/payments
 import { Route as CustomerVehiclesRouteImport } from './routes/customer/vehicles'
 import { Route as ManagerIndexRouteImport } from './routes/manager/index'
 import { Route as ManagerAppointmentsRouteImport } from './routes/manager/appointments'
+import { Route as ManagerAuditLogsRouteImport } from './routes/manager/audit-logs'
 import { Route as ManagerOperationsRouteImport } from './routes/manager/operations'
 import { Route as ManagerServicesRouteImport } from './routes/manager/services'
 import { Route as ManagerVehiclesRouteImport } from './routes/manager/vehicles'
@@ -129,6 +130,11 @@ const ManagerAppointmentsRoute = ManagerAppointmentsRouteImport.update({
   path: '/appointments',
   getParentRoute: () => ManagerRouteRoute,
 } as any)
+const ManagerAuditLogsRoute = ManagerAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => ManagerRouteRoute,
+} as any)
 const ManagerOperationsRoute = ManagerOperationsRouteImport.update({
   id: '/operations',
   path: '/operations',
@@ -202,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/customer/payments': typeof CustomerPaymentsRoute
   '/customer/vehicles': typeof CustomerVehiclesRoute
   '/manager/appointments': typeof ManagerAppointmentsRoute
+  '/manager/audit-logs': typeof ManagerAuditLogsRoute
   '/manager/operations': typeof ManagerOperationsRoute
   '/manager/services': typeof ManagerServicesRoute
   '/manager/vehicles': typeof ManagerVehiclesRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/customer/payments': typeof CustomerPaymentsRoute
   '/customer/vehicles': typeof CustomerVehiclesRoute
   '/manager/appointments': typeof ManagerAppointmentsRoute
+  '/manager/audit-logs': typeof ManagerAuditLogsRoute
   '/manager/operations': typeof ManagerOperationsRoute
   '/manager/services': typeof ManagerServicesRoute
   '/manager/vehicles': typeof ManagerVehiclesRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   '/customer/payments': typeof CustomerPaymentsRoute
   '/customer/vehicles': typeof CustomerVehiclesRoute
   '/manager/appointments': typeof ManagerAppointmentsRoute
+  '/manager/audit-logs': typeof ManagerAuditLogsRoute
   '/manager/operations': typeof ManagerOperationsRoute
   '/manager/services': typeof ManagerServicesRoute
   '/manager/vehicles': typeof ManagerVehiclesRoute
@@ -294,6 +303,7 @@ export interface FileRouteTypes {
     | '/customer/payments'
     | '/customer/vehicles'
     | '/manager/appointments'
+    | '/manager/audit-logs'
     | '/manager/operations'
     | '/manager/services'
     | '/manager/vehicles'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/customer/payments'
     | '/customer/vehicles'
     | '/manager/appointments'
+    | '/manager/audit-logs'
     | '/manager/operations'
     | '/manager/services'
     | '/manager/vehicles'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/customer/payments'
     | '/customer/vehicles'
     | '/manager/appointments'
+    | '/manager/audit-logs'
     | '/manager/operations'
     | '/manager/services'
     | '/manager/vehicles'
@@ -509,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerAppointmentsRouteImport
       parentRoute: typeof ManagerRouteRoute
     }
+    '/manager/audit-logs': {
+      id: '/manager/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/manager/audit-logs'
+      preLoaderRoute: typeof ManagerAuditLogsRouteImport
+      parentRoute: typeof ManagerRouteRoute
+    }
     '/manager/operations': {
       id: '/manager/operations'
       path: '/operations'
@@ -611,6 +630,7 @@ const CustomerRouteRouteWithChildren = CustomerRouteRoute._addFileChildren(
 
 interface ManagerRouteRouteChildren {
   ManagerAppointmentsRoute: typeof ManagerAppointmentsRoute
+  ManagerAuditLogsRoute: typeof ManagerAuditLogsRoute
   ManagerOperationsRoute: typeof ManagerOperationsRoute
   ManagerServicesRoute: typeof ManagerServicesRoute
   ManagerVehiclesRoute: typeof ManagerVehiclesRoute
@@ -619,6 +639,7 @@ interface ManagerRouteRouteChildren {
 
 const ManagerRouteRouteChildren: ManagerRouteRouteChildren = {
   ManagerAppointmentsRoute: ManagerAppointmentsRoute,
+  ManagerAuditLogsRoute: ManagerAuditLogsRoute,
   ManagerOperationsRoute: ManagerOperationsRoute,
   ManagerServicesRoute: ManagerServicesRoute,
   ManagerVehiclesRoute: ManagerVehiclesRoute,

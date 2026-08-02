@@ -14,6 +14,7 @@ export interface UserDto {
   fullName?: string;
   role?: string;
   status?: string;
+  avatarUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

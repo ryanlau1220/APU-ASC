@@ -46,6 +46,7 @@ import type {
   SseEmitter,
   UpdateAppointmentStatusParams,
   UpdateUserStatusParams,
+  UploadAvatarBody,
   UserDto,
   VehicleDto
 } from './models';
@@ -1700,6 +1701,73 @@ export const useCreateUser = <TError = unknown,
     }
     
 /**
+ * @summary Upload profile avatar picture
+ */
+export const uploadAvatar = (
+    uploadAvatarBody: UploadAvatarBody,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      const formData = new FormData();
+formData.append(`file`, uploadAvatarBody.file)
+
+      return customInstance<UserDto>(
+      {url: `/api/v1/users/avatar`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      options);
+    }
+  
+
+
+export const getUploadAvatarMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadAvatar>>, TError,{data: UploadAvatarBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadAvatar>>, TError,{data: UploadAvatarBody}, TContext> => {
+
+const mutationKey = ['uploadAvatar'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadAvatar>>, {data: UploadAvatarBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadAvatar(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof uploadAvatar>>>
+    export type UploadAvatarMutationBody = UploadAvatarBody
+    export type UploadAvatarMutationError = unknown
+
+    /**
+ * @summary Upload profile avatar picture
+ */
+export const useUploadAvatar = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadAvatar>>, TError,{data: UploadAvatarBody}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadAvatar>>,
+        TError,
+        {data: UploadAvatarBody},
+        TContext
+      > => {
+
+      const mutationOptions = getUploadAvatarMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
  * @summary Get all payments
  */
 export const getAllPayments = (
@@ -3077,6 +3145,68 @@ export const useUpdateAppointmentStatus = <TError = unknown,
       return useMutation(mutationOptions, queryClient);
     }
     
+/**
+ * @summary Cancel an appointment
+ */
+export const cancelAppointment = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,) => {
+      
+      
+      return customInstance<AppointmentDto>(
+      {url: `/api/v1/appointments/${id}/cancel`, method: 'PATCH'
+    },
+      options);
+    }
+  
+
+
+export const getCancelAppointmentMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAppointment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelAppointment>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['cancelAppointment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelAppointment>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelAppointment(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelAppointmentMutationResult = NonNullable<Awaited<ReturnType<typeof cancelAppointment>>>
+    
+    export type CancelAppointmentMutationError = unknown
+
+    /**
+ * @summary Cancel an appointment
+ */
+export const useCancelAppointment = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAppointment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelAppointment>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getCancelAppointmentMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
 export const scalarApiReference = (
     
  options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
@@ -3338,6 +3468,100 @@ export function useGetVehiclesByCustomer<TData = Awaited<ReturnType<typeof getVe
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetVehiclesByCustomerQueryOptions(customerId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Get avatar image file
+ */
+export const getAvatarFile = (
+    filename: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<Blob>(
+      {url: `/api/v1/users/avatar/file/${filename}`, method: 'GET',
+        responseType: 'blob', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getGetAvatarFileQueryKey = (filename?: string,) => {
+    return [
+    `/api/v1/users/avatar/file/${filename}`
+    ] as const;
+    }
+
+    
+export const getGetAvatarFileQueryOptions = <TData = Awaited<ReturnType<typeof getAvatarFile>>, TError = unknown>(filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvatarFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAvatarFileQueryKey(filename);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAvatarFile>>> = ({ signal }) => getAvatarFile(filename, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(filename), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAvatarFile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAvatarFileQueryResult = NonNullable<Awaited<ReturnType<typeof getAvatarFile>>>
+export type GetAvatarFileQueryError = unknown
+
+
+export function useGetAvatarFile<TData = Awaited<ReturnType<typeof getAvatarFile>>, TError = unknown>(
+ filename: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvatarFile>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvatarFile>>,
+          TError,
+          Awaited<ReturnType<typeof getAvatarFile>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvatarFile<TData = Awaited<ReturnType<typeof getAvatarFile>>, TError = unknown>(
+ filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvatarFile>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvatarFile>>,
+          TError,
+          Awaited<ReturnType<typeof getAvatarFile>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvatarFile<TData = Awaited<ReturnType<typeof getAvatarFile>>, TError = unknown>(
+ filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvatarFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get avatar image file
+ */
+
+export function useGetAvatarFile<TData = Awaited<ReturnType<typeof getAvatarFile>>, TError = unknown>(
+ filename: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvatarFile>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAvatarFileQueryOptions(filename,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -4331,99 +4555,6 @@ export function useTestSentry<TData = Awaited<ReturnType<typeof testSentry>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getTestSentryQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
-
-  return query;
-}
-
-
-
-
-
-/**
- * @summary Get my user audit log history
- */
-export const getMyAuditLogs = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-      
-      
-      return customInstance<AuditLogDto[]>(
-      {url: `/api/v1/audit-logs/my`, method: 'GET', signal
-    },
-      options);
-    }
-  
-
-
-
-export const getGetMyAuditLogsQueryKey = () => {
-    return [
-    `/api/v1/audit-logs/my`
-    ] as const;
-    }
-
-    
-export const getGetMyAuditLogsQueryOptions = <TData = Awaited<ReturnType<typeof getMyAuditLogs>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetMyAuditLogsQueryKey();
-
-  
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyAuditLogs>>> = ({ signal }) => getMyAuditLogs(requestOptions, signal);
-
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyAuditLogs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetMyAuditLogsQueryResult = NonNullable<Awaited<ReturnType<typeof getMyAuditLogs>>>
-export type GetMyAuditLogsQueryError = unknown
-
-
-export function useGetMyAuditLogs<TData = Awaited<ReturnType<typeof getMyAuditLogs>>, TError = unknown>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAuditLogs>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getMyAuditLogs>>,
-          TError,
-          Awaited<ReturnType<typeof getMyAuditLogs>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMyAuditLogs<TData = Awaited<ReturnType<typeof getMyAuditLogs>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAuditLogs>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getMyAuditLogs>>,
-          TError,
-          Awaited<ReturnType<typeof getMyAuditLogs>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMyAuditLogs<TData = Awaited<ReturnType<typeof getMyAuditLogs>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get my user audit log history
- */
-
-export function useGetMyAuditLogs<TData = Awaited<ReturnType<typeof getMyAuditLogs>>, TError = unknown>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetMyAuditLogsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
