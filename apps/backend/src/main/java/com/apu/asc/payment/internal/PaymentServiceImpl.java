@@ -52,10 +52,7 @@ class PaymentServiceImpl implements PaymentApi {
   @Override
   @Transactional
   public PaymentDto createInvoice(final PaymentDto paymentDto) {
-    String id =
-        paymentDto.id() != null
-            ? paymentDto.id()
-            : "PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String id = paymentDto.id() != null ? paymentDto.id() : "PAY-" + UUID.randomUUID().toString();
     String invoiceNum =
         paymentDto.invoiceNumber() != null
             ? paymentDto.invoiceNumber()

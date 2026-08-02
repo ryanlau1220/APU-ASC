@@ -43,10 +43,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
   @Transactional
   @CacheEvict(value = "categories", allEntries = true)
   public CategoryDto createCategory(final CategoryDto categoryDto) {
-    String id =
-        categoryDto.id() != null
-            ? categoryDto.id()
-            : "CAT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String id = categoryDto.id() != null ? categoryDto.id() : "CAT-" + UUID.randomUUID().toString();
     CategoryEntity entity =
         CategoryEntity.builder()
             .id(id)
@@ -120,10 +117,7 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
   @Transactional
   @CacheEvict(value = "services", allEntries = true)
   public ServiceDto createService(final ServiceDto serviceDto) {
-    String id =
-        serviceDto.id() != null
-            ? serviceDto.id()
-            : "SVC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String id = serviceDto.id() != null ? serviceDto.id() : "SVC-" + UUID.randomUUID().toString();
     ServiceEntity entity =
         ServiceEntity.builder()
             .id(id)

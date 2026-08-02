@@ -45,10 +45,7 @@ class FeedbackServiceImpl implements FeedbackApi {
   @Override
   @Transactional
   public FeedbackDto submitFeedback(final FeedbackDto feedbackDto) {
-    String id =
-        feedbackDto.id() != null
-            ? feedbackDto.id()
-            : "FBK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String id = feedbackDto.id() != null ? feedbackDto.id() : "FBK-" + UUID.randomUUID().toString();
     FeedbackEntity entity =
         FeedbackEntity.builder()
             .id(id)

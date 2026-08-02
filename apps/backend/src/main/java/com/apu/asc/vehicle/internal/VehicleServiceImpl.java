@@ -42,10 +42,7 @@ class VehicleServiceImpl implements VehicleApi {
   @Override
   @Transactional
   public VehicleDto createVehicle(final VehicleDto vehicleDto) {
-    String id =
-        vehicleDto.id() != null
-            ? vehicleDto.id()
-            : "VEH-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String id = vehicleDto.id() != null ? vehicleDto.id() : "VEH-" + UUID.randomUUID().toString();
     VehicleEntity entity =
         VehicleEntity.builder()
             .id(id)
