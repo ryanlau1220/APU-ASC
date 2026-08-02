@@ -34,7 +34,7 @@ class UserController {
   private final UserApi userApi;
   private final CurrentUserService currentUserService;
   private final AccessPolicy accessPolicy;
-  private final com.apu.asc.config.S3StorageService s3StorageService;
+  private final S3StorageService s3StorageService;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
