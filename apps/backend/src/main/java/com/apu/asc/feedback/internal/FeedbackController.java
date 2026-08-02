@@ -1,9 +1,12 @@
 package com.apu.asc.feedback.internal;
 
+import com.apu.asc.appointment.AppointmentApi;
+import com.apu.asc.appointment.AppointmentDto;
+import com.apu.asc.common.security.AccessPolicy;
+import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.feedback.FeedbackApi;
 import com.apu.asc.feedback.FeedbackDto;
-import com.apu.asc.user.UserApi;
-import com.apu.asc.user.UserDto;
+import com.apu.asc.user.CurrentUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,7 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 class FeedbackController {
 
   private final FeedbackApi feedbackApi;
-  private final UserApi userApi;
+  private final AppointmentApi appointmentApi;
+  private final CurrentUserService currentUserService;
+  private final AccessPolicy accessPolicy;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
@@ -40,26 +45,34 @@ class FeedbackController {
   @GetMapping("/{id}")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get feedback entry by ID")
-  public ResponseEntity<FeedbackDto> getFeedbackById(@PathVariable final String id) {
-    return ResponseEntity.ok(feedbackApi.getFeedbackById(id));
+  public ResponseEntity<FeedbackDto> getFeedbackById(
+      @PathVariable final String id, Authentication authentication) {
+    FeedbackDto feedback = feedbackApi.getFeedbackById(id);
+    accessPolicy.requireFeedbackRead(
+        currentUserService.requireCurrentUser(authentication),
+        feedback.customerId(),
+        feedback.technicianId());
+    return ResponseEntity.ok(feedback);
   }
 
   @GetMapping("/my")
-  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get my submitted feedback")
   public ResponseEntity<List<FeedbackDto>> getMyFeedback(Authentication authentication) {
-    String currentUserId = resolveUserId(authentication);
-    if (currentUserId == null) {
-      return ResponseEntity.ok(List.of());
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    if (accessPolicy.isTechnician(currentUser)) {
+      return ResponseEntity.ok(feedbackApi.findByTechnician(currentUser.id()));
     }
-    return ResponseEntity.ok(feedbackApi.findByCustomer(currentUserId));
+    return ResponseEntity.ok(feedbackApi.findByCustomer(currentUser.id()));
   }
 
   @GetMapping("/technician/{technicianId}")
-  @PreAuthorize("hasAnyRole('TECHNICIAN', 'MANAGER')")
+  @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get feedback by technician ID")
   public ResponseEntity<List<FeedbackDto>> getTechnicianFeedbacks(
-      @PathVariable final String technicianId) {
+      @PathVariable final String technicianId, Authentication authentication) {
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), technicianId);
     return ResponseEntity.ok(feedbackApi.findByTechnician(technicianId));
   }
 
@@ -67,8 +80,41 @@ class FeedbackController {
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'TECHNICIAN', 'MANAGER')")
   @Operation(summary = "Submit feedback or diagnostic report")
   public ResponseEntity<FeedbackDto> submitFeedback(
-      @Valid @RequestBody final FeedbackDto feedbackDto) {
-    FeedbackDto created = feedbackApi.submitFeedback(feedbackDto);
+      @Valid @RequestBody final FeedbackDto feedbackDto, Authentication authentication) {
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    AppointmentDto appointment = appointmentApi.getAppointmentById(feedbackDto.appointmentId());
+    FeedbackDto securedFeedback = feedbackDto;
+
+    if (!accessPolicy.isOperationalUser(currentUser)) {
+      if (accessPolicy.isTechnician(currentUser)) {
+        accessPolicy.requireAssignedTechnicianOrOperational(
+            currentUser, appointment.technicianId());
+        securedFeedback =
+            new FeedbackDto(
+                null,
+                appointment.id(),
+                appointment.customerId(),
+                currentUser.id(),
+                null,
+                null,
+                feedbackDto.technicianDiagnosticNotes(),
+                null);
+      } else {
+        accessPolicy.requireSelfOrOperational(currentUser, appointment.customerId());
+        securedFeedback =
+            new FeedbackDto(
+                null,
+                appointment.id(),
+                currentUser.id(),
+                appointment.technicianId(),
+                feedbackDto.rating(),
+                feedbackDto.comments(),
+                null,
+                null);
+      }
+    }
+
+    FeedbackDto created = feedbackApi.submitFeedback(securedFeedback);
     return ResponseEntity.created(URI.create("/api/v1/feedback/" + created.id())).body(created);
   }
 
@@ -78,18 +124,5 @@ class FeedbackController {
   public ResponseEntity<Void> deleteFeedback(@PathVariable final String id) {
     feedbackApi.deleteFeedback(id);
     return ResponseEntity.noContent().build();
-  }
-
-  private String resolveUserId(Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      return null;
-    }
-    String name = authentication.getName();
-    return userApi
-        .findByUsername(name)
-        .or(() -> userApi.findByEmail(name))
-        .or(() -> userApi.findByKeycloakId(name))
-        .map(UserDto::id)
-        .orElse(name);
   }
 }

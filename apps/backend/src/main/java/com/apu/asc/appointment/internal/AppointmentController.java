@@ -2,8 +2,10 @@ package com.apu.asc.appointment.internal;
 
 import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.appointment.AppointmentDto;
-import com.apu.asc.user.UserApi;
-import com.apu.asc.user.UserDto;
+import com.apu.asc.common.security.AccessPolicy;
+import com.apu.asc.common.security.AuthenticatedUser;
+import com.apu.asc.user.CurrentUserService;
+import com.apu.asc.vehicle.VehicleApi;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,7 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 class AppointmentController {
 
   private final AppointmentApi appointmentApi;
-  private final UserApi userApi;
+  private final VehicleApi vehicleApi;
+  private final CurrentUserService currentUserService;
+  private final AccessPolicy accessPolicy;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
@@ -45,28 +49,36 @@ class AppointmentController {
   @Operation(
       summary = "Get appointment by ID",
       description = "Retrieves specific appointment details")
-  public ResponseEntity<AppointmentDto> getAppointmentById(@PathVariable final String id) {
-    return ResponseEntity.ok(appointmentApi.getAppointmentById(id));
+  public ResponseEntity<AppointmentDto> getAppointmentById(
+      @PathVariable final String id, Authentication authentication) {
+    AppointmentDto appointment = appointmentApi.getAppointmentById(id);
+    accessPolicy.requireAppointmentRead(
+        currentUserService.requireCurrentUser(authentication),
+        appointment.customerId(),
+        appointment.technicianId());
+    return ResponseEntity.ok(appointment);
   }
 
   @GetMapping("/my")
-  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN', 'STAFF', 'MANAGER')")
   @Operation(
       summary = "Get my appointments",
       description = "Retrieves appointments for logged-in user")
   public ResponseEntity<List<AppointmentDto>> getMyAppointments(Authentication authentication) {
-    String currentUserId = resolveUserId(authentication);
-    if (currentUserId == null) {
-      return ResponseEntity.ok(List.of());
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    if (accessPolicy.isTechnician(currentUser)) {
+      return ResponseEntity.ok(appointmentApi.findByTechnician(currentUser.id()));
     }
-    return ResponseEntity.ok(appointmentApi.findByCustomer(currentUserId));
+    return ResponseEntity.ok(appointmentApi.findByCustomer(currentUser.id()));
   }
 
   @GetMapping("/customer/{customerId}")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get appointments by customer ID")
   public ResponseEntity<List<AppointmentDto>> getCustomerAppointments(
-      @PathVariable final String customerId) {
+      @PathVariable final String customerId, Authentication authentication) {
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), customerId);
     return ResponseEntity.ok(appointmentApi.findByCustomer(customerId));
   }
 
@@ -74,7 +86,9 @@ class AppointmentController {
   @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get assigned appointments for technician")
   public ResponseEntity<List<AppointmentDto>> getTechnicianAppointments(
-      @PathVariable final String technicianId) {
+      @PathVariable final String technicianId, Authentication authentication) {
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), technicianId);
     return ResponseEntity.ok(appointmentApi.findByTechnician(technicianId));
   }
 
@@ -82,8 +96,31 @@ class AppointmentController {
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF')")
   @Operation(summary = "Book new appointment")
   public ResponseEntity<AppointmentDto> createAppointment(
-      @Valid @RequestBody final AppointmentDto appointmentDto) {
-    AppointmentDto created = appointmentApi.createAppointment(appointmentDto);
+      @Valid @RequestBody final AppointmentDto appointmentDto, Authentication authentication) {
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    AppointmentDto securedAppointment = appointmentDto;
+    if (!accessPolicy.isOperationalUser(currentUser)) {
+      String vehicleId = appointmentDto.vehicleId();
+      if (vehicleId == null || vehicleId.isBlank()) {
+        throw new IllegalArgumentException("A vehicle is required to book an appointment.");
+      }
+      accessPolicy.requireSelfOrOperational(
+          currentUser, vehicleApi.getVehicleById(vehicleId).customerId());
+      securedAppointment =
+          new AppointmentDto(
+              null,
+              currentUser.id(),
+              vehicleId,
+              appointmentDto.serviceId(),
+              null,
+              appointmentDto.appointmentDate(),
+              appointmentDto.timeSlot(),
+              "PENDING",
+              appointmentDto.notes(),
+              null,
+              null);
+    }
+    AppointmentDto created = appointmentApi.createAppointment(securedAppointment);
     return ResponseEntity.created(URI.create("/api/v1/appointments/" + created.id())).body(created);
   }
 
@@ -91,16 +128,64 @@ class AppointmentController {
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
   @Operation(summary = "Update appointment details")
   public ResponseEntity<AppointmentDto> updateAppointment(
-      @PathVariable final String id, @Valid @RequestBody final AppointmentDto appointmentDto) {
-    return ResponseEntity.ok(appointmentApi.updateAppointment(id, appointmentDto));
+      @PathVariable final String id,
+      @Valid @RequestBody final AppointmentDto appointmentDto,
+      Authentication authentication) {
+    AppointmentDto existing = appointmentApi.getAppointmentById(id);
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    AppointmentDto securedAppointment = appointmentDto;
+
+    if (!accessPolicy.isOperationalUser(currentUser)) {
+      accessPolicy.requireSelfOrOperational(currentUser, existing.customerId());
+      String vehicleId =
+          appointmentDto.vehicleId() != null ? appointmentDto.vehicleId() : existing.vehicleId();
+      accessPolicy.requireSelfOrOperational(
+          currentUser, vehicleApi.getVehicleById(vehicleId).customerId());
+      securedAppointment =
+          new AppointmentDto(
+              existing.id(),
+              existing.customerId(),
+              vehicleId,
+              appointmentDto.serviceId(),
+              existing.technicianId(),
+              appointmentDto.appointmentDate(),
+              appointmentDto.timeSlot(),
+              existing.status(),
+              appointmentDto.notes(),
+              existing.createdAt(),
+              existing.updatedAt());
+    }
+
+    return ResponseEntity.ok(appointmentApi.updateAppointment(id, securedAppointment));
   }
 
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
   @Operation(summary = "Update appointment status", operationId = "updateAppointmentStatus")
   public ResponseEntity<AppointmentDto> updateStatus(
-      @PathVariable final String id, @RequestParam final String status) {
+      @PathVariable final String id,
+      @RequestParam final String status,
+      Authentication authentication) {
+    AppointmentDto appointment = appointmentApi.getAppointmentById(id);
+    accessPolicy.requireAssignedTechnicianOrOperational(
+        currentUserService.requireCurrentUser(authentication), appointment.technicianId());
     return ResponseEntity.ok(appointmentApi.updateStatus(id, status));
+  }
+
+  @PatchMapping("/{id}/cancel")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @Operation(summary = "Cancel an appointment", operationId = "cancelAppointment")
+  public ResponseEntity<AppointmentDto> cancelAppointment(
+      @PathVariable final String id, Authentication authentication) {
+    AppointmentDto appointment = appointmentApi.getAppointmentById(id);
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    accessPolicy.requireSelfOrOperational(currentUser, appointment.customerId());
+
+    if (!accessPolicy.isOperationalUser(currentUser) && !"PENDING".equals(appointment.status())) {
+      throw new IllegalArgumentException("Customers can cancel only pending appointments.");
+    }
+
+    return ResponseEntity.ok(appointmentApi.updateStatus(id, "CANCELLED"));
   }
 
   @DeleteMapping("/{id}")
@@ -109,18 +194,5 @@ class AppointmentController {
   public ResponseEntity<Void> deleteAppointment(@PathVariable final String id) {
     appointmentApi.deleteAppointment(id);
     return ResponseEntity.noContent().build();
-  }
-
-  private String resolveUserId(Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      return null;
-    }
-    String name = authentication.getName();
-    return userApi
-        .findByUsername(name)
-        .or(() -> userApi.findByEmail(name))
-        .or(() -> userApi.findByKeycloakId(name))
-        .map(UserDto::id)
-        .orElse(name);
   }
 }

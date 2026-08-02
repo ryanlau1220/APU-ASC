@@ -8,7 +8,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,17 +49,8 @@ class AuditLogController {
     return ResponseEntity.ok(auditLogApi.findByActionType(actionType));
   }
 
-  @GetMapping("/my")
-  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
-  @Operation(summary = "Get my user audit log history")
-  public ResponseEntity<List<AuditLogDto>> getMyAuditLogs(Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      return ResponseEntity.ok(List.of());
-    }
-    return ResponseEntity.ok(auditLogApi.findByUserId(authentication.getName()));
-  }
-
   @GetMapping("/sentry-test")
+  @PreAuthorize("hasRole('MANAGER')")
   @Operation(summary = "Test Sentry backend exception capture")
   public ResponseEntity<String> testSentry() {
     io.sentry.Sentry.captureException(new RuntimeException("APU-ASC Sentry Test Exception"));

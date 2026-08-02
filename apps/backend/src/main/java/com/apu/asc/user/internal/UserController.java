@@ -1,5 +1,8 @@
 package com.apu.asc.user.internal;
 
+import com.apu.asc.common.security.AccessPolicy;
+import com.apu.asc.common.security.AuthenticatedUser;
+import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,7 +11,6 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -30,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 class UserController {
 
   private final UserApi userApi;
+  private final CurrentUserService currentUserService;
+  private final AccessPolicy accessPolicy;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
@@ -44,31 +48,32 @@ class UserController {
   public ResponseEntity<UserDto> getUserById(
       @PathVariable final String id, Authentication authentication) {
     UserDto user = userApi.getUserById(id);
-    boolean isStaffOrManager =
-        authentication.getAuthorities().stream()
-            .anyMatch(
-                a ->
-                    a.getAuthority().equals("ROLE_MANAGER")
-                        || a.getAuthority().equals("ROLE_STAFF")
-                        || a.getAuthority().equals("ROLE_SYSTEM_ADMIN"));
-    if (!isStaffOrManager) {
-      String principalName = authentication.getName();
-      boolean isSelf =
-          (user.username() != null && user.username().equalsIgnoreCase(principalName))
-              || (user.id() != null && user.id().equals(principalName))
-              || (user.keycloakId() != null && user.keycloakId().equals(principalName));
-      if (!isSelf) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-      }
-    }
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), user.id());
     return ResponseEntity.ok(user);
   }
 
   @PostMapping
   @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
   @Operation(summary = "Create user", description = "Registers a new user in the system")
-  public ResponseEntity<UserDto> createUser(@Valid @RequestBody final UserDto userDto) {
-    UserDto created = userApi.createUser(userDto);
+  public ResponseEntity<UserDto> createUser(
+      @Valid @RequestBody final UserDto userDto, Authentication authentication) {
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    UserDto securedUser = userDto;
+    if (!accessPolicy.isManager(currentUser)) {
+      securedUser =
+          new UserDto(
+              null,
+              null,
+              userDto.username(),
+              userDto.email(),
+              userDto.fullName(),
+              "CUSTOMER",
+              "ACTIVE",
+              null,
+              null);
+    }
+    UserDto created = userApi.createUser(securedUser);
     return ResponseEntity.created(URI.create("/api/v1/users/" + created.id())).body(created);
   }
 
@@ -80,22 +85,10 @@ class UserController {
       @Valid @RequestBody UserDto userDto,
       Authentication authentication) {
     UserDto existing = userApi.getUserById(id);
-    boolean isManager =
-        authentication.getAuthorities().stream()
-            .anyMatch(
-                a ->
-                    a.getAuthority().equals("ROLE_MANAGER")
-                        || a.getAuthority().equals("ROLE_SYSTEM_ADMIN"));
-    if (!isManager) {
-      String principalName = authentication.getName();
-      boolean isSelf =
-          (existing.username() != null && existing.username().equalsIgnoreCase(principalName))
-              || (existing.id() != null && existing.id().equals(principalName))
-              || (existing.keycloakId() != null && existing.keycloakId().equals(principalName));
-      if (!isSelf) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-      }
-      // Non-managers cannot escalate roles or status
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    if (!accessPolicy.isManager(currentUser)) {
+      accessPolicy.requireSelfOrOperational(currentUser, existing.id());
+      // Only managers can alter an account's role or activation state.
       userDto =
           new UserDto(
               existing.id(),

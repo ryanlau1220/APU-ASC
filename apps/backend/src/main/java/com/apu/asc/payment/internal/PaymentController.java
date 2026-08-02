@@ -1,9 +1,10 @@
 package com.apu.asc.payment.internal;
 
+import com.apu.asc.common.security.AccessPolicy;
+import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
-import com.apu.asc.user.UserApi;
-import com.apu.asc.user.UserDto;
+import com.apu.asc.user.CurrentUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 class PaymentController {
 
   private final PaymentApi paymentApi;
-  private final UserApi userApi;
+  private final CurrentUserService currentUserService;
+  private final AccessPolicy accessPolicy;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
@@ -42,27 +44,31 @@ class PaymentController {
   @GetMapping("/{id}")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get payment/invoice by ID")
-  public ResponseEntity<PaymentDto> getPaymentById(@PathVariable final String id) {
-    return ResponseEntity.ok(paymentApi.getPaymentById(id));
+  public ResponseEntity<PaymentDto> getPaymentById(
+      @PathVariable final String id, Authentication authentication) {
+    PaymentDto payment = paymentApi.getPaymentById(id);
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), payment.customerId());
+    return ResponseEntity.ok(payment);
   }
 
   @GetMapping("/my")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get my payments/invoices")
   public ResponseEntity<List<PaymentDto>> getMyPayments(Authentication authentication) {
-    String currentUserId = resolveUserId(authentication);
-    if (currentUserId == null) {
-      return ResponseEntity.ok(List.of());
-    }
-    return ResponseEntity.ok(paymentApi.getByCustomer(currentUserId));
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    return ResponseEntity.ok(paymentApi.getByCustomer(currentUser.id()));
   }
 
   @GetMapping("/appointment/{appointmentId}")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
   @Operation(summary = "Get invoice by appointment ID")
   public ResponseEntity<PaymentDto> getPaymentByAppointment(
-      @PathVariable final String appointmentId) {
-    return ResponseEntity.ok(paymentApi.getByAppointment(appointmentId));
+      @PathVariable final String appointmentId, Authentication authentication) {
+    PaymentDto payment = paymentApi.getByAppointment(appointmentId);
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), payment.customerId());
+    return ResponseEntity.ok(payment);
   }
 
   @PostMapping
@@ -85,7 +91,12 @@ class PaymentController {
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF')")
   @Operation(summary = "Process invoice payment")
   public ResponseEntity<PaymentDto> processPayment(
-      @PathVariable final String id, @RequestParam final String method) {
+      @PathVariable final String id,
+      @RequestParam final String method,
+      Authentication authentication) {
+    PaymentDto payment = paymentApi.getPaymentById(id);
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), payment.customerId());
     return ResponseEntity.ok(paymentApi.processPayment(id, method));
   }
 
@@ -95,18 +106,5 @@ class PaymentController {
   public ResponseEntity<Void> deletePayment(@PathVariable final String id) {
     paymentApi.deletePayment(id);
     return ResponseEntity.noContent().build();
-  }
-
-  private String resolveUserId(Authentication authentication) {
-    if (authentication == null || !authentication.isAuthenticated()) {
-      return null;
-    }
-    String name = authentication.getName();
-    return userApi
-        .findByUsername(name)
-        .or(() -> userApi.findByEmail(name))
-        .or(() -> userApi.findByKeycloakId(name))
-        .map(UserDto::id)
-        .orElse(name);
   }
 }
