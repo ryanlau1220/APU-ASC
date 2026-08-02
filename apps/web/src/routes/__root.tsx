@@ -161,6 +161,8 @@ function ClientPostHogProvider({ children }: { children: React.ReactNode }) {
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>
 }
 
+import { ThemeProvider } from '../lib/useTheme'
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -172,9 +174,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="bg-background text-foreground font-sans antialiased selection:bg-primary/20 min-h-screen flex flex-col">
         <ClientPostHogProvider>
           <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <AppContent>{children}</AppContent>
-            </AuthProvider>
+            <ThemeProvider>
+              <AuthProvider>
+                <AppContent>{children}</AppContent>
+              </AuthProvider>
+            </ThemeProvider>
           </QueryClientProvider>
         </ClientPostHogProvider>
         <Scripts />
