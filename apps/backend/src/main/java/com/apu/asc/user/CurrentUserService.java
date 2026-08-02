@@ -1,6 +1,7 @@
 package com.apu.asc.user;
 
 import com.apu.asc.common.security.AuthenticatedUser;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 /** Resolves a verified Spring Security principal to the internal application user identifier. */
 @Service
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class CurrentUserService {
 
   private final UserApi userApi;
