@@ -29,35 +29,31 @@ const CUSTOMER_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/customer/', icon: LayoutDashboard },
   { label: 'Vehicles', to: '/customer/vehicles', icon: Car },
   { label: 'Appointments', to: '/customer/appointments', icon: Calendar },
-  { label: 'Invoices', to: '/customer/payments', icon: CreditCard },
+  { label: 'Payments', to: '/customer/payments', icon: CreditCard },
   { label: 'Feedback', to: '/customer/feedback', icon: MessageSquare },
 ]
 
 const MANAGER_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/manager/', icon: LayoutDashboard },
-  { label: 'Service Catalog', to: '/manager/services', icon: BookOpen },
-  { label: 'Master Schedule', to: '/manager/appointments', icon: Calendar },
+  { label: 'Services', to: '/manager/services', icon: BookOpen },
+  { label: 'Appointments', to: '/manager/appointments', icon: Calendar },
   { label: 'Vehicles', to: '/manager/vehicles', icon: Car },
-  { label: 'Audit Trail', to: '/manager/audit-logs', icon: ShieldCheck },
-  { label: 'Operations Suite', to: '/manager/operations', icon: ShieldCheck },
+  { label: 'Observability', to: '/manager/audit-logs', icon: ShieldCheck },
+  { label: 'Operations', to: '/manager/operations', icon: Wrench },
 ]
 
 const STAFF_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/staff/', icon: LayoutDashboard },
   { label: 'Services', to: '/staff/services', icon: BookOpen },
-  { label: 'Counter Intake', to: '/staff/appointments', icon: Calendar },
-  { label: 'Customer Accounts', to: '/staff/users', icon: Users },
+  { label: 'Appointments', to: '/staff/appointments', icon: Calendar },
+  { label: 'Users', to: '/staff/users', icon: Users },
   { label: 'Payments', to: '/staff/payments', icon: CreditCard },
 ]
 
 const TECHNICIAN_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/technician/', icon: LayoutDashboard },
-  { label: 'Bay Work Orders', to: '/technician/jobs', icon: Wrench },
-  {
-    label: 'Feedback & Notes',
-    to: '/technician/feedback',
-    icon: MessageSquare,
-  },
+  { label: 'Appointments', to: '/technician/jobs', icon: Calendar },
+  { label: 'Feedback', to: '/technician/feedback', icon: MessageSquare },
 ]
 
 export function getRoleNavItems(
@@ -253,9 +249,14 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-semibold hover:border-primary/40 transition-colors"
+                className="p-1 rounded-full bg-muted border border-border hover:border-primary/40 transition-colors flex items-center gap-1"
+                title={
+                  userSession?.fullName ||
+                  userSession?.username ||
+                  'User Profile'
+                }
               >
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px] overflow-hidden">
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px] overflow-hidden">
                   {userSession?.avatarUrl ? (
                     <img
                       src={userSession.avatarUrl}
@@ -263,13 +264,10 @@ export default function Header() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <UserIcon className="w-3.5 h-3.5" />
+                    <UserIcon className="w-4 h-4" />
                   )}
                 </div>
-                <span className="hidden sm:inline">
-                  {userSession?.fullName || userSession?.username || 'User'}
-                </span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                <ChevronDown className="w-3 h-3 text-muted-foreground mr-1" />
               </button>
 
               {isUserMenuOpen && (
