@@ -30,6 +30,7 @@ class CurrentUserServiceTest {
             "CUSTOMER",
             "ACTIVE",
             null,
+            null,
             null);
     TestingAuthenticationToken authentication =
         new TestingAuthenticationToken(

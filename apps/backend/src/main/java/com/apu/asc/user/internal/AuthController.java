@@ -67,6 +67,7 @@ class AuthController {
             request.fullName(),
             "CUSTOMER",
             "PENDING_VERIFICATION",
+            null,
             Instant.now(),
             Instant.now());
     return ResponseEntity.ok(userApi.createUser(newUser));

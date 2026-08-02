@@ -10,5 +10,6 @@ public record UserDto(
     String fullName,
     String role,
     String status,
+    String avatarUrl,
     Instant createdAt,
     Instant updatedAt) {}

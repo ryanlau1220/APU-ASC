@@ -42,6 +42,9 @@ class UserEntity {
   @Column(nullable = false)
   private String status;
 
+  @Column(name = "avatar_url")
+  private String avatarUrl;
+
   @Column(name = "created_at", updatable = false)
   private Instant createdAt;
 

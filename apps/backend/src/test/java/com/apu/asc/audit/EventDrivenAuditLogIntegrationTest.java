@@ -109,6 +109,7 @@ class EventDrivenAuditLogIntegrationTest {
                 "CUSTOMER",
                 "ACTIVE",
                 null,
+                null,
                 null));
     createdUsers.add(user.id());
 
@@ -142,6 +143,7 @@ class EventDrivenAuditLogIntegrationTest {
                 "Audit Test User",
                 "CUSTOMER",
                 "ACTIVE",
+                null,
                 null,
                 null));
     createdUsers.add(user.id());

@@ -34,6 +34,7 @@ class UserController {
   private final UserApi userApi;
   private final CurrentUserService currentUserService;
   private final AccessPolicy accessPolicy;
+  private final com.apu.asc.config.S3StorageService s3StorageService;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
@@ -70,11 +71,52 @@ class UserController {
               userDto.fullName(),
               "CUSTOMER",
               "ACTIVE",
+              userDto.avatarUrl(),
               null,
               null);
     }
     UserDto created = userApi.createUser(securedUser);
     return ResponseEntity.created(URI.create("/api/v1/users/" + created.id())).body(created);
+  }
+
+  @PostMapping(
+      value = "/avatar",
+      consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'TECHNICIAN', 'MANAGER')")
+  @Operation(summary = "Upload profile avatar picture", operationId = "uploadAvatar")
+  public ResponseEntity<UserDto> uploadAvatar(
+      @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+      Authentication authentication) {
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    String avatarUrl = s3StorageService.uploadAvatar(file, currentUser.id());
+    UserDto existing = userApi.getUserById(currentUser.id());
+    UserDto updated =
+        new UserDto(
+            existing.id(),
+            existing.keycloakId(),
+            existing.username(),
+            existing.email(),
+            existing.fullName(),
+            existing.role(),
+            existing.status(),
+            avatarUrl,
+            existing.createdAt(),
+            existing.updatedAt());
+    return ResponseEntity.ok(userApi.updateUser(currentUser.id(), updated));
+  }
+
+  @GetMapping(value = "/avatar/file/{filename:.+}")
+  @Operation(summary = "Get avatar image file", operationId = "getAvatarFile")
+  public ResponseEntity<org.springframework.core.io.InputStreamResource> getAvatarFile(
+      @PathVariable String filename) {
+    try {
+      java.io.InputStream inputStream = s3StorageService.getAvatarFile(filename);
+      return ResponseEntity.ok()
+          .contentType(org.springframework.http.MediaType.IMAGE_PNG)
+          .body(new org.springframework.core.io.InputStreamResource(inputStream));
+    } catch (Exception e) {
+      return ResponseEntity.notFound().build();
+    }
   }
 
   @PutMapping("/{id}")
@@ -98,6 +140,7 @@ class UserController {
               userDto.fullName() != null ? userDto.fullName() : existing.fullName(),
               existing.role(),
               existing.status(),
+              userDto.avatarUrl() != null ? userDto.avatarUrl() : existing.avatarUrl(),
               existing.createdAt(),
               existing.updatedAt());
     }

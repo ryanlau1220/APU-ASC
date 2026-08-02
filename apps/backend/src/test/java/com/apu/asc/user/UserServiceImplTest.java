@@ -18,6 +18,7 @@ class UserServiceImplTest {
             "CUSTOMER",
             "ACTIVE",
             null,
+            null,
             null);
 
     assertThat(userDto.id()).isEqualTo("USR-001");

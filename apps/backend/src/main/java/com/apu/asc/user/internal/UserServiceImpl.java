@@ -241,6 +241,7 @@ class UserServiceImpl implements UserApi {
         entity.getFullName(),
         entity.getRole(),
         entity.getStatus(),
+        entity.getAvatarUrl(),
         entity.getCreatedAt(),
         entity.getUpdatedAt());
   }

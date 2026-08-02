@@ -113,6 +113,7 @@ class FullCrudOperationsIntegrationTest {
                 role,
                 "ACTIVE",
                 null,
+                null,
                 null));
     createdUsers.add(u.id());
     return u;
@@ -274,6 +275,7 @@ class FullCrudOperationsIntegrationTest {
                 user.fullName(),
                 user.role(),
                 "INACTIVE",
+                user.avatarUrl(),
                 null,
                 null));
     assertThat(updatedStatus.status()).isEqualTo("INACTIVE");
