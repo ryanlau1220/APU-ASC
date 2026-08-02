@@ -3,9 +3,10 @@ import { MessageSquare, Star } from 'lucide-react'
 import * as React from 'react'
 import {
   useGetMyAppointments,
+  useGetMyFeedback,
   useSubmitFeedback,
 } from '../../api/generated/endpoints'
-import type { AppointmentDto } from '../../api/generated/models'
+import type { AppointmentDto, FeedbackDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { useUserSession } from '../__root'
@@ -29,6 +30,10 @@ function CustomerFeedbackContent() {
     (appointmentsData || []) as AppointmentDto[]
   ).filter((a) => a.status === 'COMPLETED')
 
+  const { data: myFeedbackData = [], refetch: refetchFeedback } =
+    useGetMyFeedback()
+  const myFeedbacks = (myFeedbackData || []) as FeedbackDto[]
+
   const submitFeedbackMutation = useSubmitFeedback({
     mutation: {
       onSuccess: () => {
@@ -36,6 +41,7 @@ function CustomerFeedbackContent() {
         setAppointmentId('')
         setRating(5)
         setComments('')
+        refetchFeedback()
       },
       onError: (err: Error) => {
         setMessage(err.message || 'Failed to submit feedback.')
@@ -171,6 +177,44 @@ function CustomerFeedbackContent() {
                 : 'Submit Service Feedback'}
             </button>
           </form>
+        </section>
+
+        {/* My Submitted Feedback History */}
+        <section className="bg-card border border-border rounded-xl p-6 sm:p-8 space-y-4">
+          <h2 className="font-heading text-lg font-bold flex items-center gap-2">
+            <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+            My Submitted Feedback & Reviews ({myFeedbacks.length})
+          </h2>
+
+          {myFeedbacks.length === 0 ? (
+            <div className="text-center py-6 text-xs text-muted-foreground">
+              You have not submitted any service feedback yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myFeedbacks.map((fb) => (
+                <div
+                  key={fb.id}
+                  className="p-4 rounded-xl bg-muted/40 border border-border space-y-2 text-xs"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-foreground">
+                      Appointment #{fb.appointmentId}
+                    </span>
+                    <span className="font-bold text-amber-500 flex items-center gap-1">
+                      {'⭐'.repeat(fb.rating || 5)} ({fb.rating}/5)
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground">{fb.comments}</p>
+                  {fb.createdAt && (
+                    <div className="text-[10px] text-muted-foreground">
+                      Submitted on {new Date(fb.createdAt).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
