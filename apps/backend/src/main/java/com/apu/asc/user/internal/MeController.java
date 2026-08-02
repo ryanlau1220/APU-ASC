@@ -92,6 +92,8 @@ class MeController {
             email != null ? email : "",
             "fullName",
             userDto != null ? userDto.fullName() : username != null ? username : "",
+            "avatarUrl",
+            userDto != null && userDto.avatarUrl() != null ? userDto.avatarUrl() : "",
             "roles",
             roles));
   }

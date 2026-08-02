@@ -20,6 +20,7 @@ export interface UserSession {
   username?: string
   email?: string
   fullName?: string
+  avatarUrl?: string
   roles?: string[]
 }
 
