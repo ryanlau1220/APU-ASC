@@ -38,6 +38,7 @@ const MANAGER_NAV: NavItem[] = [
   { label: 'Service Catalog', to: '/manager/services', icon: BookOpen },
   { label: 'Master Schedule', to: '/manager/appointments', icon: Calendar },
   { label: 'Vehicles', to: '/manager/vehicles', icon: Car },
+  { label: 'Audit Trail', to: '/manager/audit-logs', icon: ShieldCheck },
   { label: 'Operations Suite', to: '/manager/operations', icon: ShieldCheck },
 ]
 
@@ -254,8 +255,16 @@ export default function Header() {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-muted border border-border text-xs font-semibold hover:border-primary/40 transition-colors"
               >
-                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px]">
-                  <UserIcon className="w-3.5 h-3.5" />
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px] overflow-hidden">
+                  {userSession?.avatarUrl ? (
+                    <img
+                      src={userSession.avatarUrl}
+                      alt={userSession.fullName || 'User Avatar'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <UserIcon className="w-3.5 h-3.5" />
+                  )}
                 </div>
                 <span className="hidden sm:inline">
                   {userSession?.fullName || userSession?.username || 'User'}
