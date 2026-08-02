@@ -75,9 +75,7 @@ class UserServiceImpl implements UserApi {
     }
 
     String generatedId =
-        userDto.id() != null
-            ? userDto.id()
-            : "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        userDto.id() != null ? userDto.id() : "USR-" + UUID.randomUUID().toString();
 
     String userRole = userDto.role() != null ? userDto.role() : "CUSTOMER";
 
@@ -126,7 +124,12 @@ class UserServiceImpl implements UserApi {
     if (userDto.fullName() != null) entity.setFullName(userDto.fullName());
     if (userDto.email() != null) entity.setEmail(userDto.email());
     if (userDto.role() != null) entity.setRole(userDto.role());
-    if (userDto.status() != null) entity.setStatus(userDto.status());
+    if (userDto.status() != null) {
+      entity.setStatus(userDto.status());
+      if ("INACTIVE".equalsIgnoreCase(userDto.status()) && entity.getKeycloakId() != null) {
+        keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
+      }
+    }
 
     UserDto updated = toDto(userRepository.save(entity));
     eventPublisher.publishEvent(
@@ -141,6 +144,9 @@ class UserServiceImpl implements UserApi {
     UserEntity entity =
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
     entity.setStatus(status);
+    if ("INACTIVE".equalsIgnoreCase(status) && entity.getKeycloakId() != null) {
+      keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
+    }
     UserDto updated = toDto(userRepository.save(entity));
     eventPublisher.publishEvent(
         new AuditEvent(id, "USER_STATUS_UPDATED", "USER", id, "Updated status to " + status));
@@ -153,6 +159,9 @@ class UserServiceImpl implements UserApi {
     UserEntity entity =
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
     entity.setStatus("INACTIVE");
+    if (entity.getKeycloakId() != null) {
+      keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
+    }
     userRepository.save(entity);
     eventPublisher.publishEvent(
         new AuditEvent(id, "USER_DEACTIVATED", "USER", id, "Deactivated user account"));
@@ -161,7 +170,15 @@ class UserServiceImpl implements UserApi {
   @Override
   @Transactional
   public void hardDeleteUser(String id) {
-    userRepository.findById(id).ifPresent(userRepository::delete);
+    userRepository
+        .findById(id)
+        .ifPresent(
+            user -> {
+              if (user.getKeycloakId() != null) {
+                keycloakAdminService.deleteKeycloakUser(user.getKeycloakId());
+              }
+              userRepository.delete(user);
+            });
   }
 
   @Override
@@ -197,7 +214,7 @@ class UserServiceImpl implements UserApi {
       return toDto(user);
     }
 
-    String generatedId = "USR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String generatedId = "USR-" + UUID.randomUUID().toString();
     UserEntity newEntity =
         UserEntity.builder()
             .id(generatedId)
