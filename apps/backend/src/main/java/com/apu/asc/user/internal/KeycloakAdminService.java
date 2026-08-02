@@ -1,5 +1,7 @@
 package com.apu.asc.user.internal;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +17,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class KeycloakAdminService {
 
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final RestTemplate restTemplate;
 
   @Value("${keycloak.admin.server-url:http://localhost/auth}")
   private String keycloakServerUrl;
@@ -35,7 +39,14 @@ public class KeycloakAdminService {
   @Value("${keycloak.admin.realm:apu-asc}")
   private String realm;
 
-  private String getAdminAccessToken() {
+  private String cachedToken;
+  private Instant tokenExpiry = Instant.MIN;
+
+  private synchronized String getAdminAccessToken() {
+    if (cachedToken != null && Instant.now().isBefore(tokenExpiry)) {
+      return cachedToken;
+    }
+
     String tokenUrl = keycloakServerUrl + "/realms/master/protocol/openid-connect/token";
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -58,7 +69,11 @@ public class KeycloakAdminService {
     if (response.getStatusCode().is2xxSuccessful()
         && responseBody != null
         && responseBody.containsKey("access_token")) {
-      return (String) responseBody.get("access_token");
+      cachedToken = (String) responseBody.get("access_token");
+      Number expiresIn = (Number) responseBody.getOrDefault("expires_in", 60);
+      // Buffer by 10 seconds
+      tokenExpiry = Instant.now().plusSeconds(Math.max(10, expiresIn.longValue() - 10));
+      return cachedToken;
     }
     throw new IllegalStateException("Failed to obtain Keycloak Admin Access Token");
   }
@@ -66,7 +81,12 @@ public class KeycloakAdminService {
   public String findUserIdByEmail(String email) {
     try {
       String token = getAdminAccessToken();
-      String searchUrl = keycloakServerUrl + "/admin/realms/" + realm + "/users?email=" + email;
+      String searchUrl =
+          UriComponentsBuilder.fromHttpUrl(keycloakServerUrl)
+              .path("/admin/realms/{realm}/users")
+              .queryParam("email", email)
+              .buildAndExpand(realm)
+              .toUriString();
 
       HttpHeaders headers = new HttpHeaders();
       headers.setBearerAuth(token);
@@ -111,6 +131,61 @@ public class KeycloakAdminService {
     HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
     restTemplate.exchange(resetUrl, HttpMethod.PUT, entity, Void.class);
     log.info("Successfully reset password in Keycloak for user ID {}", keycloakUserId);
+    revokeUserSessions(keycloakUserId);
+  }
+
+  public void revokeUserSessions(String keycloakUserId) {
+    try {
+      String token = getAdminAccessToken();
+      String logoutUrl =
+          keycloakServerUrl + "/admin/realms/" + realm + "/users/" + keycloakUserId + "/logout";
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setBearerAuth(token);
+      HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+      restTemplate.exchange(logoutUrl, HttpMethod.POST, entity, Void.class);
+      log.info("Revoked Keycloak sessions for user ID {}", keycloakUserId);
+    } catch (Exception e) {
+      log.warn(
+          "Failed to revoke Keycloak sessions for user ID {}: {}", keycloakUserId, e.getMessage());
+    }
+  }
+
+  public void disableKeycloakUser(String keycloakUserId) {
+    try {
+      String token = getAdminAccessToken();
+      String userUrl = keycloakServerUrl + "/admin/realms/" + realm + "/users/" + keycloakUserId;
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_JSON);
+      headers.setBearerAuth(token);
+
+      Map<String, Object> body = Map.of("enabled", false);
+      HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+      restTemplate.exchange(userUrl, HttpMethod.PUT, entity, Void.class);
+      log.info("Disabled Keycloak account for user ID {}", keycloakUserId);
+      revokeUserSessions(keycloakUserId);
+    } catch (Exception e) {
+      log.warn("Failed to disable Keycloak user ID {}: {}", keycloakUserId, e.getMessage());
+    }
+  }
+
+  public void deleteKeycloakUser(String keycloakUserId) {
+    try {
+      String token = getAdminAccessToken();
+      String userUrl = keycloakServerUrl + "/admin/realms/" + realm + "/users/" + keycloakUserId;
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setBearerAuth(token);
+      HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+      restTemplate.exchange(userUrl, HttpMethod.DELETE, entity, Void.class);
+      log.info("Deleted Keycloak user ID {}", keycloakUserId);
+    } catch (Exception e) {
+      log.warn("Failed to delete Keycloak user ID {}: {}", keycloakUserId, e.getMessage());
+    }
   }
 
   public String createKeycloakUser(String username, String email, String fullName, String role) {
@@ -149,13 +224,16 @@ public class KeycloakAdminService {
         if (keycloakId != null && role != null) {
           assignRoleToUser(keycloakId, role);
         }
+        if (keycloakId == null) {
+          throw new IllegalStateException("Failed to retrieve Keycloak user ID after creation");
+        }
         return keycloakId;
       }
     } catch (Exception e) {
-      log.warn(
-          "Keycloak user creation skipped or failed for username {}: {}", username, e.getMessage());
+      log.error("Keycloak user creation failed for username {}: {}", username, e.getMessage());
+      throw new IllegalStateException("Keycloak user creation failed: " + e.getMessage(), e);
     }
-    return null;
+    throw new IllegalStateException("Failed to create Keycloak user " + username);
   }
 
   public void assignRoleToUser(String keycloakUserId, String roleName) {
