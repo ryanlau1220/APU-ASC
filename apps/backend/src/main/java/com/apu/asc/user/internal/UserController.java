@@ -113,7 +113,10 @@ class UserController {
 
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasRole('MANAGER')")
-  @Operation(summary = "Update user status", description = "Activates or deactivates user account")
+  @Operation(
+      summary = "Update user status",
+      operationId = "updateUserStatus",
+      description = "Activates or deactivates user account")
   public ResponseEntity<UserDto> updateStatus(
       @PathVariable final String id, @RequestParam final String status) {
     return ResponseEntity.ok(userApi.updateStatus(id, status));
