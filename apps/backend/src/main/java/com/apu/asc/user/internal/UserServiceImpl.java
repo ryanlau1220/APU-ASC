@@ -96,6 +96,7 @@ class UserServiceImpl implements UserApi {
             .fullName(userDto.fullName())
             .role(userRole)
             .status(userDto.status() != null ? userDto.status() : "ACTIVE")
+            .avatarUrl(userDto.avatarUrl())
             .build();
 
     UserDto created = toDto(userRepository.save(entity));
@@ -124,6 +125,7 @@ class UserServiceImpl implements UserApi {
     if (userDto.fullName() != null) entity.setFullName(userDto.fullName());
     if (userDto.email() != null) entity.setEmail(userDto.email());
     if (userDto.role() != null) entity.setRole(userDto.role());
+    if (userDto.avatarUrl() != null) entity.setAvatarUrl(userDto.avatarUrl());
     if (userDto.status() != null) {
       entity.setStatus(userDto.status());
       if ("INACTIVE".equalsIgnoreCase(userDto.status()) && entity.getKeycloakId() != null) {
