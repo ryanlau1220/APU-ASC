@@ -1,0 +1,20 @@
+package com.apu.asc.payment;
+
+public enum PaymentMethod {
+  CREDIT_CARD,
+  DEBIT_CARD,
+  ONLINE_BANKING,
+  CASH,
+  E_WALLET;
+
+  public static PaymentMethod fromString(String method) {
+    if (method == null || method.isBlank()) {
+      return CREDIT_CARD;
+    }
+    try {
+      return PaymentMethod.valueOf(method.toUpperCase().replace(" ", "_"));
+    } catch (IllegalArgumentException e) {
+      return CREDIT_CARD;
+    }
+  }
+}
