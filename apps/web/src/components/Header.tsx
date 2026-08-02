@@ -65,7 +65,6 @@ export function getRoleNavItems(
 ): NavItem[] {
   const isManager =
     roles.includes('MANAGER') ||
-    roles.includes('ROLE_MANAGER') ||
     roles.includes('WORKSHOP_MANAGER') ||
     roles.includes('SYSTEM_ADMIN')
 

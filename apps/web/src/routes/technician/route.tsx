@@ -10,7 +10,6 @@ function TechnicianLayout() {
     <RequireAuth
       allowedRoles={[
         'TECHNICIAN',
-        'ROLE_TECHNICIAN',
         'MANAGER',
         'WORKSHOP_MANAGER',
         'SYSTEM_ADMIN',

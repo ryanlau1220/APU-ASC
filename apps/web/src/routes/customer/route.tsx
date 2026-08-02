@@ -7,7 +7,7 @@ export const Route = createFileRoute('/customer')({
 
 function CustomerLayout() {
   return (
-    <RequireAuth allowedRoles={['CUSTOMER', 'ROLE_CUSTOMER']}>
+    <RequireAuth allowedRoles={['CUSTOMER']}>
       <Outlet />
     </RequireAuth>
   )
