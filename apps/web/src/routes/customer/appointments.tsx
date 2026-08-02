@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Calendar, CheckCircle2, Clock, Plus } from 'lucide-react'
 import * as React from 'react'
@@ -14,17 +15,13 @@ import type {
 } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
-import { useUserSession } from '../__root'
+import { bffFetch } from '../../lib/apiClient'
 
 export const Route = createFileRoute('/customer/appointments')({
   component: CustomerAppointmentsContent,
 })
 
 function CustomerAppointmentsContent() {
-  const { userSession } = useUserSession()
-  const customerId =
-    userSession?.id || userSession?.keycloakId || 'USR-CUSTOMER'
-
   const [selectedVehicleId, setSelectedVehicleId] = React.useState('')
   const [selectedServiceId, setSelectedServiceId] = React.useState('')
   const [appointmentDate, setAppointmentDate] = React.useState('')
@@ -57,6 +54,20 @@ function CustomerAppointmentsContent() {
     },
   })
 
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: (id: string) =>
+      bffFetch<AppointmentDto>(`/api/v1/appointments/${id}/cancel`, {
+        method: 'PATCH',
+      }),
+    onSuccess: () => {
+      setMessage('Appointment cancelled successfully!')
+      refetch()
+    },
+    onError: (err: Error) => {
+      setMessage(err.message || 'Failed to cancel appointment.')
+    },
+  })
+
   const handleBook = (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedVehicleId || !selectedServiceId || !appointmentDate) {
@@ -66,7 +77,6 @@ function CustomerAppointmentsContent() {
     setMessage(null)
     createAppointmentMutation.mutate({
       data: {
-        customerId,
         vehicleId: selectedVehicleId,
         serviceId: selectedServiceId,
         appointmentDate,
@@ -255,6 +265,7 @@ function CustomerAppointmentsContent() {
                     <th className="py-3 px-3">Scheduled Date</th>
                     <th className="py-3 px-3">Technician</th>
                     <th className="py-3 px-3">Status</th>
+                    <th className="py-3 px-3">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -289,6 +300,24 @@ function CustomerAppointmentsContent() {
                           <CheckCircle2 className="w-3 h-3" />
                           {apt.status}
                         </span>
+                      </td>
+                      <td className="py-3.5 px-3">
+                        {apt.status === 'PENDING' ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              apt.id && cancelAppointmentMutation.mutate(apt.id)
+                            }
+                            disabled={cancelAppointmentMutation.isPending}
+                            className="rounded-lg border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">
+                            —
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
