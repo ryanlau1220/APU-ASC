@@ -129,15 +129,17 @@ class FullCrudOperationsIntegrationTest {
   }
 
   private ServiceDto createTestService() {
+    String suffix = UUID.randomUUID().toString().substring(0, 6);
     CategoryDto cat =
-        serviceCatalogApi.createCategory(new CategoryDto(null, "Test Category", "Desc", null));
+        serviceCatalogApi.createCategory(
+            new CategoryDto(null, "Test Category " + suffix, "Desc", null));
     createdCategories.add(cat.id());
     ServiceDto s =
         serviceCatalogApi.createService(
             new ServiceDto(
                 null,
                 cat.id(),
-                "Test Service",
+                "Test Service " + suffix,
                 "Desc",
                 60,
                 BigDecimal.valueOf(100.00),

@@ -86,11 +86,14 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
 
   @Override
   @Transactional
-  @CacheEvict(value = "categories", allEntries = true)
+  @CacheEvict(
+      value = {"categories", "services"},
+      allEntries = true)
   public void deleteCategory(final String id) {
     if (!categoryRepository.existsById(id)) {
       throw new ResourceNotFoundException("Category", id);
     }
+    serviceRepository.deleteAll(serviceRepository.findByCategoryId(id));
     categoryRepository.deleteById(id);
     eventPublisher.publishEvent(
         new AuditEvent("SYSTEM", "CATEGORY_DELETED", "CATEGORY", id, "Deleted catalog category"));
