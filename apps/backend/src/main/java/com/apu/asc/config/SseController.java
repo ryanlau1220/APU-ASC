@@ -86,6 +86,13 @@ public class SseController {
     }
   }
 
+  @org.springframework.context.event.EventListener
+  public void handleSseBroadcastEvent(com.apu.asc.common.event.SseBroadcastEvent event) {
+    if (event != null && event.topic() != null) {
+      publishInvalidateEvent(event.topic());
+    }
+  }
+
   @PostMapping("/trigger/{entity}")
   @Operation(summary = "Trigger SSE invalidate event (for testing)")
   public void triggerEvent(@PathVariable String entity) {

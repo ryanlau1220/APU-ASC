@@ -3,8 +3,8 @@ package com.apu.asc.appointment.internal;
 import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.appointment.AppointmentDto;
 import com.apu.asc.common.event.AuditEvent;
+import com.apu.asc.common.event.SseBroadcastEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
-import com.apu.asc.config.SseController;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 class AppointmentServiceImpl implements AppointmentApi {
 
   private final AppointmentRepository appointmentRepository;
-  private final SseController sseController;
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
@@ -52,10 +51,34 @@ class AppointmentServiceImpl implements AppointmentApi {
   @Override
   @Transactional
   public AppointmentDto createAppointment(final AppointmentDto appointmentDto) {
+    // C7: Double-booking prevention
+    if (appointmentDto.customerId() != null
+        && appointmentDto.appointmentDate() != null
+        && appointmentDto.timeSlot() != null
+        && appointmentRepository.existsByCustomerIdAndAppointmentDateAndTimeSlotAndStatusNot(
+            appointmentDto.customerId(),
+            appointmentDto.appointmentDate(),
+            appointmentDto.timeSlot(),
+            "CANCELLED")) {
+      throw new IllegalArgumentException(
+          "Customer already has an appointment booked for this date and time slot.");
+    }
+
+    if (appointmentDto.technicianId() != null
+        && !appointmentDto.technicianId().isBlank()
+        && appointmentDto.appointmentDate() != null
+        && appointmentDto.timeSlot() != null
+        && appointmentRepository.existsByTechnicianIdAndAppointmentDateAndTimeSlotAndStatusNot(
+            appointmentDto.technicianId(),
+            appointmentDto.appointmentDate(),
+            appointmentDto.timeSlot(),
+            "CANCELLED")) {
+      throw new IllegalArgumentException(
+          "Technician already has an active appointment assigned for this date and time slot.");
+    }
+
     String id =
-        appointmentDto.id() != null
-            ? appointmentDto.id()
-            : "APT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        appointmentDto.id() != null ? appointmentDto.id() : "APT-" + UUID.randomUUID().toString();
     AppointmentEntity entity =
         AppointmentEntity.builder()
             .id(id)
@@ -70,7 +93,7 @@ class AppointmentServiceImpl implements AppointmentApi {
             .build();
 
     AppointmentDto created = toDto(appointmentRepository.save(entity));
-    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
         new AuditEvent(
             created.customerId(),
@@ -98,7 +121,7 @@ class AppointmentServiceImpl implements AppointmentApi {
     if (appointmentDto.status() != null) entity.setStatus(appointmentDto.status());
 
     AppointmentDto updated = toDto(appointmentRepository.save(entity));
-    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
         new AuditEvent(
             updated.customerId(),
@@ -119,7 +142,7 @@ class AppointmentServiceImpl implements AppointmentApi {
 
     entity.setStatus(status);
     AppointmentDto updated = toDto(appointmentRepository.save(entity));
-    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
         new AuditEvent(
             updated.customerId(),
@@ -139,7 +162,7 @@ class AppointmentServiceImpl implements AppointmentApi {
             .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
 
     appointmentRepository.delete(entity);
-    sseController.publishInvalidateEvent("appointments");
+    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
         new AuditEvent(
             entity.getCustomerId(),
