@@ -64,9 +64,14 @@ class PaymentServiceImpl implements PaymentApi {
             .customerId(paymentDto.customerId())
             .invoiceNumber(invoiceNum)
             .amount(paymentDto.amount())
-            .paymentMethod(paymentDto.paymentMethod())
+            .paymentMethod(
+                paymentDto.paymentMethod() != null && !paymentDto.paymentMethod().isBlank()
+                    ? paymentDto.paymentMethod()
+                    : "PENDING")
             .paymentStatus(
-                paymentDto.paymentStatus() != null ? paymentDto.paymentStatus() : "UNPAID")
+                paymentDto.paymentStatus() != null && !paymentDto.paymentStatus().isBlank()
+                    ? paymentDto.paymentStatus()
+                    : "UNPAID")
             .build();
     PaymentDto created = toDto(paymentRepository.save(entity));
     eventPublisher.publishEvent(
