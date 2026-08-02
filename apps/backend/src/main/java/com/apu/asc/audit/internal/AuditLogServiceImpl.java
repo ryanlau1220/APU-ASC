@@ -47,7 +47,7 @@ class AuditLogServiceImpl implements AuditLogApi {
       final String entityName,
       final String entityId,
       final String details) {
-    String logId = "AUD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    String logId = "AUD-" + UUID.randomUUID().toString();
     String formattedDetails =
         entityId != null ? "[Entity ID: " + entityId + "] " + details : details;
 
