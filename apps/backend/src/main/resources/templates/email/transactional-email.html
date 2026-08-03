@@ -20,6 +20,10 @@
       Don't share this code with anyone. Our employees will never ask for the code.
     </p>
 
+    <p th:if="${actionUrl != null}" style="margin: 0 0 28px 0;">
+      <a th:href="${actionUrl}" style="display: inline-block; padding: 12px 18px; border-radius: 8px; background-color: #0284c7; color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none;">Set your password</a>
+    </p>
+
     <!-- Code Display -->
     <div style="font-size: 36px; font-weight: 700; color: #0f172a; letter-spacing: 2px; margin-bottom: 32px;" th:text="${codeDisplay}">
       129537
