@@ -153,6 +153,15 @@ public class KeycloakAdminService {
   }
 
   public void disableKeycloakUser(String keycloakUserId) {
+    setKeycloakUserEnabled(keycloakUserId, false);
+    revokeUserSessions(keycloakUserId);
+  }
+
+  public void enableKeycloakUser(String keycloakUserId) {
+    setKeycloakUserEnabled(keycloakUserId, true);
+  }
+
+  private void setKeycloakUserEnabled(String keycloakUserId, boolean enabled) {
     try {
       String token = getAdminAccessToken();
       String userUrl = keycloakServerUrl + "/admin/realms/" + realm + "/users/" + keycloakUserId;
@@ -161,14 +170,18 @@ public class KeycloakAdminService {
       headers.setContentType(MediaType.APPLICATION_JSON);
       headers.setBearerAuth(token);
 
-      Map<String, Object> body = Map.of("enabled", false);
+      Map<String, Object> body = Map.of("enabled", enabled);
       HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
       restTemplate.exchange(userUrl, HttpMethod.PUT, entity, Void.class);
-      log.info("Disabled Keycloak account for user ID {}", keycloakUserId);
-      revokeUserSessions(keycloakUserId);
+      log.info(
+          "{} Keycloak account for user ID {}", enabled ? "Enabled" : "Disabled", keycloakUserId);
     } catch (Exception e) {
-      log.warn("Failed to disable Keycloak user ID {}: {}", keycloakUserId, e.getMessage());
+      log.warn(
+          "Failed to {} Keycloak user ID {}: {}",
+          enabled ? "enable" : "disable",
+          keycloakUserId,
+          e.getMessage());
     }
   }
 

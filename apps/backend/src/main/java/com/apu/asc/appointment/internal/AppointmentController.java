@@ -2,6 +2,7 @@ package com.apu.asc.appointment.internal;
 
 import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.appointment.AppointmentDto;
+import com.apu.asc.appointment.AppointmentStatus;
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.user.CurrentUserService;
@@ -131,7 +132,7 @@ class AppointmentController {
               null,
               appointmentDto.appointmentDate(),
               appointmentDto.timeSlot(),
-              bookingStatus(appointmentDto.status()),
+              AppointmentStatus.PENDING.name(),
               appointmentDto.notes(),
               null,
               null);
@@ -180,7 +181,9 @@ class AppointmentController {
               null,
               appointmentDto.appointmentDate(),
               appointmentDto.timeSlot(),
-              bookingStatus(appointmentDto.status()),
+              appointmentDto.status() == null
+                  ? existing.status()
+                  : AppointmentStatus.fromString(appointmentDto.status()).name(),
               appointmentDto.notes(),
               existing.createdAt(),
               existing.updatedAt());
@@ -194,10 +197,10 @@ class AppointmentController {
   @Operation(summary = "Update booking status", operationId = "updateAppointmentStatus")
   public ResponseEntity<AppointmentDto> updateStatus(
       @PathVariable final String id,
-      @RequestParam final String status,
+      @RequestParam final AppointmentStatus status,
       Authentication authentication) {
     currentUserService.requireCurrentUser(authentication);
-    return ResponseEntity.ok(appointmentApi.updateStatus(id, bookingStatus(status)));
+    return ResponseEntity.ok(appointmentApi.updateStatus(id, status.name()));
   }
 
   @PatchMapping("/{id}/cancel")
@@ -209,11 +212,12 @@ class AppointmentController {
     AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
     accessPolicy.requireSelfOrOperational(currentUser, appointment.customerId());
 
-    if (!accessPolicy.isOperationalUser(currentUser) && !"PENDING".equals(appointment.status())) {
+    if (!accessPolicy.isOperationalUser(currentUser)
+        && AppointmentStatus.fromString(appointment.status()) != AppointmentStatus.PENDING) {
       throw new IllegalArgumentException("Customers can cancel only pending appointments.");
     }
 
-    return ResponseEntity.ok(appointmentApi.updateStatus(id, "CANCELLED"));
+    return ResponseEntity.ok(appointmentApi.updateStatus(id, AppointmentStatus.CANCELLED.name()));
   }
 
   @DeleteMapping("/{id}")
@@ -222,16 +226,5 @@ class AppointmentController {
   public ResponseEntity<Void> deleteAppointment(@PathVariable final String id) {
     appointmentApi.deleteAppointment(id);
     return ResponseEntity.noContent().build();
-  }
-
-  private String bookingStatus(String status) {
-    if (status == null || status.isBlank()) {
-      return "PENDING";
-    }
-    if ("PENDING".equals(status) || "CONFIRMED".equals(status) || "CANCELLED".equals(status)) {
-      return status;
-    }
-    throw new IllegalArgumentException(
-        "Appointment status must be PENDING, CONFIRMED, or CANCELLED. Use a work order for workshop execution.");
   }
 }

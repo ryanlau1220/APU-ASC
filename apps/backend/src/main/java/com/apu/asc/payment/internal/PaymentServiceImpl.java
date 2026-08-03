@@ -4,6 +4,7 @@ import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.payment.PaymentStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -61,6 +62,11 @@ class PaymentServiceImpl implements PaymentApi {
   @Override
   @Transactional
   public PaymentDto createInvoice(final PaymentDto paymentDto) {
+    if (paymentDto.paymentStatus() != null
+        && !paymentDto.paymentStatus().isBlank()
+        && PaymentStatus.fromString(paymentDto.paymentStatus()) != PaymentStatus.UNPAID) {
+      throw new IllegalArgumentException("New invoices must start in UNPAID status.");
+    }
     String id = paymentDto.id() != null ? paymentDto.id() : "PAY-" + UUID.randomUUID().toString();
     String invoiceNum =
         paymentDto.invoiceNumber() != null
@@ -78,10 +84,7 @@ class PaymentServiceImpl implements PaymentApi {
                 paymentDto.paymentMethod() != null && !paymentDto.paymentMethod().isBlank()
                     ? paymentDto.paymentMethod()
                     : "PENDING")
-            .paymentStatus(
-                paymentDto.paymentStatus() != null && !paymentDto.paymentStatus().isBlank()
-                    ? paymentDto.paymentStatus()
-                    : "UNPAID")
+            .paymentStatus(PaymentStatus.UNPAID.name())
             .build();
     PaymentDto created = toDto(paymentRepository.save(entity));
     eventPublisher.publishEvent(
@@ -104,7 +107,12 @@ class PaymentServiceImpl implements PaymentApi {
 
     if (paymentDto.amount() != null) entity.setAmount(paymentDto.amount());
     if (paymentDto.paymentMethod() != null) entity.setPaymentMethod(paymentDto.paymentMethod());
-    if (paymentDto.paymentStatus() != null) entity.setPaymentStatus(paymentDto.paymentStatus());
+    if (paymentDto.paymentStatus() != null
+        && PaymentStatus.fromString(paymentDto.paymentStatus())
+            != PaymentStatus.fromString(entity.getPaymentStatus())) {
+      throw new IllegalArgumentException(
+          "Payment status can only be changed by a payment or refund operation.");
+    }
 
     PaymentDto updated = toDto(paymentRepository.save(entity));
     eventPublisher.publishEvent(
@@ -124,9 +132,17 @@ class PaymentServiceImpl implements PaymentApi {
         paymentRepository
             .findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+    if (method == null || method.isBlank()) {
+      throw new IllegalArgumentException("A payment method is required.");
+    }
+    PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
+    if (current == PaymentStatus.PAID) {
+      return toDto(payment);
+    }
+    current.requireTransitionTo(PaymentStatus.PAID);
     payment.setPaymentMethod(method);
-    payment.setPaymentStatus("PAID");
-    payment.setPaidAt(Instant.now());
+    payment.setPaymentStatus(PaymentStatus.PAID.name());
+    if (payment.getPaidAt() == null) payment.setPaidAt(Instant.now());
     PaymentDto updated = toDto(paymentRepository.save(payment));
     eventPublisher.publishEvent(
         new AuditEvent(

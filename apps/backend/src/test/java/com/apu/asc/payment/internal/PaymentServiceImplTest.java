@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.apu.asc.common.exception.ResourceNotFoundException;
@@ -88,5 +89,26 @@ class PaymentServiceImplTest {
 
     assertThatThrownBy(() -> paymentService.getPaymentById("INVALID-ID"))
         .isInstanceOf(ResourceNotFoundException.class);
+  }
+
+  @Test
+  @DisplayName("Should keep a payment idempotent after it is paid")
+  void shouldNotProcessAnAlreadyPaidPaymentAgain() {
+    PaymentEntity payment =
+        PaymentEntity.builder()
+            .id("PAY-1")
+            .customerId("CUST-1")
+            .invoiceNumber("INV-001")
+            .amount(BigDecimal.valueOf(150.00))
+            .paymentMethod("CREDIT_CARD")
+            .paymentStatus("PAID")
+            .paidAt(Instant.now())
+            .build();
+    when(paymentRepository.findById("PAY-1")).thenReturn(Optional.of(payment));
+
+    PaymentDto updated = paymentService.processPayment("PAY-1", "BANK_TRANSFER");
+
+    assertThat(updated.paymentMethod()).isEqualTo("CREDIT_CARD");
+    verifyNoInteractions(eventPublisher);
   }
 }

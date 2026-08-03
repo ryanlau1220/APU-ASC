@@ -4,6 +4,7 @@ import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
+import com.apu.asc.user.UserStatus;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -95,7 +96,10 @@ class UserServiceImpl implements UserApi {
             .email(userDto.email())
             .fullName(userDto.fullName())
             .role(userRole)
-            .status(userDto.status() != null ? userDto.status() : "ACTIVE")
+            .status(
+                userDto.status() == null || userDto.status().isBlank()
+                    ? UserStatus.ACTIVE.name()
+                    : UserStatus.fromString(userDto.status()).name())
             .avatarUrl(userDto.avatarUrl())
             .build();
 
@@ -127,10 +131,7 @@ class UserServiceImpl implements UserApi {
     if (userDto.role() != null) entity.setRole(userDto.role());
     if (userDto.avatarUrl() != null) entity.setAvatarUrl(userDto.avatarUrl());
     if (userDto.status() != null) {
-      entity.setStatus(userDto.status());
-      if ("INACTIVE".equalsIgnoreCase(userDto.status()) && entity.getKeycloakId() != null) {
-        keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
-      }
+      transitionStatus(entity, UserStatus.fromString(userDto.status()));
     }
 
     UserDto updated = toDto(userRepository.save(entity));
@@ -145,10 +146,7 @@ class UserServiceImpl implements UserApi {
   public UserDto updateStatus(String id, String status) {
     UserEntity entity =
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
-    entity.setStatus(status);
-    if ("INACTIVE".equalsIgnoreCase(status) && entity.getKeycloakId() != null) {
-      keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
-    }
+    transitionStatus(entity, UserStatus.fromString(status));
     UserDto updated = toDto(userRepository.save(entity));
     eventPublisher.publishEvent(
         new AuditEvent(id, "USER_STATUS_UPDATED", "USER", id, "Updated status to " + status));
@@ -160,10 +158,7 @@ class UserServiceImpl implements UserApi {
   public void deleteUser(String id) {
     UserEntity entity =
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
-    entity.setStatus("INACTIVE");
-    if (entity.getKeycloakId() != null) {
-      keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
-    }
+    transitionStatus(entity, UserStatus.INACTIVE);
     userRepository.save(entity);
     eventPublisher.publishEvent(
         new AuditEvent(id, "USER_DEACTIVATED", "USER", id, "Deactivated user account"));
@@ -246,5 +241,22 @@ class UserServiceImpl implements UserApi {
         entity.getAvatarUrl(),
         entity.getCreatedAt(),
         entity.getUpdatedAt());
+  }
+
+  private void transitionStatus(UserEntity entity, UserStatus target) {
+    UserStatus current = UserStatus.fromString(entity.getStatus());
+    current.requireTransitionTo(target);
+    if (current == target) {
+      return;
+    }
+    entity.setStatus(target.name());
+    if (entity.getKeycloakId() == null) {
+      return;
+    }
+    if (target == UserStatus.INACTIVE) {
+      keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
+    } else if (target == UserStatus.ACTIVE) {
+      keycloakAdminService.enableKeycloakUser(entity.getKeycloakId());
+    }
   }
 }

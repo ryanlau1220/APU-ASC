@@ -5,6 +5,7 @@ import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.servicecatalog.CategoryDto;
 import com.apu.asc.servicecatalog.ServiceCatalogApi;
 import com.apu.asc.servicecatalog.ServiceDto;
+import com.apu.asc.servicecatalog.ServiceStatus;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -130,7 +131,10 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
             .durationMinutes(
                 serviceDto.durationMinutes() != null ? serviceDto.durationMinutes() : 60)
             .basePrice(serviceDto.basePrice())
-            .status(serviceDto.status() != null ? serviceDto.status() : "ACTIVE")
+            .status(
+                serviceDto.status() == null || serviceDto.status().isBlank()
+                    ? ServiceStatus.ACTIVE.name()
+                    : ServiceStatus.fromString(serviceDto.status()).name())
             .build();
     ServiceDto created = toDto(serviceRepository.save(entity));
     eventPublisher.publishEvent(
@@ -158,7 +162,12 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
     if (serviceDto.durationMinutes() != null)
       entity.setDurationMinutes(serviceDto.durationMinutes());
     if (serviceDto.basePrice() != null) entity.setBasePrice(serviceDto.basePrice());
-    if (serviceDto.status() != null) entity.setStatus(serviceDto.status());
+    if (serviceDto.status() != null) {
+      ServiceStatus current = ServiceStatus.fromString(entity.getStatus());
+      ServiceStatus target = ServiceStatus.fromString(serviceDto.status());
+      current.requireTransitionTo(target);
+      entity.setStatus(target.name());
+    }
 
     ServiceDto updated = toDto(serviceRepository.save(entity));
     eventPublisher.publishEvent(
@@ -179,7 +188,9 @@ class ServiceCatalogServiceImpl implements ServiceCatalogApi {
         serviceRepository
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Service", id));
-    entity.setStatus("INACTIVE");
+    ServiceStatus current = ServiceStatus.fromString(entity.getStatus());
+    current.requireTransitionTo(ServiceStatus.INACTIVE);
+    entity.setStatus(ServiceStatus.INACTIVE.name());
     serviceRepository.save(entity);
     eventPublisher.publishEvent(
         new AuditEvent(

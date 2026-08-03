@@ -71,11 +71,30 @@ class WorkOrderServiceImplTest {
     when(workOrderRepository.findById("WO-1")).thenReturn(Optional.of(entity));
     when(workOrderRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
+    WorkOrderDto diagnosing = workOrderService.updateStatus("WO-1", "DIAGNOSING");
     WorkOrderDto started = workOrderService.updateStatus("WO-1", "IN_PROGRESS");
     WorkOrderDto completed = workOrderService.updateStatus("WO-1", "COMPLETED");
 
+    assertThat(diagnosing.status()).isEqualTo("DIAGNOSING");
     assertThat(started.startedAt()).isNotNull();
     assertThat(completed.completedAt()).isNotNull();
+  }
+
+  @Test
+  void rejectsSkippedOrReversedWorkOrderTransitions() {
+    WorkOrderEntity entity =
+        WorkOrderEntity.builder()
+            .id("WO-1")
+            .customerId("USR-1")
+            .vehicleId("VEH-1")
+            .serviceId("SVC-1")
+            .status("OPEN")
+            .build();
+    when(workOrderRepository.findById("WO-1")).thenReturn(Optional.of(entity));
+
+    assertThatThrownBy(() -> workOrderService.updateStatus("WO-1", "COMPLETED"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("cannot transition");
   }
 
   private WorkOrderDto workOrder(String appointmentId, String status) {

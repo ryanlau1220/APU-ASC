@@ -2,6 +2,7 @@ package com.apu.asc.appointment.internal;
 
 import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.appointment.AppointmentDto;
+import com.apu.asc.appointment.AppointmentStatus;
 import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.event.SseBroadcastEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
@@ -52,6 +53,13 @@ class AppointmentServiceImpl implements AppointmentApi {
   @Transactional
   public AppointmentDto createAppointment(final AppointmentDto appointmentDto) {
     validateRequiredBookingFields(appointmentDto);
+    AppointmentStatus status =
+        appointmentDto.status() == null || appointmentDto.status().isBlank()
+            ? AppointmentStatus.PENDING
+            : AppointmentStatus.fromString(appointmentDto.status());
+    if (status != AppointmentStatus.PENDING) {
+      throw new IllegalArgumentException("New appointments must start in PENDING status.");
+    }
 
     // C7: Double-booking prevention
     if (appointmentDto.customerId() != null
@@ -90,7 +98,7 @@ class AppointmentServiceImpl implements AppointmentApi {
             .technicianId(appointmentDto.technicianId())
             .appointmentDate(appointmentDto.appointmentDate())
             .timeSlot(appointmentDto.timeSlot())
-            .status(appointmentDto.status() != null ? appointmentDto.status() : "PENDING")
+            .status(status.name())
             .notes(appointmentDto.notes())
             .build();
 
@@ -122,7 +130,9 @@ class AppointmentServiceImpl implements AppointmentApi {
     if (appointmentDto.notes() != null) entity.setNotes(appointmentDto.notes());
     if (appointmentDto.technicianId() != null)
       entity.setTechnicianId(appointmentDto.technicianId());
-    if (appointmentDto.status() != null) entity.setStatus(appointmentDto.status());
+    if (appointmentDto.status() != null) {
+      transition(entity, AppointmentStatus.fromString(appointmentDto.status()));
+    }
 
     AppointmentDto updated = toDto(appointmentRepository.save(entity));
     eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
@@ -144,7 +154,7 @@ class AppointmentServiceImpl implements AppointmentApi {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
 
-    entity.setStatus(status);
+    transition(entity, AppointmentStatus.fromString(status));
     AppointmentDto updated = toDto(appointmentRepository.save(entity));
     eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
@@ -207,5 +217,11 @@ class AppointmentServiceImpl implements AppointmentApi {
     if (appointmentDto.timeSlot() == null || appointmentDto.timeSlot().isBlank()) {
       throw new IllegalArgumentException("A time slot is required to book an appointment.");
     }
+  }
+
+  private void transition(AppointmentEntity entity, AppointmentStatus target) {
+    AppointmentStatus current = AppointmentStatus.fromString(entity.getStatus());
+    current.requireTransitionTo(target);
+    entity.setStatus(target.name());
   }
 }

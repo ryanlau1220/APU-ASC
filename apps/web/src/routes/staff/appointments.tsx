@@ -10,6 +10,7 @@ import type { AppointmentDto } from '../../api/generated/models'
 import { useCreateWorkOrder } from '../../api/workOrders'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
+import { appointmentTransitionTargets } from '../../lib/lifecycle'
 
 export const Route = createFileRoute('/staff/appointments')({
   component: StaffAppointmentsContent,
@@ -320,17 +321,31 @@ function StaffAppointmentsContent() {
                         </span>
                       </td>
                       <td className="py-3.5 px-3">
-                        <select
-                          value={apt.status}
-                          onChange={(e) =>
-                            apt.id && handleStatusChange(apt.id, e.target.value)
-                          }
-                          className="px-2 py-1 bg-input border border-border rounded text-[11px] outline-none focus:border-primary"
-                        >
-                          <option value="PENDING">PENDING</option>
-                          <option value="CONFIRMED">CONFIRMED</option>
-                          <option value="CANCELLED">CANCELLED</option>
-                        </select>
+                        {appointmentTransitionTargets(apt.status).length > 0 ? (
+                          <select
+                            value={apt.status}
+                            onChange={(e) =>
+                              apt.id &&
+                              handleStatusChange(apt.id, e.target.value)
+                            }
+                            className="px-2 py-1 bg-input border border-border rounded text-[11px] outline-none focus:border-primary"
+                          >
+                            <option value={apt.status} disabled>
+                              {apt.status}
+                            </option>
+                            {appointmentTransitionTargets(apt.status).map(
+                              (status) => (
+                                <option key={status} value={status}>
+                                  {status}
+                                </option>
+                              ),
+                            )}
+                          </select>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">
+                            Final state
+                          </span>
+                        )}
                       </td>
                       <td className="py-3.5 px-3">
                         <input
@@ -348,11 +363,7 @@ function StaffAppointmentsContent() {
                         />
                       </td>
                       <td className="py-3.5 px-3">
-                        {apt.status === 'CANCELLED' ? (
-                          <span className="text-[11px] text-muted-foreground">
-                            —
-                          </span>
-                        ) : (
+                        {apt.status === 'CONFIRMED' ? (
                           <button
                             type="button"
                             onClick={() =>
@@ -363,6 +374,12 @@ function StaffAppointmentsContent() {
                           >
                             Open Work Order
                           </button>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">
+                            {apt.status === 'PENDING'
+                              ? 'Confirm booking first'
+                              : '—'}
+                          </span>
                         )}
                       </td>
                     </tr>

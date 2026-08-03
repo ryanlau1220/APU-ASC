@@ -17,6 +17,8 @@ import com.apu.asc.user.internal.EmailService;
 import com.apu.asc.user.internal.KeycloakAdminService;
 import com.apu.asc.vehicle.VehicleApi;
 import com.apu.asc.vehicle.VehicleDto;
+import com.apu.asc.workorder.WorkOrderApi;
+import com.apu.asc.workorder.WorkOrderDto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ class FullCrudOperationsIntegrationTest {
   @Autowired private ServiceCatalogApi serviceCatalogApi;
   @Autowired private PaymentApi paymentApi;
   @Autowired private FeedbackApi feedbackApi;
+  @Autowired private WorkOrderApi workOrderApi;
   @MockBean private EmailService emailService;
   @MockBean private KeycloakAdminService keycloakAdminService;
 
@@ -328,11 +331,33 @@ class FullCrudOperationsIntegrationTest {
                 technician.id(),
                 LocalDate.parse("2026-08-10"),
                 "10:00 AM",
-                "COMPLETED",
+                "PENDING",
                 "Done",
                 null,
                 null));
     createdAppointments.add(appointment.id());
+    appointment = appointmentApi.updateStatus(appointment.id(), "CONFIRMED");
+
+    WorkOrderDto workOrder =
+        workOrderApi.createWorkOrder(
+            new WorkOrderDto(
+                null,
+                appointment.id(),
+                customer.id(),
+                vehicle.id(),
+                service.id(),
+                technician.id(),
+                "OPEN",
+                "Done",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
+    workOrder = workOrderApi.updateStatus(workOrder.id(), "DIAGNOSING");
+    workOrder = workOrderApi.updateStatus(workOrder.id(), "IN_PROGRESS");
+    workOrder = workOrderApi.updateStatus(workOrder.id(), "COMPLETED");
 
     FeedbackDto fbDto =
         new FeedbackDto(
@@ -344,7 +369,7 @@ class FullCrudOperationsIntegrationTest {
             "Excellent service!",
             "Replaced oil filter",
             null,
-            null);
+            workOrder.id());
 
     FeedbackDto created = feedbackApi.submitFeedback(fbDto);
     assertThat(created.id()).startsWith("FBK-");

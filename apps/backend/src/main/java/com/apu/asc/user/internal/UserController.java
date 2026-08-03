@@ -5,6 +5,7 @@ import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
+import com.apu.asc.user.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -155,8 +156,8 @@ class UserController {
       operationId = "updateUserStatus",
       description = "Activates or deactivates user account")
   public ResponseEntity<UserDto> updateStatus(
-      @PathVariable final String id, @RequestParam final String status) {
-    return ResponseEntity.ok(userApi.updateStatus(id, status));
+      @PathVariable final String id, @RequestParam final UserStatus status) {
+    return ResponseEntity.ok(userApi.updateStatus(id, status.name()));
   }
 
   @DeleteMapping("/{id}")
