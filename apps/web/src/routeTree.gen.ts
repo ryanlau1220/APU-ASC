@@ -24,6 +24,7 @@ import { Route as CustomerIndexRouteImport } from './routes/customer/index'
 import { Route as CustomerAppointmentsRouteImport } from './routes/customer/appointments'
 import { Route as CustomerFeedbackRouteImport } from './routes/customer/feedback'
 import { Route as CustomerPaymentsRouteImport } from './routes/customer/payments'
+import { Route as CustomerQuotationsRouteImport } from './routes/customer/quotations'
 import { Route as CustomerVehiclesRouteImport } from './routes/customer/vehicles'
 import { Route as ManagerIndexRouteImport } from './routes/manager/index'
 import { Route as ManagerAppointmentsRouteImport } from './routes/manager/appointments'
@@ -34,6 +35,7 @@ import { Route as ManagerVehiclesRouteImport } from './routes/manager/vehicles'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
 import { Route as StaffAppointmentsRouteImport } from './routes/staff/appointments'
 import { Route as StaffPaymentsRouteImport } from './routes/staff/payments'
+import { Route as StaffQuotationsRouteImport } from './routes/staff/quotations'
 import { Route as StaffServicesRouteImport } from './routes/staff/services'
 import { Route as StaffUsersRouteImport } from './routes/staff/users'
 import { Route as TechnicianIndexRouteImport } from './routes/technician/index'
@@ -115,6 +117,11 @@ const CustomerPaymentsRoute = CustomerPaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => CustomerRouteRoute,
 } as any)
+const CustomerQuotationsRoute = CustomerQuotationsRouteImport.update({
+  id: '/quotations',
+  path: '/quotations',
+  getParentRoute: () => CustomerRouteRoute,
+} as any)
 const CustomerVehiclesRoute = CustomerVehiclesRouteImport.update({
   id: '/vehicles',
   path: '/vehicles',
@@ -165,6 +172,11 @@ const StaffPaymentsRoute = StaffPaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => StaffRouteRoute,
 } as any)
+const StaffQuotationsRoute = StaffQuotationsRouteImport.update({
+  id: '/quotations',
+  path: '/quotations',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
 const StaffServicesRoute = StaffServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -206,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/customer/appointments': typeof CustomerAppointmentsRoute
   '/customer/feedback': typeof CustomerFeedbackRoute
   '/customer/payments': typeof CustomerPaymentsRoute
+  '/customer/quotations': typeof CustomerQuotationsRoute
   '/customer/vehicles': typeof CustomerVehiclesRoute
   '/manager/appointments': typeof ManagerAppointmentsRoute
   '/manager/audit-logs': typeof ManagerAuditLogsRoute
@@ -214,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/manager/vehicles': typeof ManagerVehiclesRoute
   '/staff/appointments': typeof StaffAppointmentsRoute
   '/staff/payments': typeof StaffPaymentsRoute
+  '/staff/quotations': typeof StaffQuotationsRoute
   '/staff/services': typeof StaffServicesRoute
   '/staff/users': typeof StaffUsersRoute
   '/technician/feedback': typeof TechnicianFeedbackRoute
@@ -234,6 +248,7 @@ export interface FileRoutesByTo {
   '/customer/appointments': typeof CustomerAppointmentsRoute
   '/customer/feedback': typeof CustomerFeedbackRoute
   '/customer/payments': typeof CustomerPaymentsRoute
+  '/customer/quotations': typeof CustomerQuotationsRoute
   '/customer/vehicles': typeof CustomerVehiclesRoute
   '/manager/appointments': typeof ManagerAppointmentsRoute
   '/manager/audit-logs': typeof ManagerAuditLogsRoute
@@ -242,6 +257,7 @@ export interface FileRoutesByTo {
   '/manager/vehicles': typeof ManagerVehiclesRoute
   '/staff/appointments': typeof StaffAppointmentsRoute
   '/staff/payments': typeof StaffPaymentsRoute
+  '/staff/quotations': typeof StaffQuotationsRoute
   '/staff/services': typeof StaffServicesRoute
   '/staff/users': typeof StaffUsersRoute
   '/technician/feedback': typeof TechnicianFeedbackRoute
@@ -267,6 +283,7 @@ export interface FileRoutesById {
   '/customer/appointments': typeof CustomerAppointmentsRoute
   '/customer/feedback': typeof CustomerFeedbackRoute
   '/customer/payments': typeof CustomerPaymentsRoute
+  '/customer/quotations': typeof CustomerQuotationsRoute
   '/customer/vehicles': typeof CustomerVehiclesRoute
   '/manager/appointments': typeof ManagerAppointmentsRoute
   '/manager/audit-logs': typeof ManagerAuditLogsRoute
@@ -275,6 +292,7 @@ export interface FileRoutesById {
   '/manager/vehicles': typeof ManagerVehiclesRoute
   '/staff/appointments': typeof StaffAppointmentsRoute
   '/staff/payments': typeof StaffPaymentsRoute
+  '/staff/quotations': typeof StaffQuotationsRoute
   '/staff/services': typeof StaffServicesRoute
   '/staff/users': typeof StaffUsersRoute
   '/technician/feedback': typeof TechnicianFeedbackRoute
@@ -301,6 +319,7 @@ export interface FileRouteTypes {
     | '/customer/appointments'
     | '/customer/feedback'
     | '/customer/payments'
+    | '/customer/quotations'
     | '/customer/vehicles'
     | '/manager/appointments'
     | '/manager/audit-logs'
@@ -309,6 +328,7 @@ export interface FileRouteTypes {
     | '/manager/vehicles'
     | '/staff/appointments'
     | '/staff/payments'
+    | '/staff/quotations'
     | '/staff/services'
     | '/staff/users'
     | '/technician/feedback'
@@ -329,6 +349,7 @@ export interface FileRouteTypes {
     | '/customer/appointments'
     | '/customer/feedback'
     | '/customer/payments'
+    | '/customer/quotations'
     | '/customer/vehicles'
     | '/manager/appointments'
     | '/manager/audit-logs'
@@ -337,6 +358,7 @@ export interface FileRouteTypes {
     | '/manager/vehicles'
     | '/staff/appointments'
     | '/staff/payments'
+    | '/staff/quotations'
     | '/staff/services'
     | '/staff/users'
     | '/technician/feedback'
@@ -361,6 +383,7 @@ export interface FileRouteTypes {
     | '/customer/appointments'
     | '/customer/feedback'
     | '/customer/payments'
+    | '/customer/quotations'
     | '/customer/vehicles'
     | '/manager/appointments'
     | '/manager/audit-logs'
@@ -369,6 +392,7 @@ export interface FileRouteTypes {
     | '/manager/vehicles'
     | '/staff/appointments'
     | '/staff/payments'
+    | '/staff/quotations'
     | '/staff/services'
     | '/staff/users'
     | '/technician/feedback'
@@ -500,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomerPaymentsRouteImport
       parentRoute: typeof CustomerRouteRoute
     }
+    '/customer/quotations': {
+      id: '/customer/quotations'
+      path: '/quotations'
+      fullPath: '/customer/quotations'
+      preLoaderRoute: typeof CustomerQuotationsRouteImport
+      parentRoute: typeof CustomerRouteRoute
+    }
     '/customer/vehicles': {
       id: '/customer/vehicles'
       path: '/vehicles'
@@ -570,6 +601,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffPaymentsRouteImport
       parentRoute: typeof StaffRouteRoute
     }
+    '/staff/quotations': {
+      id: '/staff/quotations'
+      path: '/quotations'
+      fullPath: '/staff/quotations'
+      preLoaderRoute: typeof StaffQuotationsRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
     '/staff/services': {
       id: '/staff/services'
       path: '/services'
@@ -612,6 +650,7 @@ interface CustomerRouteRouteChildren {
   CustomerAppointmentsRoute: typeof CustomerAppointmentsRoute
   CustomerFeedbackRoute: typeof CustomerFeedbackRoute
   CustomerPaymentsRoute: typeof CustomerPaymentsRoute
+  CustomerQuotationsRoute: typeof CustomerQuotationsRoute
   CustomerVehiclesRoute: typeof CustomerVehiclesRoute
   CustomerIndexRoute: typeof CustomerIndexRoute
 }
@@ -620,6 +659,7 @@ const CustomerRouteRouteChildren: CustomerRouteRouteChildren = {
   CustomerAppointmentsRoute: CustomerAppointmentsRoute,
   CustomerFeedbackRoute: CustomerFeedbackRoute,
   CustomerPaymentsRoute: CustomerPaymentsRoute,
+  CustomerQuotationsRoute: CustomerQuotationsRoute,
   CustomerVehiclesRoute: CustomerVehiclesRoute,
   CustomerIndexRoute: CustomerIndexRoute,
 }
@@ -653,6 +693,7 @@ const ManagerRouteRouteWithChildren = ManagerRouteRoute._addFileChildren(
 interface StaffRouteRouteChildren {
   StaffAppointmentsRoute: typeof StaffAppointmentsRoute
   StaffPaymentsRoute: typeof StaffPaymentsRoute
+  StaffQuotationsRoute: typeof StaffQuotationsRoute
   StaffServicesRoute: typeof StaffServicesRoute
   StaffUsersRoute: typeof StaffUsersRoute
   StaffIndexRoute: typeof StaffIndexRoute
@@ -661,6 +702,7 @@ interface StaffRouteRouteChildren {
 const StaffRouteRouteChildren: StaffRouteRouteChildren = {
   StaffAppointmentsRoute: StaffAppointmentsRoute,
   StaffPaymentsRoute: StaffPaymentsRoute,
+  StaffQuotationsRoute: StaffQuotationsRoute,
   StaffServicesRoute: StaffServicesRoute,
   StaffUsersRoute: StaffUsersRoute,
   StaffIndexRoute: StaffIndexRoute,
