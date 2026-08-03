@@ -5,6 +5,7 @@ import com.apu.asc.common.event.SseBroadcastEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.workorder.WorkOrderApi;
 import com.apu.asc.workorder.WorkOrderDto;
+import com.apu.asc.workorder.WorkOrderStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -70,7 +71,7 @@ class WorkOrderServiceImpl implements WorkOrderApi {
             .vehicleId(workOrderDto.vehicleId())
             .serviceId(workOrderDto.serviceId())
             .technicianId(workOrderDto.technicianId())
-            .status(workOrderDto.status() != null ? workOrderDto.status() : "OPEN")
+            .status(WorkOrderStatus.OPEN.name())
             .intakeNotes(workOrderDto.intakeNotes())
             .diagnosticNotes(workOrderDto.diagnosticNotes())
             .build();
@@ -96,10 +97,18 @@ class WorkOrderServiceImpl implements WorkOrderApi {
   @Transactional
   public WorkOrderDto updateStatus(String id, String status) {
     WorkOrderEntity entity = findEntity(id);
-    entity.setStatus(status);
+    WorkOrderStatus target = WorkOrderStatus.fromString(status);
+    WorkOrderStatus current = WorkOrderStatus.fromString(entity.getStatus());
+    current.requireTransitionTo(target);
+    if (current == target) {
+      return toDto(entity);
+    }
+    entity.setStatus(target.name());
     Instant now = Instant.now();
-    if ("IN_PROGRESS".equals(status) && entity.getStartedAt() == null) entity.setStartedAt(now);
-    if ("COMPLETED".equals(status)) entity.setCompletedAt(now);
+    if (target == WorkOrderStatus.IN_PROGRESS && entity.getStartedAt() == null)
+      entity.setStartedAt(now);
+    if (target == WorkOrderStatus.COMPLETED && entity.getCompletedAt() == null)
+      entity.setCompletedAt(now);
     WorkOrderDto updated = toDto(workOrderRepository.save(entity));
     publish(updated, "WORK_ORDER_STATUS_UPDATED", "Status changed to " + status);
     return updated;

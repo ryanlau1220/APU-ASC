@@ -9,6 +9,7 @@ import com.apu.asc.vehicle.VehicleApi;
 import com.apu.asc.vehicle.VehicleDto;
 import com.apu.asc.workorder.WorkOrderApi;
 import com.apu.asc.workorder.WorkOrderDto;
+import com.apu.asc.workorder.WorkOrderStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -135,11 +136,13 @@ class WorkOrderController {
   @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
   @Operation(summary = "Update work-order execution status")
   public ResponseEntity<WorkOrderDto> updateStatus(
-      @PathVariable String id, @RequestParam String status, Authentication authentication) {
+      @PathVariable String id,
+      @RequestParam WorkOrderStatus status,
+      Authentication authentication) {
     WorkOrderDto workOrder = workOrderApi.getWorkOrderById(id);
     accessPolicy.requireAssignedTechnicianOrOperational(
         currentUserService.requireCurrentUser(authentication), workOrder.technicianId());
-    return ResponseEntity.ok(workOrderApi.updateStatus(id, status));
+    return ResponseEntity.ok(workOrderApi.updateStatus(id, status.name()));
   }
 
   @PatchMapping("/{id}/diagnostic-notes")
@@ -164,8 +167,9 @@ class WorkOrderController {
   private WorkOrderDto buildWorkOrderForCreate(WorkOrderDto requested) {
     if (requested.appointmentId() != null && !requested.appointmentId().isBlank()) {
       AppointmentDto appointment = appointmentApi.getAppointmentById(requested.appointmentId());
-      if ("CANCELLED".equals(appointment.status())) {
-        throw new IllegalArgumentException("Cannot open a work order for a cancelled appointment.");
+      if (!"CONFIRMED".equals(appointment.status())) {
+        throw new IllegalArgumentException(
+            "A work order can only be opened for a confirmed appointment.");
       }
       return new WorkOrderDto(
           null,
