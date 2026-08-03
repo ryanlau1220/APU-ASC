@@ -29,7 +29,9 @@ class SchedulingController {
 
   @GetMapping("/availability")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'TECHNICIAN', 'MANAGER')")
-  @Operation(summary = "Get workshop capacity for an appointment date")
+  @Operation(
+      operationId = "getSlotAvailability",
+      summary = "Get workshop capacity for an appointment date")
   ResponseEntity<List<SlotAvailabilityDto>> getAvailability(
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
     return ResponseEntity.ok(schedulingApi.getAvailability(date));
@@ -37,7 +39,9 @@ class SchedulingController {
 
   @PutMapping("/capacity")
   @PreAuthorize("hasRole('MANAGER')")
-  @Operation(summary = "Set the capacity for one workshop appointment slot")
+  @Operation(
+      operationId = "updateSlotCapacity",
+      summary = "Set the capacity for one workshop appointment slot")
   ResponseEntity<SlotAvailabilityDto> updateCapacity(
       @Valid @RequestBody SlotCapacityUpdateDto update) {
     return ResponseEntity.ok(schedulingApi.updateCapacity(update));

@@ -44,14 +44,14 @@ class WorkOrderController {
 
   @GetMapping
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
-  @Operation(summary = "Get all work orders")
+  @Operation(operationId = "getAllWorkOrders", summary = "Get all work orders")
   public ResponseEntity<List<WorkOrderDto>> getAllWorkOrders() {
     return ResponseEntity.ok(workOrderApi.findAllWorkOrders());
   }
 
   @GetMapping("/{id}")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN', 'STAFF', 'MANAGER')")
-  @Operation(summary = "Get work order by ID")
+  @Operation(operationId = "getWorkOrderById", summary = "Get work order by ID")
   public ResponseEntity<WorkOrderDto> getWorkOrderById(
       @PathVariable String id, Authentication authentication) {
     WorkOrderDto workOrder = workOrderApi.getWorkOrderById(id);
@@ -64,7 +64,7 @@ class WorkOrderController {
 
   @GetMapping("/my")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN', 'STAFF', 'MANAGER')")
-  @Operation(summary = "Get work orders for the authenticated user")
+  @Operation(operationId = "getMyWorkOrders", summary = "Get work orders for the authenticated user")
   public ResponseEntity<List<WorkOrderDto>> getMyWorkOrders(Authentication authentication) {
     AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
     if (accessPolicy.isTechnician(currentUser)) {
@@ -78,7 +78,9 @@ class WorkOrderController {
 
   @GetMapping("/appointment/{appointmentId}")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
-  @Operation(summary = "Get the work order created from an appointment")
+  @Operation(
+      operationId = "getWorkOrderByAppointment",
+      summary = "Get the work order created from an appointment")
   public ResponseEntity<WorkOrderDto> getByAppointment(
       @PathVariable String appointmentId, Authentication authentication) {
     AppointmentDto appointment = appointmentApi.getAppointmentById(appointmentId);
@@ -95,7 +97,9 @@ class WorkOrderController {
 
   @PostMapping
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
-  @Operation(summary = "Open a work order from a booking or for a walk-in")
+  @Operation(
+      operationId = "createWorkOrder",
+      summary = "Open a work order from a booking or for a walk-in")
   public ResponseEntity<WorkOrderDto> createWorkOrder(
       @Valid @RequestBody WorkOrderDto workOrderDto, Authentication authentication) {
     currentUserService.requireCurrentUser(authentication);
@@ -106,7 +110,9 @@ class WorkOrderController {
 
   @PutMapping("/{id}")
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
-  @Operation(summary = "Update work-order assignment and intake details")
+  @Operation(
+      operationId = "updateWorkOrder",
+      summary = "Update work-order assignment and intake details")
   public ResponseEntity<WorkOrderDto> updateWorkOrder(
       @PathVariable String id,
       @Valid @RequestBody WorkOrderDto workOrderDto,
@@ -134,7 +140,9 @@ class WorkOrderController {
 
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
-  @Operation(summary = "Update work-order execution status")
+  @Operation(
+      operationId = "updateWorkOrderStatus",
+      summary = "Update work-order execution status")
   public ResponseEntity<WorkOrderDto> updateStatus(
       @PathVariable String id,
       @RequestParam WorkOrderStatus status,
@@ -147,7 +155,9 @@ class WorkOrderController {
 
   @PatchMapping("/{id}/diagnostic-notes")
   @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
-  @Operation(summary = "Update technician diagnostic notes")
+  @Operation(
+      operationId = "updateWorkOrderDiagnosticNotes",
+      summary = "Update technician diagnostic notes")
   public ResponseEntity<WorkOrderDto> updateDiagnosticNotes(
       @PathVariable String id, @RequestBody String diagnosticNotes, Authentication authentication) {
     WorkOrderDto workOrder = workOrderApi.getWorkOrderById(id);
@@ -158,7 +168,7 @@ class WorkOrderController {
 
   @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('MANAGER')")
-  @Operation(summary = "Delete a work order")
+  @Operation(operationId = "deleteWorkOrder", summary = "Delete a work order")
   public ResponseEntity<Void> deleteWorkOrder(@PathVariable String id) {
     workOrderApi.deleteWorkOrder(id);
     return ResponseEntity.noContent().build();
