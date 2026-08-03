@@ -21,6 +21,7 @@ class AuthControllerTest {
   @Mock private OtpCacheService otpCacheService;
   @Mock private EmailService emailService;
   @Mock private KeycloakAdminService keycloakAdminService;
+  @Mock private InvitationService invitationService;
   @Mock private RestTemplate restTemplate;
 
   private AuthController authController;
@@ -34,6 +35,7 @@ class AuthControllerTest {
             otpCacheService,
             emailService,
             keycloakAdminService,
+            invitationService,
             restTemplate);
   }
 
@@ -61,5 +63,37 @@ class AuthControllerTest {
                 "test@apu-asc.com", "123456", "newPassword123", "newPassword123"));
 
     assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+  }
+
+  @Test
+  @DisplayName("Should activate an employee account with a valid invitation token")
+  void shouldActivateInvitation() {
+    String token = "a".repeat(43);
+    when(invitationService.activate(token, "newPassword123"))
+        .thenReturn(
+            new InvitationService.InvitationActivationResult(
+                true, "Account activated successfully. You may now sign in."));
+
+    ResponseEntity<AuthController.InvitationActivationResponse> response =
+        authController.activateInvitation(
+            new AuthController.InvitationActivationRequest(
+                token, "newPassword123", "newPassword123"));
+
+    assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().success()).isTrue();
+  }
+
+  @Test
+  @DisplayName("Should reject invitation activation when passwords differ")
+  void shouldRejectMismatchedInvitationPasswords() {
+    ResponseEntity<AuthController.InvitationActivationResponse> response =
+        authController.activateInvitation(
+            new AuthController.InvitationActivationRequest(
+                "a".repeat(43), "newPassword123", "differentPassword123"));
+
+    assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().success()).isFalse();
   }
 }
