@@ -1,16 +1,26 @@
 package com.apu.asc.config;
 
+import com.apu.asc.common.event.LiveUpdateEvent;
+import com.apu.asc.common.security.AuthenticatedUser;
+import com.apu.asc.user.CurrentUserService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,26 +32,23 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/api/v1/events")
 @Tag(name = "Event Stream", description = "Real-time Server-Sent Events (SSE) streaming API")
 @Slf4j
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public class SseController {
 
-  private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+  private final CurrentUserService currentUserService;
+  private final ConcurrentMap<String, Subscriber> subscribers = new ConcurrentHashMap<>();
   private final ScheduledExecutorService heartbeatExecutor =
       Executors.newSingleThreadScheduledExecutor();
 
-  public SseController() {
+  public SseController(CurrentUserService currentUserService) {
+    this.currentUserService = currentUserService;
     heartbeatExecutor.scheduleAtFixedRate(
         () -> {
-          for (SseEmitter emitter : emitters) {
+          for (Map.Entry<String, Subscriber> entry : subscribers.entrySet()) {
             try {
-              emitter.send(SseEmitter.event().comment("ping"));
+              entry.getValue().emitter().send(SseEmitter.event().comment("ping"));
             } catch (Exception e) {
-              // Gracefully complete dead emitters on disconnect to prevent Tomcat Broken pipe logs
-              try {
-                emitter.complete();
-              } catch (Exception ignored) {
-                // Ignore secondary cleanup errors
-              }
-              emitters.remove(emitter);
+              removeSubscriber(entry.getKey(), entry.getValue());
             }
           }
         },
@@ -52,50 +59,82 @@ public class SseController {
 
   @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   @Operation(summary = "Subscribe to real-time event stream")
-  public SseEmitter subscribe() {
+  public SseEmitter subscribe(Authentication authentication) {
+    AuthenticatedUser user = currentUserService.requireCurrentUser(authentication);
+    String subscriberId = UUID.randomUUID().toString();
     SseEmitter emitter = new SseEmitter(0L); // Infinite timeout for long-lived stream
+    Subscriber subscriber = new Subscriber(user, emitter);
 
-    emitter.onCompletion(() -> emitters.remove(emitter));
-    emitter.onTimeout(() -> emitters.remove(emitter));
-    emitter.onError((e) -> emitters.remove(emitter));
-    emitters.add(emitter);
+    emitter.onCompletion(() -> subscribers.remove(subscriberId, subscriber));
+    emitter.onTimeout(() -> subscribers.remove(subscriberId, subscriber));
+    emitter.onError((e) -> subscribers.remove(subscriberId, subscriber));
+    subscribers.put(subscriberId, subscriber);
 
     try {
       emitter.send(
-          SseEmitter.event().name("connected").data(Map.of("message", "SSE stream connected")));
+          SseEmitter.event()
+              .name("connected")
+              .data(Map.of("message", "Scoped live-update stream connected")));
     } catch (IOException e) {
-      emitters.remove(emitter);
+      removeSubscriber(subscriberId, subscriber);
     }
 
     return emitter;
   }
 
-  public void publishInvalidateEvent(String entityName) {
-    log.info("Broadcasting SSE invalidate event for entity: {}", entityName);
-    for (SseEmitter emitter : emitters) {
-      try {
-        emitter.send(SseEmitter.event().name("invalidate").data(Map.of("entity", entityName)));
-      } catch (Exception e) {
-        try {
-          emitter.complete();
-        } catch (Exception ignored) {
-          // Ignore
-        }
-        emitters.remove(emitter);
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+  public void handleLiveUpdateEvent(LiveUpdateEvent event) {
+    int recipients = 0;
+    for (Map.Entry<String, Subscriber> entry : subscribers.entrySet()) {
+      if (event.isVisibleTo(entry.getValue().user())) {
+        sendLiveUpdate(entry.getKey(), entry.getValue(), event);
+        recipients++;
       }
     }
+    log.debug(
+        "Delivered scoped live update topic={} resourceId={} recipients={}",
+        event.topic(),
+        event.resourceId(),
+        recipients);
   }
 
-  @org.springframework.context.event.EventListener
-  public void handleSseBroadcastEvent(com.apu.asc.common.event.SseBroadcastEvent event) {
-    if (event != null && event.topic() != null) {
-      publishInvalidateEvent(event.topic());
+  private void sendLiveUpdate(String subscriberId, Subscriber subscriber, LiveUpdateEvent event) {
+    try {
+      subscriber
+          .emitter()
+          .send(
+              SseEmitter.event()
+                  .name("live-update")
+                  .data(
+                      new LiveUpdateMessage(
+                          event.topic(), event.resourceId(), event.occurredAt())));
+    } catch (Exception e) {
+      removeSubscriber(subscriberId, subscriber);
     }
   }
 
   @PostMapping("/trigger/{entity}")
-  @Operation(summary = "Trigger SSE invalidate event (for testing)")
+  @PreAuthorize("hasRole('MANAGER')")
+  @Operation(summary = "Trigger a manager-only live update (for testing)")
   public void triggerEvent(@PathVariable String entity) {
-    publishInvalidateEvent(entity);
+    handleLiveUpdateEvent(LiveUpdateEvent.forRoles(entity, null, "MANAGER"));
   }
+
+  @PreDestroy
+  void shutdownHeartbeat() {
+    heartbeatExecutor.shutdownNow();
+  }
+
+  private void removeSubscriber(String subscriberId, Subscriber subscriber) {
+    subscribers.remove(subscriberId, subscriber);
+    try {
+      subscriber.emitter().complete();
+    } catch (Exception ignored) {
+      // The client connection is already closed.
+    }
+  }
+
+  private record Subscriber(AuthenticatedUser user, SseEmitter emitter) {}
+
+  private record LiveUpdateMessage(String topic, String resourceId, java.time.Instant occurredAt) {}
 }
