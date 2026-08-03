@@ -28,7 +28,6 @@ public class ScalarDocConfig {
                 .addSecuritySchemes(
                     securitySchemeName,
                     new SecurityScheme()
-                        .name(securitySchemeName)
                         .type(SecurityScheme.Type.HTTP)
                         .scheme("bearer")
                         .bearerFormat("JWT")));
