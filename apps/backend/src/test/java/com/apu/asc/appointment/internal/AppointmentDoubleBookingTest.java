@@ -113,7 +113,7 @@ class AppointmentDoubleBookingTest {
             .status("PENDING")
             .build();
 
-    Mockito.when(appointmentRepository.save(any())).thenReturn(savedEntity);
+    Mockito.when(appointmentRepository.saveAndFlush(any())).thenReturn(savedEntity);
 
     AppointmentDto request =
         new AppointmentDto(

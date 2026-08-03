@@ -6,6 +6,7 @@ import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.vehicle.VehicleApi;
+import com.apu.asc.vehicle.VehicleDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -85,14 +86,22 @@ class AppointmentController {
   public ResponseEntity<AppointmentDto> createAppointment(
       @Valid @RequestBody final AppointmentDto appointmentDto, Authentication authentication) {
     AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
-    AppointmentDto securedAppointment = appointmentDto;
+    String vehicleId = appointmentDto.vehicleId();
+    if (vehicleId == null || vehicleId.isBlank()) {
+      throw new IllegalArgumentException("A vehicle is required to book an appointment.");
+    }
+
+    // The vehicle is the authoritative source of its owner. Never rely on the customer ID sent
+    // by the browser when creating a booking.
+    VehicleDto vehicle = vehicleApi.getVehicleById(vehicleId);
+    String vehicleOwnerId = vehicle.customerId();
+    if (vehicleOwnerId == null || vehicleOwnerId.isBlank()) {
+      throw new IllegalArgumentException("The selected vehicle does not have an owner.");
+    }
+
+    AppointmentDto securedAppointment;
     if (!accessPolicy.isOperationalUser(currentUser)) {
-      String vehicleId = appointmentDto.vehicleId();
-      if (vehicleId == null || vehicleId.isBlank()) {
-        throw new IllegalArgumentException("A vehicle is required to book an appointment.");
-      }
-      accessPolicy.requireSelfOrOperational(
-          currentUser, vehicleApi.getVehicleById(vehicleId).customerId());
+      accessPolicy.requireSelfOrOperational(currentUser, vehicleOwnerId);
       securedAppointment =
           new AppointmentDto(
               null,
@@ -107,11 +116,17 @@ class AppointmentController {
               null,
               null);
     } else {
+      String customerId = appointmentDto.customerId();
+      if (customerId == null || customerId.isBlank()) {
+        customerId = vehicleOwnerId;
+      } else if (!customerId.equals(vehicleOwnerId)) {
+        throw new IllegalArgumentException("The selected vehicle does not belong to the customer.");
+      }
       securedAppointment =
           new AppointmentDto(
               null,
-              appointmentDto.customerId(),
-              appointmentDto.vehicleId(),
+              customerId,
+              vehicleId,
               appointmentDto.serviceId(),
               null,
               appointmentDto.appointmentDate(),

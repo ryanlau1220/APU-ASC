@@ -51,6 +51,8 @@ class AppointmentServiceImpl implements AppointmentApi {
   @Override
   @Transactional
   public AppointmentDto createAppointment(final AppointmentDto appointmentDto) {
+    validateRequiredBookingFields(appointmentDto);
+
     // C7: Double-booking prevention
     if (appointmentDto.customerId() != null
         && appointmentDto.appointmentDate() != null
@@ -92,7 +94,9 @@ class AppointmentServiceImpl implements AppointmentApi {
             .notes(appointmentDto.notes())
             .build();
 
-    AppointmentDto created = toDto(appointmentRepository.save(entity));
+    // Flush before publishing events so a rejected database write cannot produce a false audit
+    // entry or a live-update notification.
+    AppointmentDto created = toDto(appointmentRepository.saveAndFlush(entity));
     eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
         new AuditEvent(
@@ -185,5 +189,23 @@ class AppointmentServiceImpl implements AppointmentApi {
         entity.getNotes(),
         entity.getCreatedAt(),
         entity.getUpdatedAt());
+  }
+
+  private void validateRequiredBookingFields(AppointmentDto appointmentDto) {
+    if (appointmentDto.customerId() == null || appointmentDto.customerId().isBlank()) {
+      throw new IllegalArgumentException("A customer is required to book an appointment.");
+    }
+    if (appointmentDto.vehicleId() == null || appointmentDto.vehicleId().isBlank()) {
+      throw new IllegalArgumentException("A vehicle is required to book an appointment.");
+    }
+    if (appointmentDto.serviceId() == null || appointmentDto.serviceId().isBlank()) {
+      throw new IllegalArgumentException("A service is required to book an appointment.");
+    }
+    if (appointmentDto.appointmentDate() == null) {
+      throw new IllegalArgumentException("An appointment date is required to book an appointment.");
+    }
+    if (appointmentDto.timeSlot() == null || appointmentDto.timeSlot().isBlank()) {
+      throw new IllegalArgumentException("A time slot is required to book an appointment.");
+    }
   }
 }
