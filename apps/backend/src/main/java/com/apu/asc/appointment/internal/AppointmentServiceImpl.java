@@ -6,6 +6,8 @@ import com.apu.asc.appointment.AppointmentStatus;
 import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.event.SseBroadcastEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
+import com.apu.asc.scheduling.SchedulingApi;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 class AppointmentServiceImpl implements AppointmentApi {
 
   private final AppointmentRepository appointmentRepository;
+  private final SchedulingApi schedulingApi;
   private final ApplicationEventPublisher eventPublisher;
 
   @Override
@@ -87,6 +90,8 @@ class AppointmentServiceImpl implements AppointmentApi {
           "Technician already has an active appointment assigned for this date and time slot.");
     }
 
+    schedulingApi.reserveSlot(appointmentDto.appointmentDate(), appointmentDto.timeSlot());
+
     String id =
         appointmentDto.id() != null ? appointmentDto.id() : "APT-" + UUID.randomUUID().toString();
     AppointmentEntity entity =
@@ -124,17 +129,38 @@ class AppointmentServiceImpl implements AppointmentApi {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
 
-    if (appointmentDto.appointmentDate() != null)
-      entity.setAppointmentDate(appointmentDto.appointmentDate());
-    if (appointmentDto.timeSlot() != null) entity.setTimeSlot(appointmentDto.timeSlot());
+    AppointmentStatus oldStatus = AppointmentStatus.fromString(entity.getStatus());
+    LocalDate oldDate = entity.getAppointmentDate();
+    String oldTimeSlot = entity.getTimeSlot();
+    LocalDate newDate =
+        appointmentDto.appointmentDate() != null ? appointmentDto.appointmentDate() : oldDate;
+    String newTimeSlot =
+        appointmentDto.timeSlot() != null ? appointmentDto.timeSlot() : oldTimeSlot;
+    AppointmentStatus newStatus =
+        appointmentDto.status() != null
+            ? AppointmentStatus.fromString(appointmentDto.status())
+            : oldStatus;
+    boolean oldReservation = reservesCapacity(oldStatus);
+    boolean newReservation = reservesCapacity(newStatus);
+    boolean slotChanged = !oldDate.equals(newDate) || !oldTimeSlot.equals(newTimeSlot);
+
+    if (newReservation && (!oldReservation || slotChanged)) {
+      schedulingApi.reserveSlot(newDate, newTimeSlot);
+    }
+
+    entity.setAppointmentDate(newDate);
+    entity.setTimeSlot(newTimeSlot);
     if (appointmentDto.notes() != null) entity.setNotes(appointmentDto.notes());
     if (appointmentDto.technicianId() != null)
       entity.setTechnicianId(appointmentDto.technicianId());
     if (appointmentDto.status() != null) {
-      transition(entity, AppointmentStatus.fromString(appointmentDto.status()));
+      transition(entity, newStatus);
     }
 
     AppointmentDto updated = toDto(appointmentRepository.save(entity));
+    if (oldReservation && (!newReservation || slotChanged)) {
+      schedulingApi.releaseSlot(oldDate, oldTimeSlot);
+    }
     eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
         new AuditEvent(
@@ -154,8 +180,13 @@ class AppointmentServiceImpl implements AppointmentApi {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
 
-    transition(entity, AppointmentStatus.fromString(status));
+    AppointmentStatus oldStatus = AppointmentStatus.fromString(entity.getStatus());
+    AppointmentStatus targetStatus = AppointmentStatus.fromString(status);
+    transition(entity, targetStatus);
     AppointmentDto updated = toDto(appointmentRepository.save(entity));
+    if (reservesCapacity(oldStatus) && !reservesCapacity(targetStatus)) {
+      schedulingApi.releaseSlot(entity.getAppointmentDate(), entity.getTimeSlot());
+    }
     eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
         new AuditEvent(
@@ -175,6 +206,9 @@ class AppointmentServiceImpl implements AppointmentApi {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Appointment", id));
 
+    if (reservesCapacity(AppointmentStatus.fromString(entity.getStatus()))) {
+      schedulingApi.releaseSlot(entity.getAppointmentDate(), entity.getTimeSlot());
+    }
     appointmentRepository.delete(entity);
     eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
     eventPublisher.publishEvent(
@@ -223,5 +257,9 @@ class AppointmentServiceImpl implements AppointmentApi {
     AppointmentStatus current = AppointmentStatus.fromString(entity.getStatus());
     current.requireTransitionTo(target);
     entity.setStatus(target.name());
+  }
+
+  private boolean reservesCapacity(AppointmentStatus status) {
+    return status == AppointmentStatus.PENDING || status == AppointmentStatus.CONFIRMED;
   }
 }
