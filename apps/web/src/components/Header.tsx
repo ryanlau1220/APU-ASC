@@ -5,6 +5,7 @@ import {
   Car,
   ChevronDown,
   CreditCard,
+  FileText,
   LayoutDashboard,
   LogIn,
   LogOut,
@@ -29,6 +30,7 @@ const CUSTOMER_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/customer/', icon: LayoutDashboard },
   { label: 'Vehicles', to: '/customer/vehicles', icon: Car },
   { label: 'Appointments', to: '/customer/appointments', icon: Calendar },
+  { label: 'Quotations', to: '/customer/quotations', icon: FileText },
   { label: 'Payments', to: '/customer/payments', icon: CreditCard },
   { label: 'Feedback', to: '/customer/feedback', icon: MessageSquare },
 ]
@@ -46,6 +48,7 @@ const STAFF_NAV: NavItem[] = [
   { label: 'Dashboard', to: '/staff/', icon: LayoutDashboard },
   { label: 'Services', to: '/staff/services', icon: BookOpen },
   { label: 'Appointments', to: '/staff/appointments', icon: Calendar },
+  { label: 'Quotations', to: '/staff/quotations', icon: FileText },
   { label: 'Users', to: '/staff/users', icon: Users },
   { label: 'Payments', to: '/staff/payments', icon: CreditCard },
 ]
