@@ -154,3 +154,9 @@ keycloak:
 
 scheduling:
   default-slot-capacity: ${SCHEDULING_DEFAULT_SLOT_CAPACITY:3}
+
+app:
+  frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
+
+invitations:
+  expiry-hours: ${INVITATION_EXPIRY_HOURS:48}
