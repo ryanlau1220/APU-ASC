@@ -152,3 +152,5 @@ keycloak:
     password: ${KEYCLOAK_ADMIN_PASSWORD:admin}
     realm: ${KEYCLOAK_ADMIN_REALM:apu-asc}
 
+scheduling:
+  default-slot-capacity: ${SCHEDULING_DEFAULT_SLOT_CAPACITY:3}
