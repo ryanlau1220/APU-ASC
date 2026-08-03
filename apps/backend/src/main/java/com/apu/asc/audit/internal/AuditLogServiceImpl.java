@@ -2,6 +2,8 @@ package com.apu.asc.audit.internal;
 
 import com.apu.asc.audit.AuditLogApi;
 import com.apu.asc.audit.AuditLogDto;
+import com.apu.asc.common.event.AuditContextSnapshot;
+import com.apu.asc.common.event.AuditEvent;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -18,46 +20,61 @@ class AuditLogServiceImpl implements AuditLogApi {
   @Override
   @Transactional(readOnly = true)
   public List<AuditLogDto> findAllAuditLogs() {
-    return auditLogRepository.findAll().stream().map(this::toDto).toList();
+    return auditLogRepository.findAllByOrderByCreatedAtDesc().stream().map(this::toDto).toList();
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<AuditLogDto> findByUserId(final String userId) {
-    return auditLogRepository.findByUserId(userId).stream().map(this::toDto).toList();
+    return auditLogRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+        .map(this::toDto)
+        .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<AuditLogDto> findByEntityName(final String entityName) {
-    return auditLogRepository.findByEntityName(entityName).stream().map(this::toDto).toList();
+    return auditLogRepository.findByEntityNameOrderByCreatedAtDesc(entityName).stream()
+        .map(this::toDto)
+        .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<AuditLogDto> findByActionType(final String actionType) {
-    return auditLogRepository.findByActionType(actionType).stream().map(this::toDto).toList();
+    return auditLogRepository.findByActionTypeOrderByCreatedAtDesc(actionType).stream()
+        .map(this::toDto)
+        .toList();
   }
 
   @Override
   @Transactional
-  public AuditLogDto logAction(
-      final String userId,
-      final String actionType,
-      final String entityName,
-      final String entityId,
-      final String details) {
+  public AuditLogDto logAction(final AuditEvent event) {
     String logId = "AUD-" + UUID.randomUUID().toString();
     String formattedDetails =
-        entityId != null ? "[Entity ID: " + entityId + "] " + details : details;
+        event.entityId() != null
+            ? "[Entity ID: " + event.entityId() + "] " + event.details()
+            : event.details();
+    AuditContextSnapshot context =
+        event.context() != null ? event.context() : AuditContextSnapshot.capture();
 
     AuditLogEntity log =
         AuditLogEntity.builder()
             .id(logId)
-            .userId(userId)
-            .actionType(actionType)
-            .entityName(entityName)
+            .userId(event.userId())
+            .actionType(event.actionType())
+            .entityName(event.entityName())
             .details(formattedDetails)
+            .actorId(context.actorId())
+            .actorUsername(context.actorUsername())
+            .actorRole(context.actorRole())
+            .correlationId(context.correlationId())
+            .requestMethod(context.requestMethod())
+            .requestPath(context.requestPath())
+            .clientIp(context.clientIp())
+            .userAgent(context.userAgent())
+            .beforeState(event.beforeState())
+            .afterState(event.afterState())
             .createdAt(Instant.now())
             .build();
     return toDto(auditLogRepository.save(log));
@@ -70,6 +87,16 @@ class AuditLogServiceImpl implements AuditLogApi {
         entity.getActionType(),
         entity.getEntityName(),
         entity.getDetails(),
+        entity.getActorId(),
+        entity.getActorUsername(),
+        entity.getActorRole(),
+        entity.getCorrelationId(),
+        entity.getRequestMethod(),
+        entity.getRequestPath(),
+        entity.getClientIp(),
+        entity.getUserAgent(),
+        entity.getBeforeState(),
+        entity.getAfterState(),
         entity.getCreatedAt());
   }
 }

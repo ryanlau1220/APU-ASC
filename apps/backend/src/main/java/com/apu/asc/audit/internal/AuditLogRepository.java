@@ -6,9 +6,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 interface AuditLogRepository extends JpaRepository<AuditLogEntity, AuditLogId> {
-  List<AuditLogEntity> findByUserId(String userId);
+  List<AuditLogEntity> findAllByOrderByCreatedAtDesc();
 
-  List<AuditLogEntity> findByEntityName(String entityName);
+  List<AuditLogEntity> findByUserIdOrderByCreatedAtDesc(String userId);
 
-  List<AuditLogEntity> findByActionType(String actionType);
+  List<AuditLogEntity> findByEntityNameOrderByCreatedAtDesc(String entityName);
+
+  List<AuditLogEntity> findByActionTypeOrderByCreatedAtDesc(String actionType);
 }

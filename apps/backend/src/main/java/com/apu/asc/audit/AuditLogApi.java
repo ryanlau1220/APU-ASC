@@ -1,5 +1,6 @@
 package com.apu.asc.audit;
 
+import com.apu.asc.common.event.AuditEvent;
 import java.util.List;
 
 public interface AuditLogApi {
@@ -11,6 +12,10 @@ public interface AuditLogApi {
 
   List<AuditLogDto> findByActionType(String actionType);
 
-  AuditLogDto logAction(
-      String userId, String actionType, String entityName, String entityId, String details);
+  AuditLogDto logAction(AuditEvent event);
+
+  default AuditLogDto logAction(
+      String userId, String actionType, String entityName, String entityId, String details) {
+    return logAction(new AuditEvent(userId, actionType, entityName, entityId, details));
+  }
 }

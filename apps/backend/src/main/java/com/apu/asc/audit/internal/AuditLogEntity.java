@@ -11,16 +11,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.hibernate.annotations.Immutable;
 
 @Entity
 @Table(name = "audit_logs")
 @IdClass(AuditLogId.class)
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Immutable
 class AuditLogEntity {
 
   @Id private String id;
@@ -36,6 +36,36 @@ class AuditLogEntity {
 
   @Column(columnDefinition = "TEXT")
   private String details;
+
+  @Column(name = "actor_id", updatable = false)
+  private String actorId;
+
+  @Column(name = "actor_username", updatable = false)
+  private String actorUsername;
+
+  @Column(name = "actor_role", updatable = false)
+  private String actorRole;
+
+  @Column(name = "correlation_id", updatable = false)
+  private String correlationId;
+
+  @Column(name = "request_method", updatable = false)
+  private String requestMethod;
+
+  @Column(name = "request_path", updatable = false)
+  private String requestPath;
+
+  @Column(name = "client_ip", updatable = false)
+  private String clientIp;
+
+  @Column(name = "user_agent", updatable = false)
+  private String userAgent;
+
+  @Column(name = "before_state", columnDefinition = "TEXT", updatable = false)
+  private String beforeState;
+
+  @Column(name = "after_state", columnDefinition = "TEXT", updatable = false)
+  private String afterState;
 
   @Id
   @Column(name = "created_at", nullable = false, updatable = false)
