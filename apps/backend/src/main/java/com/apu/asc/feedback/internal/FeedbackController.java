@@ -1,12 +1,12 @@
 package com.apu.asc.feedback.internal;
 
-import com.apu.asc.appointment.AppointmentApi;
-import com.apu.asc.appointment.AppointmentDto;
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.feedback.FeedbackApi;
 import com.apu.asc.feedback.FeedbackDto;
 import com.apu.asc.user.CurrentUserService;
+import com.apu.asc.workorder.WorkOrderApi;
+import com.apu.asc.workorder.WorkOrderDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 class FeedbackController {
 
   private final FeedbackApi feedbackApi;
-  private final AppointmentApi appointmentApi;
+  private final WorkOrderApi workOrderApi;
   private final CurrentUserService currentUserService;
   private final AccessPolicy accessPolicy;
 
@@ -82,36 +82,53 @@ class FeedbackController {
   public ResponseEntity<FeedbackDto> submitFeedback(
       @Valid @RequestBody final FeedbackDto feedbackDto, Authentication authentication) {
     AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
-    AppointmentDto appointment = appointmentApi.getAppointmentById(feedbackDto.appointmentId());
+    WorkOrderDto workOrder = resolveWorkOrder(feedbackDto);
+    if (!"COMPLETED".equals(workOrder.status())) {
+      throw new IllegalArgumentException(
+          "Feedback can be submitted only for completed work orders.");
+    }
     FeedbackDto securedFeedback = feedbackDto;
 
     if (!accessPolicy.isOperationalUser(currentUser)) {
       if (accessPolicy.isTechnician(currentUser)) {
-        accessPolicy.requireAssignedTechnicianOrOperational(
-            currentUser, appointment.technicianId());
+        accessPolicy.requireAssignedTechnicianOrOperational(currentUser, workOrder.technicianId());
         securedFeedback =
             new FeedbackDto(
                 null,
-                appointment.id(),
-                appointment.customerId(),
+                workOrder.appointmentId(),
+                workOrder.customerId(),
                 currentUser.id(),
                 null,
                 null,
                 feedbackDto.technicianDiagnosticNotes(),
-                null);
+                null,
+                workOrder.id());
       } else {
-        accessPolicy.requireSelfOrOperational(currentUser, appointment.customerId());
+        accessPolicy.requireSelfOrOperational(currentUser, workOrder.customerId());
         securedFeedback =
             new FeedbackDto(
                 null,
-                appointment.id(),
+                workOrder.appointmentId(),
                 currentUser.id(),
-                appointment.technicianId(),
+                workOrder.technicianId(),
                 feedbackDto.rating(),
                 feedbackDto.comments(),
                 null,
-                null);
+                null,
+                workOrder.id());
       }
+    } else {
+      securedFeedback =
+          new FeedbackDto(
+              feedbackDto.id(),
+              workOrder.appointmentId(),
+              workOrder.customerId(),
+              workOrder.technicianId(),
+              feedbackDto.rating(),
+              feedbackDto.comments(),
+              feedbackDto.technicianDiagnosticNotes(),
+              feedbackDto.createdAt(),
+              workOrder.id());
     }
 
     FeedbackDto created = feedbackApi.submitFeedback(securedFeedback);
@@ -124,5 +141,19 @@ class FeedbackController {
   public ResponseEntity<Void> deleteFeedback(@PathVariable final String id) {
     feedbackApi.deleteFeedback(id);
     return ResponseEntity.noContent().build();
+  }
+
+  private WorkOrderDto resolveWorkOrder(FeedbackDto feedbackDto) {
+    if (feedbackDto.workOrderId() != null && !feedbackDto.workOrderId().isBlank()) {
+      return workOrderApi.getWorkOrderById(feedbackDto.workOrderId());
+    }
+    if (feedbackDto.appointmentId() != null && !feedbackDto.appointmentId().isBlank()) {
+      return workOrderApi
+          .findByAppointmentId(feedbackDto.appointmentId())
+          .orElseThrow(
+              () ->
+                  new IllegalArgumentException("The appointment does not yet have a work order."));
+    }
+    throw new IllegalArgumentException("A work order is required to submit feedback.");
   }
 }

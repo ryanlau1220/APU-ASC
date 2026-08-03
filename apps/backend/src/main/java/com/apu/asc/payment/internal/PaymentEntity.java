@@ -24,8 +24,11 @@ class PaymentEntity {
 
   @Id private String id;
 
-  @Column(name = "appointment_id", nullable = false, unique = true)
+  @Column(name = "appointment_id", unique = true)
   private String appointmentId;
+
+  @Column(name = "work_order_id", unique = true)
+  private String workOrderId;
 
   @Column(name = "customer_id", nullable = false)
   private String customerId;

@@ -45,6 +45,15 @@ class PaymentServiceImpl implements PaymentApi {
 
   @Override
   @Transactional(readOnly = true)
+  public PaymentDto getByWorkOrder(final String workOrderId) {
+    return paymentRepository
+        .findByWorkOrderId(workOrderId)
+        .map(this::toDto)
+        .orElseThrow(() -> new ResourceNotFoundException("Payment for work order", workOrderId));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<PaymentDto> getByCustomer(final String customerId) {
     return paymentRepository.findByCustomerId(customerId).stream().map(this::toDto).toList();
   }
@@ -61,6 +70,7 @@ class PaymentServiceImpl implements PaymentApi {
         PaymentEntity.builder()
             .id(id)
             .appointmentId(paymentDto.appointmentId())
+            .workOrderId(paymentDto.workOrderId())
             .customerId(paymentDto.customerId())
             .invoiceNumber(invoiceNum)
             .amount(paymentDto.amount())
@@ -155,6 +165,7 @@ class PaymentServiceImpl implements PaymentApi {
         entity.getPaymentMethod(),
         entity.getPaymentStatus(),
         entity.getPaidAt(),
-        entity.getCreatedAt());
+        entity.getCreatedAt(),
+        entity.getWorkOrderId());
   }
 }

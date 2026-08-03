@@ -50,6 +50,7 @@ class FeedbackServiceImpl implements FeedbackApi {
         FeedbackEntity.builder()
             .id(id)
             .appointmentId(feedbackDto.appointmentId())
+            .workOrderId(feedbackDto.workOrderId())
             .customerId(feedbackDto.customerId())
             .technicianId(feedbackDto.technicianId())
             .rating(feedbackDto.rating())
@@ -77,6 +78,7 @@ class FeedbackServiceImpl implements FeedbackApi {
         entity.getRating(),
         entity.getComments(),
         entity.getTechnicianDiagnosticNotes(),
-        entity.getCreatedAt());
+        entity.getCreatedAt(),
+        entity.getWorkOrderId());
   }
 }

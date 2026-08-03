@@ -44,6 +44,10 @@ public class AccessPolicy {
     deny();
   }
 
+  public void requireWorkOrderRead(AuthenticatedUser user, String customerId, String technicianId) {
+    requireAppointmentRead(user, customerId, technicianId);
+  }
+
   public void requireAssignedTechnicianOrOperational(AuthenticatedUser user, String technicianId) {
     if (isOperationalUser(user) || (isTechnician(user) && user.id().equals(technicianId))) {
       return;

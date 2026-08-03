@@ -9,6 +9,8 @@ public interface PaymentApi {
 
   PaymentDto getByAppointment(String appointmentId);
 
+  PaymentDto getByWorkOrder(String workOrderId);
+
   List<PaymentDto> getByCustomer(String customerId);
 
   PaymentDto createInvoice(PaymentDto paymentDto);

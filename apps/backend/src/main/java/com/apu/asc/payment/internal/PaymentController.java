@@ -5,6 +5,8 @@ import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
 import com.apu.asc.user.CurrentUserService;
+import com.apu.asc.workorder.WorkOrderApi;
+import com.apu.asc.workorder.WorkOrderDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 class PaymentController {
 
   private final PaymentApi paymentApi;
+  private final WorkOrderApi workOrderApi;
   private final CurrentUserService currentUserService;
   private final AccessPolicy accessPolicy;
 
@@ -71,11 +74,37 @@ class PaymentController {
     return ResponseEntity.ok(payment);
   }
 
+  @GetMapping("/work-order/{workOrderId}")
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @Operation(summary = "Get invoice by work-order ID")
+  public ResponseEntity<PaymentDto> getPaymentByWorkOrder(
+      @PathVariable final String workOrderId, Authentication authentication) {
+    PaymentDto payment = paymentApi.getByWorkOrder(workOrderId);
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), payment.customerId());
+    return ResponseEntity.ok(payment);
+  }
+
   @PostMapping
   @PreAuthorize("hasRole('STAFF')")
   @Operation(summary = "Create invoice for appointment")
-  public ResponseEntity<PaymentDto> createInvoice(@Valid @RequestBody final PaymentDto paymentDto) {
-    PaymentDto created = paymentApi.createInvoice(paymentDto);
+  public ResponseEntity<PaymentDto> createInvoice(
+      @Valid @RequestBody final PaymentDto paymentDto, Authentication authentication) {
+    currentUserService.requireCurrentUser(authentication);
+    WorkOrderDto workOrder = resolveWorkOrder(paymentDto);
+    PaymentDto securedPayment =
+        new PaymentDto(
+            null,
+            workOrder.appointmentId(),
+            workOrder.customerId(),
+            paymentDto.invoiceNumber(),
+            paymentDto.amount(),
+            paymentDto.paymentMethod(),
+            paymentDto.paymentStatus(),
+            null,
+            null,
+            workOrder.id());
+    PaymentDto created = paymentApi.createInvoice(securedPayment);
     return ResponseEntity.created(URI.create("/api/v1/payments/" + created.id())).body(created);
   }
 
@@ -106,5 +135,19 @@ class PaymentController {
   public ResponseEntity<Void> deletePayment(@PathVariable final String id) {
     paymentApi.deletePayment(id);
     return ResponseEntity.noContent().build();
+  }
+
+  private WorkOrderDto resolveWorkOrder(PaymentDto paymentDto) {
+    if (paymentDto.workOrderId() != null && !paymentDto.workOrderId().isBlank()) {
+      return workOrderApi.getWorkOrderById(paymentDto.workOrderId());
+    }
+    if (paymentDto.appointmentId() != null && !paymentDto.appointmentId().isBlank()) {
+      return workOrderApi
+          .findByAppointmentId(paymentDto.appointmentId())
+          .orElseThrow(
+              () ->
+                  new IllegalArgumentException("The appointment does not yet have a work order."));
+    }
+    throw new IllegalArgumentException("An invoice must be associated with a work order.");
   }
 }

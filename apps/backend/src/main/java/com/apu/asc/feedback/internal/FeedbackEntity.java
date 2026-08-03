@@ -26,6 +26,9 @@ class FeedbackEntity {
   @Column(name = "appointment_id", nullable = false)
   private String appointmentId;
 
+  @Column(name = "work_order_id")
+  private String workOrderId;
+
   @Column(name = "customer_id", nullable = false)
   private String customerId;
 

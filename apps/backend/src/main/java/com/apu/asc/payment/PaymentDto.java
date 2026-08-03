@@ -12,4 +12,5 @@ public record PaymentDto(
     String paymentMethod,
     String paymentStatus,
     Instant paidAt,
-    Instant createdAt) {}
+    Instant createdAt,
+    String workOrderId) {}

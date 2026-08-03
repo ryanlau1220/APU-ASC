@@ -10,4 +10,5 @@ public record FeedbackDto(
     Integer rating,
     String comments,
     String technicianDiagnosticNotes,
-    Instant createdAt) {}
+    Instant createdAt,
+    String workOrderId) {}
