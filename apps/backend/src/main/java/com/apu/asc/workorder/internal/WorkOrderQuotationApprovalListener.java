@@ -7,10 +7,16 @@ import java.util.Arrays;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-/** Records the accepted estimate locally so execution can enforce customer approval. */
+/**
+ * Applies the approval required to begin work in the same transaction as the customer decision.
+ *
+ * <p>This is a consistency-critical state transition, not background work: allowing it to lag
+ * behind the approved quotation would briefly reject a legitimate transition to IN_PROGRESS.
+ * Subsequent audit, SSE, and email handling remain post-commit durable event work.
+ */
 @Component
 @RequiredArgsConstructor
 class WorkOrderQuotationApprovalListener {
@@ -18,7 +24,7 @@ class WorkOrderQuotationApprovalListener {
   private final WorkOrderRepository workOrderRepository;
   private final ApplicationEventPublisher eventPublisher;
 
-  @ApplicationModuleListener(id = "work-order-quotation-approval")
+  @EventListener
   void on(QuotationApprovedEvent event) {
     WorkOrderEntity workOrder =
         workOrderRepository

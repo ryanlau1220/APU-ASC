@@ -1,5 +1,6 @@
 package com.apu.asc.scheduling.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -60,9 +62,15 @@ class SchedulingServiceImplTest {
 
     schedulingService.updateCapacity(new SlotCapacityUpdateDto(DATE, SLOT, 4));
 
-    verify(eventPublisher)
-        .publishEvent(
-            LiveUpdateEvent.forRoles(
-                "scheduling", null, "CUSTOMER", "TECHNICIAN", "STAFF", "MANAGER"));
+    ArgumentCaptor<LiveUpdateEvent> eventCaptor = ArgumentCaptor.forClass(LiveUpdateEvent.class);
+    verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+    LiveUpdateEvent event = eventCaptor.getValue();
+    assertThat(event.topic()).isEqualTo("scheduling");
+    assertThat(event.resourceId()).isNull();
+    assertThat(event.audienceUserIds()).isEmpty();
+    assertThat(event.audienceRoles())
+        .containsExactlyInAnyOrder("CUSTOMER", "TECHNICIAN", "STAFF", "MANAGER");
+    assertThat(event.occurredAt()).isNotNull();
   }
 }
