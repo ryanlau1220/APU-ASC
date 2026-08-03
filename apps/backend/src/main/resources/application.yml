@@ -33,7 +33,8 @@ spring:
       max-lifetime: 1800000
       connection-timeout: 30000
       validation-timeout: 3000
-      leak-detection-threshold: 2000
+      # Diagnostic only: long enough to avoid normal request noise, short enough to expose leaks.
+      leak-detection-threshold: ${HIKARI_LEAK_DETECTION_THRESHOLD:10000}
 
   data:
     redis:
@@ -48,6 +49,9 @@ spring:
       cache-null-values: false
 
   jpa:
+    # API services must fully load/map their DTOs within their service-layer transaction. In
+    # particular, this prevents long-lived SSE responses from retaining a JDBC connection.
+    open-in-view: false
     hibernate:
       ddl-auto: validate
     show-sql: false
