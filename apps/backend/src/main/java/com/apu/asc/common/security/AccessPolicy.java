@@ -34,6 +34,13 @@ public class AccessPolicy {
     deny();
   }
 
+  public void requireSelf(AuthenticatedUser user, String subjectUserId) {
+    if (user.id().equals(subjectUserId)) {
+      return;
+    }
+    deny();
+  }
+
   public void requireAppointmentRead(
       AuthenticatedUser user, String customerId, String technicianId) {
     if (isOperationalUser(user)

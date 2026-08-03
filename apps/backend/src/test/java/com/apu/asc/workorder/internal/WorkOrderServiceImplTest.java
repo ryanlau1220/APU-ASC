@@ -67,6 +67,7 @@ class WorkOrderServiceImplTest {
             .vehicleId("VEH-1")
             .serviceId("SVC-1")
             .status("OPEN")
+            .approvedQuotationId("QTE-1")
             .build();
     when(workOrderRepository.findById("WO-1")).thenReturn(Optional.of(entity));
     when(workOrderRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -95,6 +96,23 @@ class WorkOrderServiceImplTest {
     assertThatThrownBy(() -> workOrderService.updateStatus("WO-1", "COMPLETED"))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("cannot transition");
+  }
+
+  @Test
+  void requiresCustomerQuotationApprovalBeforeWorkCanBegin() {
+    WorkOrderEntity entity =
+        WorkOrderEntity.builder()
+            .id("WO-1")
+            .customerId("USR-1")
+            .vehicleId("VEH-1")
+            .serviceId("SVC-1")
+            .status("DIAGNOSING")
+            .build();
+    when(workOrderRepository.findById("WO-1")).thenReturn(Optional.of(entity));
+
+    assertThatThrownBy(() -> workOrderService.updateStatus("WO-1", "IN_PROGRESS"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("approved customer quotation");
   }
 
   private WorkOrderDto workOrder(String appointmentId, String status) {

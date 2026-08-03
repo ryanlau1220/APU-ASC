@@ -103,6 +103,10 @@ class WorkOrderServiceImpl implements WorkOrderApi {
     if (current == target) {
       return toDto(entity);
     }
+    if (target == WorkOrderStatus.IN_PROGRESS && entity.getApprovedQuotationId() == null) {
+      throw new IllegalArgumentException(
+          "An approved customer quotation is required before work can begin.");
+    }
     entity.setStatus(target.name());
     Instant now = Instant.now();
     if (target == WorkOrderStatus.IN_PROGRESS && entity.getStartedAt() == null)

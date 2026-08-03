@@ -77,7 +77,11 @@ class QuotationEntity {
   private Instant updatedAt;
 
   @Builder.Default
-  @OneToMany(mappedBy = "quotation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  @OneToMany(
+      mappedBy = "quotation",
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      fetch = FetchType.LAZY)
   private List<QuotationLineEntity> items = new ArrayList<>();
 
   void replaceItems(List<QuotationLineEntity> replacement) {

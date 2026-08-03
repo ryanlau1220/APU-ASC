@@ -48,6 +48,12 @@ class WorkOrderEntity {
   @Column(name = "diagnostic_notes", columnDefinition = "TEXT")
   private String diagnosticNotes;
 
+  @Column(name = "approved_quotation_id")
+  private String approvedQuotationId;
+
+  @Column(name = "quotation_approved_at")
+  private Instant quotationApprovedAt;
+
   @Column(name = "opened_at")
   private Instant openedAt;
 

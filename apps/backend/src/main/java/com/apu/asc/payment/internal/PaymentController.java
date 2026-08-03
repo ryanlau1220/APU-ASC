@@ -4,6 +4,8 @@ import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.quotation.QuotationApi;
+import com.apu.asc.quotation.QuotationDto;
 import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.workorder.WorkOrderApi;
 import com.apu.asc.workorder.WorkOrderDto;
@@ -34,6 +36,7 @@ class PaymentController {
 
   private final PaymentApi paymentApi;
   private final WorkOrderApi workOrderApi;
+  private final QuotationApi quotationApi;
   private final CurrentUserService currentUserService;
   private final AccessPolicy accessPolicy;
 
@@ -92,13 +95,14 @@ class PaymentController {
       @Valid @RequestBody final PaymentDto paymentDto, Authentication authentication) {
     currentUserService.requireCurrentUser(authentication);
     WorkOrderDto workOrder = resolveWorkOrder(paymentDto);
+    QuotationDto approvedQuotation = quotationApi.getApprovedByWorkOrder(workOrder.id());
     PaymentDto securedPayment =
         new PaymentDto(
             null,
             workOrder.appointmentId(),
             workOrder.customerId(),
             paymentDto.invoiceNumber(),
-            paymentDto.amount(),
+            approvedQuotation.totalAmount(),
             paymentDto.paymentMethod(),
             paymentDto.paymentStatus(),
             null,

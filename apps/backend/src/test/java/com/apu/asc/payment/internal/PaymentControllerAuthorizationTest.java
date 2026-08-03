@@ -1,14 +1,19 @@
 package com.apu.asc.payment.internal;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.quotation.QuotationApi;
+import com.apu.asc.quotation.QuotationDto;
 import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.workorder.WorkOrderApi;
+import com.apu.asc.workorder.WorkOrderDto;
 import java.math.BigDecimal;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +33,7 @@ class PaymentControllerAuthorizationTest {
 
   @Mock private PaymentApi paymentApi;
   @Mock private WorkOrderApi workOrderApi;
+  @Mock private QuotationApi quotationApi;
   @Mock private CurrentUserService currentUserService;
 
   private PaymentController controller;
@@ -35,7 +41,8 @@ class PaymentControllerAuthorizationTest {
   @BeforeEach
   void setUp() {
     controller =
-        new PaymentController(paymentApi, workOrderApi, currentUserService, new AccessPolicy());
+        new PaymentController(
+            paymentApi, workOrderApi, quotationApi, currentUserService, new AccessPolicy());
   }
 
   @Test
@@ -46,6 +53,43 @@ class PaymentControllerAuthorizationTest {
 
     assertThatThrownBy(() -> controller.processPayment("PAY-OTHER", "ONLINE_CARD", AUTHENTICATION))
         .isInstanceOf(AccessDeniedException.class);
+  }
+
+  @Test
+  void invoiceUsesTheApprovedQuotationTotalInsteadOfClientAmount() {
+    WorkOrderDto workOrder =
+        new WorkOrderDto(
+            "WO-1",
+            "APT-1",
+            "USR-1",
+            "VEH-1",
+            "SVC-1",
+            null,
+            "IN_PROGRESS",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    PaymentDto request =
+        new PaymentDto(
+            null, null, null, null, new BigDecimal("1.00"), null, null, null, null, "WO-1");
+    when(currentUserService.requireCurrentUser(AUTHENTICATION))
+        .thenReturn(new AuthenticatedUser("USR-STAFF", Set.of("STAFF")));
+    when(workOrderApi.getWorkOrderById("WO-1")).thenReturn(workOrder);
+    when(quotationApi.getApprovedByWorkOrder("WO-1"))
+        .thenReturn(quotation(new BigDecimal("350.00")));
+    when(paymentApi.createInvoice(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    controller.createInvoice(request, AUTHENTICATION);
+
+    org.mockito.ArgumentCaptor<PaymentDto> captured =
+        org.mockito.ArgumentCaptor.forClass(PaymentDto.class);
+    verify(paymentApi).createInvoice(captured.capture());
+    org.assertj.core.api.Assertions.assertThat(captured.getValue().amount())
+        .isEqualByComparingTo("350.00");
   }
 
   private PaymentDto payment(String customerId) {
@@ -60,5 +104,26 @@ class PaymentControllerAuthorizationTest {
         null,
         null,
         null);
+  }
+
+  private QuotationDto quotation(BigDecimal totalAmount) {
+    return new QuotationDto(
+        "QTE-1",
+        "QT-1",
+        "WO-1",
+        "USR-1",
+        1,
+        "APPROVED",
+        null,
+        null,
+        java.time.LocalDate.now().plusDays(1),
+        totalAmount,
+        BigDecimal.ZERO,
+        totalAmount,
+        null,
+        null,
+        null,
+        null,
+        java.util.List.of());
   }
 }

@@ -8,6 +8,10 @@ import com.apu.asc.feedback.FeedbackApi;
 import com.apu.asc.feedback.FeedbackDto;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.quotation.QuotationApi;
+import com.apu.asc.quotation.QuotationDecisionRequestDto;
+import com.apu.asc.quotation.QuotationDraftRequestDto;
+import com.apu.asc.quotation.QuotationLineRequestDto;
 import com.apu.asc.servicecatalog.CategoryDto;
 import com.apu.asc.servicecatalog.ServiceCatalogApi;
 import com.apu.asc.servicecatalog.ServiceDto;
@@ -45,6 +49,7 @@ class FullCrudOperationsIntegrationTest {
   @Autowired private PaymentApi paymentApi;
   @Autowired private FeedbackApi feedbackApi;
   @Autowired private WorkOrderApi workOrderApi;
+  @Autowired private QuotationApi quotationApi;
   @MockBean private EmailService emailService;
   @MockBean private KeycloakAdminService keycloakAdminService;
 
@@ -356,6 +361,20 @@ class FullCrudOperationsIntegrationTest {
                 null,
                 null));
     workOrder = workOrderApi.updateStatus(workOrder.id(), "DIAGNOSING");
+    var quotation =
+        quotationApi.createDraft(
+            customer.id(),
+            new QuotationDraftRequestDto(
+                workOrder.id(),
+                "Oil service estimate",
+                LocalDate.now().plusDays(7),
+                List.of(
+                    new QuotationLineRequestDto(
+                        "Engine oil and filter", BigDecimal.ONE, new BigDecimal("120.00")))));
+    quotationApi.submit(quotation.id());
+    quotationApi.decide(
+        quotation.id(),
+        new QuotationDecisionRequestDto(QuotationDecisionRequestDto.Decision.APPROVE, null));
     workOrder = workOrderApi.updateStatus(workOrder.id(), "IN_PROGRESS");
     workOrder = workOrderApi.updateStatus(workOrder.id(), "COMPLETED");
 
