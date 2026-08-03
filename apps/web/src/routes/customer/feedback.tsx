@@ -9,6 +9,8 @@ import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { bffFetch } from '../../lib/apiClient'
 
+type WorkOrderFeedbackDto = FeedbackDto & { workOrderId?: string }
+
 export const Route = createFileRoute('/customer/feedback')({
   component: CustomerFeedbackContent,
 })
@@ -26,7 +28,7 @@ function CustomerFeedbackContent() {
 
   const { data: myFeedbackData = [], refetch: refetchFeedback } =
     useGetMyFeedback()
-  const myFeedbacks = (myFeedbackData || []) as FeedbackDto[]
+  const myFeedbacks = (myFeedbackData || []) as WorkOrderFeedbackDto[]
 
   const submitFeedbackMutation = useMutation({
     mutationFn: (data: {
@@ -199,7 +201,7 @@ function CustomerFeedbackContent() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-foreground">
-                      Work Order #{fb.appointmentId}
+                      Work Order #{fb.workOrderId || fb.appointmentId}
                     </span>
                     <span className="font-bold text-amber-500 flex items-center gap-1">
                       {'⭐'.repeat(fb.rating || 5)} ({fb.rating}/5)

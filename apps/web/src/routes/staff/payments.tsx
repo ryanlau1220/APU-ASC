@@ -17,6 +17,8 @@ import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { bffFetch } from '../../lib/apiClient'
 
+type WorkOrderPaymentDto = PaymentDto & { workOrderId?: string }
+
 export const Route = createFileRoute('/staff/payments')({
   component: StaffPaymentsContent,
 })
@@ -27,7 +29,7 @@ function StaffPaymentsContent() {
   const [message, setMessage] = React.useState<string | null>(null)
 
   const { data: paymentsData = [], refetch } = useGetAllPayments()
-  const payments = (paymentsData || []) as PaymentDto[]
+  const payments = (paymentsData || []) as WorkOrderPaymentDto[]
 
   const createInvoiceMutation = useMutation({
     mutationFn: (data: { workOrderId: string; amount: number }) =>
@@ -207,7 +209,7 @@ function StaffPaymentsContent() {
                         {p.customerId}
                       </td>
                       <td className="py-3.5 px-3 font-mono">
-                        {p.appointmentId || 'Work order linked'}
+                        {p.workOrderId || p.appointmentId}
                       </td>
                       <td className="py-3.5 px-3 font-bold text-primary">
                         RM {Number(p.amount || 0).toFixed(2)}
