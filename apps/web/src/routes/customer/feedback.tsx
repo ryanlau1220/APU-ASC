@@ -1,13 +1,14 @@
-import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { MessageSquare, Star } from 'lucide-react'
 import * as React from 'react'
-import { useGetMyFeedback } from '../../api/generated/endpoints'
+import {
+  useGetMyFeedback,
+  useGetMyWorkOrders,
+  useSubmitFeedback,
+} from '../../api/generated/endpoints'
 import type { FeedbackDto } from '../../api/generated/models'
-import { useGetMyWorkOrders } from '../../api/workOrders'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
-import { bffFetch } from '../../lib/apiClient'
 
 type WorkOrderFeedbackDto = FeedbackDto & { workOrderId?: string }
 
@@ -30,25 +31,18 @@ function CustomerFeedbackContent() {
     useGetMyFeedback()
   const myFeedbacks = (myFeedbackData || []) as WorkOrderFeedbackDto[]
 
-  const submitFeedbackMutation = useMutation({
-    mutationFn: (data: {
-      workOrderId: string
-      rating: number
-      comments: string
-    }) =>
-      bffFetch<FeedbackDto>('/api/v1/feedback', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
-      setMessage('Thank you! Your service feedback has been submitted.')
-      setWorkOrderId('')
-      setRating(5)
-      setComments('')
-      refetchFeedback()
-    },
-    onError: (err: Error) => {
-      setMessage(err.message || 'Failed to submit feedback.')
+  const submitFeedbackMutation = useSubmitFeedback({
+    mutation: {
+      onSuccess: () => {
+        setMessage('Thank you! Your service feedback has been submitted.')
+        setWorkOrderId('')
+        setRating(5)
+        setComments('')
+        refetchFeedback()
+      },
+      onError: (err: Error) => {
+        setMessage(err.message || 'Failed to submit feedback.')
+      },
     },
   })
 
@@ -61,11 +55,7 @@ function CustomerFeedbackContent() {
       return
     }
     setMessage(null)
-    submitFeedbackMutation.mutate({
-      workOrderId,
-      rating,
-      comments,
-    })
+    submitFeedbackMutation.mutate({ data: { workOrderId, rating, comments } })
   }
 
   return (

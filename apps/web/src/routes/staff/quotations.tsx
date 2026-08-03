@@ -2,12 +2,16 @@ import { createFileRoute } from '@tanstack/react-router'
 import { FileText, Plus, Send, Trash2 } from 'lucide-react'
 import * as React from 'react'
 import {
-  type QuotationLine,
-  useCreateQuotation,
+  useCreateQuotationDraft,
   useGetAllQuotations,
+  useGetAllWorkOrders,
   useSubmitQuotation,
-} from '../../api/quotations'
-import { useGetAllWorkOrders } from '../../api/workOrders'
+} from '../../api/generated/endpoints'
+import type {
+  QuotationDto,
+  QuotationLineDto,
+  QuotationLineRequestDto,
+} from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 
@@ -15,7 +19,10 @@ export const Route = createFileRoute('/staff/quotations')({
   component: StaffQuotationsContent,
 })
 
-type DraftLine = QuotationLine & { key: string }
+type DraftLine = QuotationLineRequestDto & { key: string }
+type Quote = Required<Omit<QuotationDto, 'items'>> & {
+  items: Required<QuotationLineDto>[]
+}
 
 const initialLine = (): DraftLine => ({
   key: crypto.randomUUID(),
@@ -37,9 +44,10 @@ function StaffQuotationsContent() {
   const [lines, setLines] = React.useState<DraftLine[]>([initialLine()])
 
   const { data: workOrders = [] } = useGetAllWorkOrders()
-  const { data: quotations = [], refetch } = useGetAllQuotations()
-  const createMutation = useCreateQuotation()
-  const submitMutation = useSubmitQuotation()
+  const { data: quotationData = [], refetch } = useGetAllQuotations()
+  const quotations = quotationData as Quote[]
+  const createMutation = useCreateQuotationDraft<Error>()
+  const submitMutation = useSubmitQuotation<Error>()
 
   const estimateTotal = lines.reduce(
     (total, line) =>
@@ -74,14 +82,16 @@ function StaffQuotationsContent() {
     }
     createMutation.mutate(
       {
-        workOrderId,
-        notes: notes.trim() || undefined,
-        validUntil,
-        items: lines.map(({ description, quantity, unitPrice }) => ({
-          description: description.trim(),
-          quantity: Number(quantity),
-          unitPrice: Number(unitPrice),
-        })),
+        data: {
+          workOrderId,
+          notes: notes.trim() || undefined,
+          validUntil,
+          items: lines.map(({ description, quantity, unitPrice }) => ({
+            description: description.trim(),
+            quantity: Number(quantity),
+            unitPrice: Number(unitPrice),
+          })),
+        },
       },
       {
         onSuccess: () => {
@@ -101,13 +111,16 @@ function StaffQuotationsContent() {
 
   const submit = (id: string) => {
     setMessage(null)
-    submitMutation.mutate(id, {
-      onSuccess: () => {
-        setMessage('Quotation sent to the customer for approval.')
-        refetch()
+    submitMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          setMessage('Quotation sent to the customer for approval.')
+          refetch()
+        },
+        onError: (error: Error) => setMessage(error.message),
       },
-      onError: (error: Error) => setMessage(error.message),
-    })
+    )
   }
 
   return (

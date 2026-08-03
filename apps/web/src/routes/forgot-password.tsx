@@ -8,7 +8,10 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import * as React from 'react'
-import { bffFetch } from '../lib/apiClient'
+import {
+  useRequestForgotPasswordOtp,
+  useResetPasswordWithOtp,
+} from '../api/generated/endpoints'
 
 export const Route = createFileRoute('/forgot-password')({
   component: ForgotPasswordPage,
@@ -24,6 +27,8 @@ function ForgotPasswordPage() {
   const [message, setMessage] = React.useState('')
   const [error, setError] = React.useState('')
   const [isSuccess, setIsSuccess] = React.useState(false)
+  const requestOtpMutation = useRequestForgotPasswordOtp<Error>()
+  const resetPasswordMutation = useResetPasswordWithOtp<Error>()
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,17 +37,12 @@ function ForgotPasswordPage() {
     setLoading(true)
 
     try {
-      const res = await bffFetch<{ success: boolean; message: string }>(
-        '/api/v1/auth/forgot-password/request',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        },
-      )
+      const res = (await requestOtpMutation.mutateAsync({
+        data: { email },
+      })) as { success?: boolean; message?: string }
 
       if (res?.success) {
-        setMessage(res.message)
+        setMessage(res.message || 'OTP code sent. Please check your email.')
         setStep('reset')
       } else {
         setError(res?.message || 'Failed to send OTP code. Please try again.')
@@ -76,22 +76,12 @@ function ForgotPasswordPage() {
     setLoading(true)
 
     try {
-      const res = await bffFetch<{ success: boolean; message: string }>(
-        '/api/v1/auth/forgot-password/reset',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            otp,
-            newPassword,
-            confirmPassword,
-          }),
-        },
-      )
+      const res = (await resetPasswordMutation.mutateAsync({
+        data: { email, otp, newPassword, confirmPassword },
+      })) as { success?: boolean; message?: string }
 
       if (res?.success) {
-        setMessage(res.message)
+        setMessage(res.message || 'Password reset successfully.')
         setIsSuccess(true)
       } else {
         setError(res?.message || 'Failed to reset password.')

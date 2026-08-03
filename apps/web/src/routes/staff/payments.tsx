@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   CheckCircle2,
@@ -9,13 +8,13 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 import {
+  useCreateInvoice,
   useGetAllPayments,
   useProcessPayment,
 } from '../../api/generated/endpoints'
 import type { PaymentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
-import { bffFetch } from '../../lib/apiClient'
 
 type WorkOrderPaymentDto = PaymentDto & { workOrderId?: string }
 
@@ -25,26 +24,21 @@ export const Route = createFileRoute('/staff/payments')({
 
 function StaffPaymentsContent() {
   const [workOrderId, setWorkOrderId] = React.useState('')
-  const [amount, setAmount] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
 
   const { data: paymentsData = [], refetch } = useGetAllPayments()
   const payments = (paymentsData || []) as WorkOrderPaymentDto[]
 
-  const createInvoiceMutation = useMutation({
-    mutationFn: (data: { workOrderId: string; amount: number }) =>
-      bffFetch<PaymentDto>('/api/v1/payments', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => {
-      setMessage('Invoice created successfully!')
-      setWorkOrderId('')
-      setAmount('')
-      refetch()
-    },
-    onError: (err: Error) => {
-      setMessage(err.message || 'Failed to create invoice.')
+  const createInvoiceMutation = useCreateInvoice({
+    mutation: {
+      onSuccess: () => {
+        setMessage('Invoice created successfully!')
+        setWorkOrderId('')
+        refetch()
+      },
+      onError: (err: Error) => {
+        setMessage(err.message || 'Failed to create invoice.')
+      },
     },
   })
 
@@ -63,10 +57,7 @@ function StaffPaymentsContent() {
   const handleCreateInvoice = (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
-    createInvoiceMutation.mutate({
-      workOrderId,
-      amount: Number(amount),
-    })
+    createInvoiceMutation.mutate({ data: { workOrderId } })
   }
 
   const handleProcess = (paymentId: string) => {
@@ -139,23 +130,8 @@ function StaffPaymentsContent() {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="amtInput"
-                className="block text-xs font-semibold text-muted-foreground mb-1"
-              >
-                Invoice Total Amount (RM)
-              </label>
-              <input
-                id="amtInput"
-                type="number"
-                step="0.01"
-                required
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="e.g. 250.00"
-                className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
-              />
+            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+              The invoice total is taken from the customer-approved quotation.
             </div>
 
             <div className="sm:col-span-3 flex justify-end">

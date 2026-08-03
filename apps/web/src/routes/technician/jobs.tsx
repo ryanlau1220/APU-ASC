@@ -3,9 +3,10 @@ import { CheckCircle2, Clock, Wrench } from 'lucide-react'
 import * as React from 'react'
 import {
   useGetMyWorkOrders,
-  useUpdateDiagnosticNotes,
+  useUpdateWorkOrderDiagnosticNotes,
   useUpdateWorkOrderStatus,
-} from '../../api/workOrders'
+} from '../../api/generated/endpoints'
+import type { UpdateWorkOrderStatusStatus } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import {
@@ -25,13 +26,14 @@ function TechnicianJobsContent() {
     Record<string, string>
   >({})
 
-  const updateStatusMutation = useUpdateWorkOrderStatus()
-  const updateDiagnosticNotesMutation = useUpdateDiagnosticNotes()
+  const updateStatusMutation = useUpdateWorkOrderStatus<Error>()
+  const updateDiagnosticNotesMutation =
+    useUpdateWorkOrderDiagnosticNotes<Error>()
 
   const handleUpdate = (id: string, status: string) => {
     setMessage(null)
     updateStatusMutation.mutate(
-      { id, status },
+      { id, params: { status: status as UpdateWorkOrderStatusStatus } },
       {
         onSuccess: () => {
           setMessage('Work order status updated successfully!')
@@ -46,7 +48,7 @@ function TechnicianJobsContent() {
 
   const handleSaveDiagnostics = (id: string) => {
     updateDiagnosticNotesMutation.mutate(
-      { id, notes: diagnosticNotes[id] || '' },
+      { id, data: diagnosticNotes[id] || '' },
       {
         onSuccess: () => {
           setMessage('Diagnostic notes saved successfully!')

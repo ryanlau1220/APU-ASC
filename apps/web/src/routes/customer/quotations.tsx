@@ -1,7 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Check, ClipboardCheck, X } from 'lucide-react'
 import * as React from 'react'
-import { useDecideQuotation, useGetMyQuotations } from '../../api/quotations'
+import {
+  useDecideQuotation,
+  useGetMyQuotations,
+} from '../../api/generated/endpoints'
+import type {
+  QuotationDecisionRequestDtoDecision,
+  QuotationDto,
+  QuotationLineDto,
+} from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 
@@ -14,18 +22,32 @@ const money = new Intl.NumberFormat('en-MY', {
   currency: 'MYR',
 })
 
+type Quote = Required<Omit<QuotationDto, 'items'>> & {
+  items: Required<QuotationLineDto>[]
+}
+
 function CustomerQuotationsContent() {
   const [message, setMessage] = React.useState<string | null>(null)
   const [responseNotes, setResponseNotes] = React.useState<
     Record<string, string>
   >({})
-  const { data: quotations = [], refetch } = useGetMyQuotations()
-  const decisionMutation = useDecideQuotation()
+  const { data: quotationData = [], refetch } = useGetMyQuotations()
+  const quotations = quotationData as Quote[]
+  const decisionMutation = useDecideQuotation<Error>()
 
-  const decide = (id: string, decision: 'APPROVE' | 'REJECT') => {
+  const decide = (
+    id: string,
+    decision: QuotationDecisionRequestDtoDecision,
+  ) => {
     setMessage(null)
     decisionMutation.mutate(
-      { id, decision, responseNotes: responseNotes[id]?.trim() || undefined },
+      {
+        id,
+        data: {
+          decision,
+          responseNotes: responseNotes[id]?.trim() || undefined,
+        },
+      },
       {
         onSuccess: () => {
           setMessage(

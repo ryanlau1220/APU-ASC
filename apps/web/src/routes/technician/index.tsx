@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Calendar, CheckCircle2, Clock, Wrench } from 'lucide-react'
-import { useGetMyWorkOrders } from '../../api/workOrders'
+import { useGetMyWorkOrders } from '../../api/generated/endpoints'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 

@@ -13,9 +13,13 @@ import {
   Wrench,
 } from 'lucide-react'
 import * as React from 'react'
+import {
+  useChangePassword,
+  useUpdateUser,
+  useUploadAvatar,
+} from '../api/generated/endpoints'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
-import { bffFetch } from '../lib/apiClient'
 import { useUserSession } from './__root'
 
 export const Route = createFileRoute('/profile')({
@@ -66,6 +70,10 @@ function ProfilePage() {
   const [avatarUploading, setAvatarUploading] = React.useState(false)
   const [avatarSuccess, setAvatarSuccess] = React.useState('')
 
+  const uploadAvatarMutation = useUploadAvatar<Error>()
+  const updateUserMutation = useUpdateUser<Error>()
+  const changePasswordMutation = useChangePassword<Error>()
+
   React.useEffect(() => {
     if (userSession?.fullName) setFullName(userSession.fullName)
     if (userSession?.email) setEmail(userSession.email)
@@ -76,13 +84,9 @@ function ProfilePage() {
     setAvatarUploading(true)
     setAvatarSuccess('')
 
-    const formData = new FormData()
-    formData.append('file', avatarFile)
-
     try {
-      await bffFetch('/api/v1/users/avatar', {
-        method: 'POST',
-        body: formData,
+      await uploadAvatarMutation.mutateAsync({
+        data: { file: avatarFile },
       })
       setAvatarSuccess('Avatar picture updated! Reloading session...')
       setTimeout(() => {
@@ -105,10 +109,9 @@ function ProfilePage() {
 
     try {
       if (userSession?.id) {
-        await bffFetch(`/api/v1/users/${userSession.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fullName, email }),
+        await updateUserMutation.mutateAsync({
+          id: userSession.id,
+          data: { fullName, email },
         })
       }
       setSaved(true)
@@ -149,18 +152,9 @@ function ProfilePage() {
     setPassLoading(true)
 
     try {
-      const res = await bffFetch<{ success: boolean; message: string }>(
-        '/api/v1/auth/change-password',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            oldPassword,
-            newPassword,
-            confirmPassword,
-          }),
-        },
-      )
+      const res = (await changePasswordMutation.mutateAsync({
+        data: { oldPassword, newPassword, confirmPassword },
+      })) as { success?: boolean; message?: string }
 
       if (res?.success) {
         setPassSuccess(

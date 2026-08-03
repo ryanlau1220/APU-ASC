@@ -1,22 +1,22 @@
-import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Calendar, CheckCircle2, Clock, Plus } from 'lucide-react'
 import * as React from 'react'
 import {
+  useCancelAppointment,
   useCreateAppointment,
   useGetMyAppointments,
   useGetMyVehicles,
   useGetServices,
+  useGetSlotAvailability,
 } from '../../api/generated/endpoints'
 import type {
   AppointmentDto,
   ServiceDto,
+  SlotAvailabilityDto,
   VehicleDto,
 } from '../../api/generated/models'
-import { useSlotAvailability } from '../../api/scheduling'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
-import { bffFetch } from '../../lib/apiClient'
 
 export const Route = createFileRoute('/customer/appointments')({
   component: CustomerAppointmentsContent,
@@ -39,10 +39,15 @@ function CustomerAppointmentsContent() {
   const { data: appointmentsData = [], refetch } = useGetMyAppointments()
   const myAppointments = (appointmentsData || []) as AppointmentDto[]
   const {
-    data: slotAvailability = [],
+    data: slotAvailabilityData = [],
     isFetching: isLoadingAvailability,
     refetch: refetchAvailability,
-  } = useSlotAvailability(appointmentDate)
+  } = useGetSlotAvailability(
+    { date: appointmentDate },
+    { query: { enabled: Boolean(appointmentDate) } },
+  )
+  const slotAvailability =
+    slotAvailabilityData as Required<SlotAvailabilityDto>[]
 
   const createAppointmentMutation = useCreateAppointment({
     mutation: {
@@ -61,18 +66,16 @@ function CustomerAppointmentsContent() {
     },
   })
 
-  const cancelAppointmentMutation = useMutation({
-    mutationFn: (id: string) =>
-      bffFetch<AppointmentDto>(`/api/v1/appointments/${id}/cancel`, {
-        method: 'PATCH',
-      }),
-    onSuccess: () => {
-      setMessage('Appointment cancelled successfully!')
-      refetch()
-      refetchAvailability()
-    },
-    onError: (err: Error) => {
-      setMessage(err.message || 'Failed to cancel appointment.')
+  const cancelAppointmentMutation = useCancelAppointment({
+    mutation: {
+      onSuccess: () => {
+        setMessage('Appointment cancelled successfully!')
+        refetch()
+        refetchAvailability()
+      },
+      onError: (err: Error) => {
+        setMessage(err.message || 'Failed to cancel appointment.')
+      },
     },
   })
 
@@ -340,7 +343,8 @@ function CustomerAppointmentsContent() {
                           <button
                             type="button"
                             onClick={() =>
-                              apt.id && cancelAppointmentMutation.mutate(apt.id)
+                              apt.id &&
+                              cancelAppointmentMutation.mutate({ id: apt.id })
                             }
                             disabled={cancelAppointmentMutation.isPending}
                             className="rounded-lg border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"

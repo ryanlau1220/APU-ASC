@@ -4,13 +4,15 @@ import * as React from 'react'
 import {
   useDeleteAppointment,
   useGetAllAppointments,
+  useGetSlotAvailability,
   useUpdateAppointmentStatus,
-} from '../../api/generated/endpoints'
-import type { AppointmentDto } from '../../api/generated/models'
-import {
-  useSlotAvailability,
   useUpdateSlotCapacity,
-} from '../../api/scheduling'
+} from '../../api/generated/endpoints'
+import type {
+  AppointmentDto,
+  SlotAvailabilityDto,
+  UpdateAppointmentStatusStatus,
+} from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { appointmentTransitionTargets } from '../../lib/lifecycle'
@@ -30,7 +32,11 @@ function ManagerAppointmentsContent() {
 
   const { data: appointmentsData = [], refetch } = useGetAllAppointments()
   const appointments = (appointmentsData || []) as AppointmentDto[]
-  const { data: slotAvailability = [] } = useSlotAvailability(capacityDate)
+  const { data: slotAvailabilityData = [] } = useGetSlotAvailability({
+    date: capacityDate,
+  })
+  const slotAvailability =
+    slotAvailabilityData as Required<SlotAvailabilityDto>[]
 
   const updateStatusMutation = useUpdateAppointmentStatus({
     mutation: {
@@ -55,13 +61,13 @@ function ManagerAppointmentsContent() {
       },
     },
   })
-  const updateCapacityMutation = useUpdateSlotCapacity()
+  const updateCapacityMutation = useUpdateSlotCapacity<Error>()
 
   const handleStatusChange = (id: string, status: string) => {
     setMessage(null)
     updateStatusMutation.mutate({
       id,
-      params: { status },
+      params: { status: status as UpdateAppointmentStatusStatus },
     })
   }
 
@@ -79,7 +85,7 @@ function ManagerAppointmentsContent() {
       return
     }
     updateCapacityMutation.mutate(
-      { appointmentDate: capacityDate, timeSlot, capacity },
+      { data: { appointmentDate: capacityDate, timeSlot, capacity } },
       {
         onSuccess: () => {
           setMessage('Workshop slot capacity updated!')

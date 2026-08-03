@@ -3,12 +3,16 @@ import { Calendar, CheckCircle2, Plus, UserCheck } from 'lucide-react'
 import * as React from 'react'
 import {
   useCreateAppointment,
+  useCreateWorkOrder,
   useGetAllAppointments,
+  useGetSlotAvailability,
   useUpdateAppointmentStatus,
 } from '../../api/generated/endpoints'
-import type { AppointmentDto } from '../../api/generated/models'
-import { useSlotAvailability } from '../../api/scheduling'
-import { useCreateWorkOrder } from '../../api/workOrders'
+import type {
+  AppointmentDto,
+  SlotAvailabilityDto,
+  UpdateAppointmentStatusStatus,
+} from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { appointmentTransitionTargets } from '../../lib/lifecycle'
@@ -32,10 +36,15 @@ function StaffAppointmentsContent() {
   const { data: appointmentsData = [], refetch } = useGetAllAppointments()
   const appointments = (appointmentsData || []) as AppointmentDto[]
   const {
-    data: slotAvailability = [],
+    data: slotAvailabilityData = [],
     isFetching: isLoadingAvailability,
     refetch: refetchAvailability,
-  } = useSlotAvailability(appointmentDate)
+  } = useGetSlotAvailability(
+    { date: appointmentDate },
+    { query: { enabled: Boolean(appointmentDate) } },
+  )
+  const slotAvailability =
+    slotAvailabilityData as Required<SlotAvailabilityDto>[]
 
   const createAppointmentMutation = useCreateAppointment({
     mutation: {
@@ -66,7 +75,7 @@ function StaffAppointmentsContent() {
       },
     },
   })
-  const createWorkOrderMutation = useCreateWorkOrder()
+  const createWorkOrderMutation = useCreateWorkOrder<Error>()
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,13 +108,18 @@ function StaffAppointmentsContent() {
     setMessage(null)
     updateStatusMutation.mutate({
       id,
-      params: { status },
+      params: { status: status as UpdateAppointmentStatusStatus },
     })
   }
 
   const handleOpenWorkOrder = (appointmentId: string) => {
     createWorkOrderMutation.mutate(
-      { appointmentId, technicianId: technicianAssignments[appointmentId] },
+      {
+        data: {
+          appointmentId,
+          technicianId: technicianAssignments[appointmentId],
+        },
+      },
       {
         onSuccess: () => setMessage('Work order opened successfully!'),
         onError: (err: Error) => {
