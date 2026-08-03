@@ -136,6 +136,7 @@ class QuotationServiceImpl implements QuotationApi {
 
     Instant respondedAt = Instant.now();
     boolean approved = request.decision() == QuotationDecisionRequestDto.Decision.APPROVE;
+    String beforeState = quotationAuditState(entity);
     entity.setStatus(approved ? QuotationStatus.APPROVED.name() : QuotationStatus.REJECTED.name());
     entity.setResponseNotes(request.responseNotes());
     entity.setRespondedAt(respondedAt);
@@ -143,7 +144,9 @@ class QuotationServiceImpl implements QuotationApi {
     publish(
         decided,
         approved ? "QUOTATION_APPROVED" : "QUOTATION_REJECTED",
-        (approved ? "Approved " : "Rejected ") + decided.quoteNumber());
+        (approved ? "Approved " : "Rejected ") + decided.quoteNumber(),
+        beforeState,
+        quotationAuditState(entity));
     if (approved) {
       eventPublisher.publishEvent(
           new QuotationApprovedEvent(decided.workOrderId(), decided.id(), respondedAt));
@@ -241,9 +244,34 @@ class QuotationServiceImpl implements QuotationApi {
   }
 
   private void publish(QuotationDto quotation, String action, String details) {
+    publish(quotation, action, details, null, null);
+  }
+
+  private void publish(
+      QuotationDto quotation,
+      String action,
+      String details,
+      String beforeState,
+      String afterState) {
     eventPublisher.publishEvent(new SseBroadcastEvent("quotations"));
     eventPublisher.publishEvent(
-        new AuditEvent(quotation.customerId(), action, "QUOTATION", quotation.id(), details));
+        new AuditEvent(
+            quotation.customerId(),
+            action,
+            "QUOTATION",
+            quotation.id(),
+            details,
+            beforeState,
+            afterState));
+  }
+
+  private String quotationAuditState(QuotationEntity entity) {
+    return "status="
+        + entity.getStatus()
+        + "; totalAmount="
+        + entity.getTotalAmount()
+        + "; revision="
+        + entity.getRevision();
   }
 
   private QuotationDto toDto(QuotationEntity entity) {

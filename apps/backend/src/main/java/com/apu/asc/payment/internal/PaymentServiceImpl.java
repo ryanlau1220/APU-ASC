@@ -139,6 +139,7 @@ class PaymentServiceImpl implements PaymentApi {
     if (current == PaymentStatus.PAID) {
       return toDto(payment);
     }
+    String beforeState = paymentAuditState(payment);
     current.requireTransitionTo(PaymentStatus.PAID);
     payment.setPaymentMethod(method);
     payment.setPaymentStatus(PaymentStatus.PAID.name());
@@ -150,7 +151,9 @@ class PaymentServiceImpl implements PaymentApi {
             "PAYMENT_PROCESSED",
             "PAYMENT",
             updated.id(),
-            "Processed payment of " + updated.amount() + " via " + method));
+            "Processed payment.",
+            beforeState,
+            paymentAuditState(payment)));
     return updated;
   }
 
@@ -183,5 +186,14 @@ class PaymentServiceImpl implements PaymentApi {
         entity.getPaidAt(),
         entity.getCreatedAt(),
         entity.getWorkOrderId());
+  }
+
+  private String paymentAuditState(PaymentEntity entity) {
+    return "amount="
+        + entity.getAmount()
+        + "; paymentMethod="
+        + entity.getPaymentMethod()
+        + "; paymentStatus="
+        + entity.getPaymentStatus();
   }
 }

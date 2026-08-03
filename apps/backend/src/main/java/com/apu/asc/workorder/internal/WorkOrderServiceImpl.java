@@ -97,6 +97,7 @@ class WorkOrderServiceImpl implements WorkOrderApi {
   @Transactional
   public WorkOrderDto updateStatus(String id, String status) {
     WorkOrderEntity entity = findEntity(id);
+    String beforeState = workOrderAuditState(entity);
     WorkOrderStatus target = WorkOrderStatus.fromString(status);
     WorkOrderStatus current = WorkOrderStatus.fromString(entity.getStatus());
     current.requireTransitionTo(target);
@@ -114,7 +115,12 @@ class WorkOrderServiceImpl implements WorkOrderApi {
     if (target == WorkOrderStatus.COMPLETED && entity.getCompletedAt() == null)
       entity.setCompletedAt(now);
     WorkOrderDto updated = toDto(workOrderRepository.save(entity));
-    publish(updated, "WORK_ORDER_STATUS_UPDATED", "Status changed to " + status);
+    publish(
+        updated,
+        "WORK_ORDER_STATUS_UPDATED",
+        "Updated work-order execution status.",
+        beforeState,
+        workOrderAuditState(entity));
     return updated;
   }
 
@@ -146,9 +152,36 @@ class WorkOrderServiceImpl implements WorkOrderApi {
   }
 
   private void publish(WorkOrderDto workOrder, String action, String details) {
+    publish(workOrder, action, details, null, null);
+  }
+
+  private void publish(
+      WorkOrderDto workOrder,
+      String action,
+      String details,
+      String beforeState,
+      String afterState) {
     eventPublisher.publishEvent(new SseBroadcastEvent("work-orders"));
     eventPublisher.publishEvent(
-        new AuditEvent(workOrder.customerId(), action, "WORK_ORDER", workOrder.id(), details));
+        new AuditEvent(
+            workOrder.customerId(),
+            action,
+            "WORK_ORDER",
+            workOrder.id(),
+            details,
+            beforeState,
+            afterState));
+  }
+
+  private String workOrderAuditState(WorkOrderEntity entity) {
+    return "status="
+        + entity.getStatus()
+        + "; technicianId="
+        + entity.getTechnicianId()
+        + "; startedAt="
+        + entity.getStartedAt()
+        + "; completedAt="
+        + entity.getCompletedAt();
   }
 
   private WorkOrderDto toDto(WorkOrderEntity entity) {

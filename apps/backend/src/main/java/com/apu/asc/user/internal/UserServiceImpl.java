@@ -145,6 +145,7 @@ class UserServiceImpl implements UserApi {
   public UserDto updateUser(String id, UserDto userDto) {
     UserEntity entity =
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+    String beforeState = userAuditState(entity);
 
     if (userDto.fullName() != null) entity.setFullName(userDto.fullName());
     if (userDto.email() != null) entity.setEmail(userDto.email());
@@ -157,7 +158,13 @@ class UserServiceImpl implements UserApi {
     UserDto updated = toDto(userRepository.save(entity));
     eventPublisher.publishEvent(
         new AuditEvent(
-            id, "USER_UPDATED", "USER", id, "Updated user metadata for " + updated.email()));
+            id,
+            "USER_UPDATED",
+            "USER",
+            id,
+            "Updated user metadata.",
+            beforeState,
+            userAuditState(entity)));
     return updated;
   }
 
@@ -166,10 +173,18 @@ class UserServiceImpl implements UserApi {
   public UserDto updateStatus(String id, String status) {
     UserEntity entity =
         userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+    String beforeState = userAuditState(entity);
     transitionStatus(entity, UserStatus.fromString(status));
     UserDto updated = toDto(userRepository.save(entity));
     eventPublisher.publishEvent(
-        new AuditEvent(id, "USER_STATUS_UPDATED", "USER", id, "Updated status to " + status));
+        new AuditEvent(
+            id,
+            "USER_STATUS_UPDATED",
+            "USER",
+            id,
+            "Updated account status.",
+            beforeState,
+            userAuditState(entity)));
     return updated;
   }
 
@@ -324,5 +339,9 @@ class UserServiceImpl implements UserApi {
 
   private boolean requiresEmployeeInvitation(String role) {
     return "STAFF".equalsIgnoreCase(role) || "TECHNICIAN".equalsIgnoreCase(role);
+  }
+
+  private String userAuditState(UserEntity entity) {
+    return "role=" + entity.getRole() + "; status=" + entity.getStatus();
   }
 }

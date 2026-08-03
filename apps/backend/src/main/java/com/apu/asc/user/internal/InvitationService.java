@@ -34,6 +34,7 @@ class InvitationService {
         || user.getKeycloakId() == null) {
       throw new IllegalArgumentException(INVALID_INVITATION_MESSAGE);
     }
+    String beforeState = "role=" + user.getRole() + "; status=" + user.getStatus();
 
     keycloakAdminService.resetUserPassword(user.getKeycloakId(), newPassword);
     keycloakAdminService.enableKeycloakUser(user.getKeycloakId());
@@ -51,7 +52,9 @@ class InvitationService {
             "EMPLOYEE_INVITATION_ACCEPTED",
             "USER",
             user.getId(),
-            "Employee completed secure invitation password setup."));
+            "Employee completed secure invitation password setup.",
+            beforeState,
+            "role=" + user.getRole() + "; status=" + user.getStatus()));
 
     return new InvitationActivationResult(
         true, "Account activated successfully. You may now sign in.");
