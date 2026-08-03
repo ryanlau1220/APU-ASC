@@ -160,6 +160,16 @@ class UserController {
     return ResponseEntity.ok(userApi.updateStatus(id, status.name()));
   }
 
+  @PostMapping("/{id}/invitation/reissue")
+  @PreAuthorize("hasRole('MANAGER')")
+  @Operation(
+      operationId = "reissueEmployeeInvitation",
+      summary = "Reissue an employee invitation",
+      description = "Disables the employee account and emails a replacement one-time setup link")
+  public ResponseEntity<UserDto> reissueEmployeeInvitation(@PathVariable final String id) {
+    return ResponseEntity.ok(userApi.reissueEmployeeInvitation(id));
+  }
+
   @DeleteMapping("/{id}")
   @PreAuthorize("hasRole('MANAGER')")
   @Operation(summary = "Deactivate user", description = "Deactivates specific user profile")

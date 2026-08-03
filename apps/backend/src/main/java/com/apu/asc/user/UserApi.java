@@ -22,6 +22,8 @@ public interface UserApi {
 
   UserDto updateStatus(String id, String status);
 
+  UserDto reissueEmployeeInvitation(String id);
+
   void deleteUser(String id);
 
   void hardDeleteUser(String id);

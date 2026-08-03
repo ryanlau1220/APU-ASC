@@ -5,10 +5,12 @@ import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
 import com.apu.asc.user.UserStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,10 @@ class UserServiceImpl implements UserApi {
   private final ApplicationEventPublisher eventPublisher;
   private final KeycloakAdminService keycloakAdminService;
   private final EmailService emailService;
+  private final InvitationTokenService invitationTokenService;
+
+  @Value("${invitations.expiry-hours:48}")
+  private long invitationExpiryHours;
 
   @Override
   @Transactional(readOnly = true)
@@ -79,13 +85,27 @@ class UserServiceImpl implements UserApi {
         userDto.id() != null ? userDto.id() : "USR-" + UUID.randomUUID().toString();
 
     String userRole = userDto.role() != null ? userDto.role() : "CUSTOMER";
+    boolean requiresEmployeeInvitation =
+        "STAFF".equalsIgnoreCase(userRole) || "TECHNICIAN".equalsIgnoreCase(userRole);
+    String userStatus =
+        requiresEmployeeInvitation
+            ? UserStatus.PENDING_VERIFICATION.name()
+            : userDto.status() == null || userDto.status().isBlank()
+                ? UserStatus.ACTIVE.name()
+                : UserStatus.fromString(userDto.status()).name();
+    InvitationTokenService.InvitationToken invitation =
+        requiresEmployeeInvitation ? invitationTokenService.issue() : null;
 
     // Provision user in Keycloak if not provided
     String keycloakId = userDto.keycloakId();
     if (keycloakId == null || keycloakId.isBlank()) {
       keycloakId =
           keycloakAdminService.createKeycloakUser(
-              userDto.username(), userDto.email(), userDto.fullName(), userRole);
+              userDto.username(),
+              userDto.email(),
+              userDto.fullName(),
+              userRole,
+              !requiresEmployeeInvitation);
     }
 
     UserEntity entity =
@@ -96,18 +116,18 @@ class UserServiceImpl implements UserApi {
             .email(userDto.email())
             .fullName(userDto.fullName())
             .role(userRole)
-            .status(
-                userDto.status() == null || userDto.status().isBlank()
-                    ? UserStatus.ACTIVE.name()
-                    : UserStatus.fromString(userDto.status()).name())
+            .status(userStatus)
             .avatarUrl(userDto.avatarUrl())
+            .invitationTokenHash(invitation != null ? invitation.tokenHash() : null)
+            .invitationExpiresAt(
+                invitation != null ? Instant.now().plusSeconds(invitationExpiryHours * 3600) : null)
             .build();
 
     UserDto created = toDto(userRepository.save(entity));
 
-    // Dispatch Welcome Password Setup Email Invite
-    if (created.email() != null && !created.email().isBlank()) {
-      emailService.sendWelcomeInviteEmail(created.email(), created.username(), created.role());
+    if (invitation != null) {
+      emailService.sendWelcomeInviteEmail(
+          created.email(), created.username(), created.role(), invitation.rawToken());
     }
 
     eventPublisher.publishEvent(
@@ -150,6 +170,42 @@ class UserServiceImpl implements UserApi {
     UserDto updated = toDto(userRepository.save(entity));
     eventPublisher.publishEvent(
         new AuditEvent(id, "USER_STATUS_UPDATED", "USER", id, "Updated status to " + status));
+    return updated;
+  }
+
+  @Override
+  @Transactional
+  public UserDto reissueEmployeeInvitation(String id) {
+    UserEntity entity =
+        userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+    if (!requiresEmployeeInvitation(entity.getRole())) {
+      throw new IllegalArgumentException(
+          "Only staff and technician accounts can receive invitations.");
+    }
+    if (UserStatus.fromString(entity.getStatus()) == UserStatus.INACTIVE) {
+      throw new IllegalArgumentException(
+          "Reactivate the employee account before reissuing an invitation.");
+    }
+
+    InvitationTokenService.InvitationToken invitation = invitationTokenService.issue();
+    entity.setStatus(UserStatus.PENDING_VERIFICATION.name());
+    entity.setInvitationTokenHash(invitation.tokenHash());
+    entity.setInvitationExpiresAt(Instant.now().plusSeconds(invitationExpiryHours * 3600));
+    entity.setInvitationAcceptedAt(null);
+    if (entity.getKeycloakId() != null) {
+      keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
+    }
+
+    UserDto updated = toDto(userRepository.save(entity));
+    emailService.sendWelcomeInviteEmail(
+        updated.email(), updated.username(), updated.role(), invitation.rawToken());
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.id(),
+            "EMPLOYEE_INVITATION_REISSUED",
+            "USER",
+            updated.id(),
+            "Manager reissued employee account invitation."));
     return updated;
   }
 
@@ -245,6 +301,12 @@ class UserServiceImpl implements UserApi {
 
   private void transitionStatus(UserEntity entity, UserStatus target) {
     UserStatus current = UserStatus.fromString(entity.getStatus());
+    if (requiresEmployeeInvitation(entity.getRole())
+        && current == UserStatus.PENDING_VERIFICATION
+        && target == UserStatus.ACTIVE) {
+      throw new IllegalArgumentException(
+          "Employee accounts must be activated through their invitation link.");
+    }
     current.requireTransitionTo(target);
     if (current == target) {
       return;
@@ -258,5 +320,9 @@ class UserServiceImpl implements UserApi {
     } else if (target == UserStatus.ACTIVE) {
       keycloakAdminService.enableKeycloakUser(entity.getKeycloakId());
     }
+  }
+
+  private boolean requiresEmployeeInvitation(String role) {
+    return "STAFF".equalsIgnoreCase(role) || "TECHNICIAN".equalsIgnoreCase(role);
   }
 }

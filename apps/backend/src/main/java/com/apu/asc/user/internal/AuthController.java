@@ -45,6 +45,7 @@ class AuthController {
   private final OtpCacheService otpCacheService;
   private final EmailService emailService;
   private final KeycloakAdminService keycloakAdminService;
+  private final InvitationService invitationService;
   private final RestTemplate restTemplate;
   private final SecureRandom secureRandom = new SecureRandom();
 
@@ -273,6 +274,29 @@ class AuthController {
         Map.of("success", true, "message", "Password changed successfully. Please log in again."));
   }
 
+  @PostMapping("/invite/activate")
+  @Operation(
+      operationId = "activateInvitation",
+      summary = "Activate an invited employee account",
+      description = "Consumes a one-time invitation token and sets the employee password")
+  public ResponseEntity<InvitationActivationResponse> activateInvitation(
+      @Valid @RequestBody final InvitationActivationRequest request) {
+    if (!request.newPassword().equals(request.confirmPassword())) {
+      return ResponseEntity.badRequest()
+          .body(new InvitationActivationResponse(false, "Passwords do not match."));
+    }
+
+    try {
+      InvitationService.InvitationActivationResult result =
+          invitationService.activate(request.token(), request.newPassword());
+      return ResponseEntity.ok(
+          new InvitationActivationResponse(result.success(), result.message()));
+    } catch (IllegalArgumentException exception) {
+      return ResponseEntity.badRequest()
+          .body(new InvitationActivationResponse(false, "Invalid or expired invitation token."));
+    }
+  }
+
   public record RegisterCustomerRequest(
       @NotBlank(message = "Username is required") String username,
       @NotBlank(message = "Email is required") String email,
@@ -303,6 +327,15 @@ class AuthController {
           @Size(min = 8, message = "Password must be at least 8 characters")
           String newPassword,
       @NotBlank(message = "Confirm password is required") String confirmPassword) {}
+
+  public record InvitationActivationRequest(
+      @NotBlank(message = "Invitation token is required") @Size(min = 43, max = 128) String token,
+      @NotBlank(message = "New password is required")
+          @Size(min = 8, message = "Password must be at least 8 characters")
+          String newPassword,
+      @NotBlank(message = "Confirm password is required") String confirmPassword) {}
+
+  public record InvitationActivationResponse(boolean success, String message) {}
 
   public record LoginResponse(boolean success, String message, String username, String token) {}
 }

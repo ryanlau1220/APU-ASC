@@ -14,6 +14,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -28,6 +29,9 @@ public class EmailService {
 
   @Value("${spring.mail.username:}")
   private String fromEmail;
+
+  @Value("${app.frontend-base-url:http://localhost:3000}")
+  private String frontendBaseUrl;
 
   public void sendOtpEmail(String recipientEmail, String otpCode, HttpServletRequest request) {
     String platformInfo = parsePlatform(request != null ? request.getHeader("User-Agent") : null);
@@ -82,7 +86,8 @@ public class EmailService {
         });
   }
 
-  public void sendWelcomeInviteEmail(String recipientEmail, String username, String role) {
+  public void sendWelcomeInviteEmail(
+      String recipientEmail, String username, String role, String invitationToken) {
     CompletableFuture.runAsync(
         () -> {
           try {
@@ -113,10 +118,16 @@ public class EmailService {
                     + "') has been provisioned. Please complete your password setup to activate your account.");
             context.setVariable(
                 "subContent",
-                "Navigate to http://localhost:3000/invite?email="
-                    + recipientEmail
-                    + " to configure your private password.");
-            context.setVariable("codeDisplay", "INVITED");
+                "This single-use link expires in 48 hours. If you did not expect this invitation, you can ignore this email.");
+            context.setVariable(
+                "actionUrl",
+                UriComponentsBuilder.fromUriString(frontendBaseUrl)
+                    .path("/invite")
+                    .queryParam("token", invitationToken)
+                    .build()
+                    .encode()
+                    .toUriString());
+            context.setVariable("codeDisplay", "SET PASSWORD");
             context.setVariable("platformInfo", "APU-ASC Account Invitation");
             context.setVariable("locationInfo", "Kuala Lumpur, Malaysia");
             context.setVariable("timeFormatted", formattedTime);

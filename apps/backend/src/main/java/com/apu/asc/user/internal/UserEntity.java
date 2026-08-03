@@ -45,6 +45,15 @@ class UserEntity {
   @Column(name = "avatar_url")
   private String avatarUrl;
 
+  @Column(name = "invitation_token_hash", length = 64, unique = true)
+  private String invitationTokenHash;
+
+  @Column(name = "invitation_expires_at")
+  private Instant invitationExpiresAt;
+
+  @Column(name = "invitation_accepted_at")
+  private Instant invitationAcceptedAt;
+
   @Column(name = "created_at", updatable = false)
   private Instant createdAt;
 

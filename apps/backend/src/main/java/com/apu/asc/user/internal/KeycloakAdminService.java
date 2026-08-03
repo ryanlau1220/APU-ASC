@@ -201,7 +201,8 @@ public class KeycloakAdminService {
     }
   }
 
-  public String createKeycloakUser(String username, String email, String fullName, String role) {
+  public String createKeycloakUser(
+      String username, String email, String fullName, String role, boolean enabled) {
     try {
       String token = getAdminAccessToken();
       String createUserUrl = keycloakServerUrl + "/admin/realms/" + realm + "/users";
@@ -224,7 +225,7 @@ public class KeycloakAdminService {
               "email", email,
               "firstName", firstName,
               "lastName", lastName,
-              "enabled", true,
+              "enabled", enabled,
               "emailVerified", true);
 
       HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
