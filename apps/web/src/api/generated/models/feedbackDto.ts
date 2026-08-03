@@ -15,4 +15,5 @@ export interface FeedbackDto {
   comments?: string;
   technicianDiagnosticNotes?: string;
   createdAt?: string;
+  workOrderId?: string;
 }

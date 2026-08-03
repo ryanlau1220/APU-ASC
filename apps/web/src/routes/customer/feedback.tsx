@@ -2,33 +2,28 @@ import { createFileRoute } from '@tanstack/react-router'
 import { MessageSquare, Star } from 'lucide-react'
 import * as React from 'react'
 import {
-  useGetMyAppointments,
   useGetMyFeedback,
   useSubmitFeedback,
 } from '../../api/generated/endpoints'
-import type { AppointmentDto, FeedbackDto } from '../../api/generated/models'
+import type { FeedbackDto } from '../../api/generated/models'
+import { useGetMyWorkOrders } from '../../api/workOrders'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
-import { useUserSession } from '../__root'
 
 export const Route = createFileRoute('/customer/feedback')({
   component: CustomerFeedbackContent,
 })
 
 function CustomerFeedbackContent() {
-  const { userSession } = useUserSession()
-  const customerId =
-    userSession?.id || userSession?.keycloakId || 'USR-CUSTOMER'
-
-  const [appointmentId, setAppointmentId] = React.useState('')
+  const [workOrderId, setWorkOrderId] = React.useState('')
   const [rating, setRating] = React.useState(5)
   const [comments, setComments] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
 
-  const { data: appointmentsData = [] } = useGetMyAppointments()
-  const completedAppointments = (
-    (appointmentsData || []) as AppointmentDto[]
-  ).filter((a) => a.status === 'COMPLETED')
+  const { data: workOrders = [] } = useGetMyWorkOrders()
+  const completedWorkOrders = workOrders.filter(
+    (workOrder) => workOrder.status === 'COMPLETED',
+  )
 
   const { data: myFeedbackData = [], refetch: refetchFeedback } =
     useGetMyFeedback()
@@ -38,7 +33,7 @@ function CustomerFeedbackContent() {
     mutation: {
       onSuccess: () => {
         setMessage('Thank you! Your service feedback has been submitted.')
-        setAppointmentId('')
+        setWorkOrderId('')
         setRating(5)
         setComments('')
         refetchFeedback()
@@ -51,15 +46,16 @@ function CustomerFeedbackContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!appointmentId || !comments) {
-      setMessage('Please select an appointment and enter feedback comments.')
+    if (!workOrderId || !comments) {
+      setMessage(
+        'Please select a completed work order and enter feedback comments.',
+      )
       return
     }
     setMessage(null)
     submitFeedbackMutation.mutate({
       data: {
-        appointmentId,
-        customerId,
+        workOrderId,
         rating,
         comments,
       },
@@ -107,22 +103,22 @@ function CustomerFeedbackContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
-                htmlFor="aptSelect"
+                htmlFor="workOrderSelect"
                 className="block text-xs font-semibold text-muted-foreground mb-1"
               >
-                Completed Appointment
+                Completed Work Order
               </label>
               <select
-                id="aptSelect"
+                id="workOrderSelect"
                 required
-                value={appointmentId}
-                onChange={(e) => setAppointmentId(e.target.value)}
+                value={workOrderId}
+                onChange={(e) => setWorkOrderId(e.target.value)}
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
               >
-                <option value="">-- Select Completed Appointment --</option>
-                {completedAppointments.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.id} - {a.appointmentDate} ({a.serviceId})
+                <option value="">-- Select Completed Work Order --</option>
+                {completedWorkOrders.map((workOrder) => (
+                  <option key={workOrder.id} value={workOrder.id}>
+                    {workOrder.id} ({workOrder.serviceId})
                   </option>
                 ))}
               </select>
@@ -199,7 +195,7 @@ function CustomerFeedbackContent() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-foreground">
-                      Appointment #{fb.appointmentId}
+                      Work Order #{fb.workOrderId || fb.appointmentId}
                     </span>
                     <span className="font-bold text-amber-500 flex items-center gap-1">
                       {'⭐'.repeat(fb.rating || 5)} ({fb.rating}/5)

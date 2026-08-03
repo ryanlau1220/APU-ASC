@@ -70,11 +70,11 @@ function ManagerAppointmentsContent() {
             Master Schedule Control
           </div>
           <h1 className="font-heading text-2xl font-bold">
-            Executive Appointment Management & Technician Dispatch
+            Executive Appointment Management
           </h1>
           <p className="text-xs text-muted-foreground">
-            Monitor and manage workshop bookings, approve/cancel appointments,
-            and assign workshop technicians.
+            Monitor and manage booking attendance. Technician assignment and
+            execution are tracked on separate work orders.
           </p>
         </section>
 
@@ -111,7 +111,6 @@ function ManagerAppointmentsContent() {
                     <th className="py-3 px-3">Vehicle ID</th>
                     <th className="py-3 px-3">Service Package</th>
                     <th className="py-3 px-3">Date & Slot</th>
-                    <th className="py-3 px-3">Technician</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3">Status Control</th>
                     <th className="py-3 px-3">Cancel</th>
@@ -137,9 +136,6 @@ function ManagerAppointmentsContent() {
                         {apt.appointmentDate} ({apt.timeSlot})
                       </td>
                       <td className="py-3.5 px-3">
-                        {apt.technicianId || 'Unassigned'}
-                      </td>
-                      <td className="py-3.5 px-3">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
                             apt.status === 'CONFIRMED'
@@ -163,8 +159,7 @@ function ManagerAppointmentsContent() {
                         >
                           <option value="PENDING">PENDING</option>
                           <option value="CONFIRMED">CONFIRMED</option>
-                          <option value="IN_PROGRESS">IN_PROGRESS</option>
-                          <option value="COMPLETED">COMPLETED</option>
+                          <option value="CANCELLED">CANCELLED</option>
                         </select>
                       </td>
                       <td className="py-3.5 px-3">

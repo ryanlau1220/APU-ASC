@@ -2,10 +2,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { CheckCircle2, Clock, Wrench } from 'lucide-react'
 import * as React from 'react'
 import {
-  useGetMyAppointments,
-  useUpdateAppointmentStatus,
-} from '../../api/generated/endpoints'
-import type { AppointmentDto } from '../../api/generated/models'
+  useGetMyWorkOrders,
+  useUpdateDiagnosticNotes,
+  useUpdateWorkOrderStatus,
+} from '../../api/workOrders'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 
@@ -16,27 +16,43 @@ export const Route = createFileRoute('/technician/jobs')({
 function TechnicianJobsContent() {
   const [message, setMessage] = React.useState<string | null>(null)
 
-  const { data: appointmentsData = [], refetch } = useGetMyAppointments()
-  const myJobs = (appointmentsData || []) as AppointmentDto[]
+  const { data: workOrders = [], refetch } = useGetMyWorkOrders()
+  const [diagnosticNotes, setDiagnosticNotes] = React.useState<
+    Record<string, string>
+  >({})
 
-  const updateStatusMutation = useUpdateAppointmentStatus({
-    mutation: {
-      onSuccess: () => {
-        setMessage('Job status updated successfully!')
-        refetch()
-      },
-      onError: (err: Error) => {
-        setMessage(err.message || 'Failed to update job status.')
-      },
-    },
-  })
+  const updateStatusMutation = useUpdateWorkOrderStatus()
+  const updateDiagnosticNotesMutation = useUpdateDiagnosticNotes()
 
   const handleUpdate = (id: string, status: string) => {
     setMessage(null)
-    updateStatusMutation.mutate({
-      id,
-      params: { status },
-    })
+    updateStatusMutation.mutate(
+      { id, status },
+      {
+        onSuccess: () => {
+          setMessage('Work order status updated successfully!')
+          refetch()
+        },
+        onError: (err: Error) => {
+          setMessage(err.message || 'Failed to update work order status.')
+        },
+      },
+    )
+  }
+
+  const handleSaveDiagnostics = (id: string) => {
+    updateDiagnosticNotesMutation.mutate(
+      { id, notes: diagnosticNotes[id] || '' },
+      {
+        onSuccess: () => {
+          setMessage('Diagnostic notes saved successfully!')
+          refetch()
+        },
+        onError: (err: Error) => {
+          setMessage(err.message || 'Failed to save diagnostic notes.')
+        },
+      },
+    )
   }
 
   return (
@@ -77,13 +93,13 @@ function TechnicianJobsContent() {
             Active Bay Jobs
           </h2>
 
-          {myJobs.length === 0 ? (
+          {workOrders.length === 0 ? (
             <div className="bg-card border border-border rounded-xl p-8 text-center text-xs text-muted-foreground">
               No jobs currently in workshop queue.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myJobs.map((j) => (
+              {workOrders.map((j) => (
                 <div
                   key={j.id}
                   className="bg-card border border-border rounded-xl p-5 space-y-4 shadow-sm"
@@ -154,6 +170,38 @@ function TechnicianJobsContent() {
                         Mark Completed
                       </button>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`diagnostic-${j.id}`}
+                      className="block text-[11px] font-semibold text-muted-foreground"
+                    >
+                      Diagnostic notes
+                    </label>
+                    <textarea
+                      id={`diagnostic-${j.id}`}
+                      rows={3}
+                      value={
+                        diagnosticNotes[j.id || ''] ?? j.diagnosticNotes ?? ''
+                      }
+                      onChange={(event) =>
+                        j.id &&
+                        setDiagnosticNotes((current) => ({
+                          ...current,
+                          [j.id as string]: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-lg border border-border bg-input px-3 py-2 text-xs outline-none focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => j.id && handleSaveDiagnostics(j.id)}
+                      disabled={updateDiagnosticNotesMutation.isPending}
+                      className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+                    >
+                      Save diagnostics
+                    </button>
                   </div>
                 </div>
               ))}

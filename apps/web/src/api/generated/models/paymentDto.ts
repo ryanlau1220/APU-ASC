@@ -16,4 +16,5 @@ export interface PaymentDto {
   paymentStatus?: string;
   paidAt?: string;
   createdAt?: string;
+  workOrderId?: string;
 }

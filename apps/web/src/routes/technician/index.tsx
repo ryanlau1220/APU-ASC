@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Calendar, CheckCircle2, Clock, Wrench } from 'lucide-react'
-import { useGetMyAppointments } from '../../api/generated/endpoints'
-import type { AppointmentDto } from '../../api/generated/models'
+import { useGetMyWorkOrders } from '../../api/workOrders'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 
@@ -10,13 +9,12 @@ export const Route = createFileRoute('/technician/')({
 })
 
 function TechnicianDashboardContent() {
-  const { data: appointmentsData = [] } = useGetMyAppointments()
-  const myJobs = (appointmentsData || []) as AppointmentDto[]
+  const { data: myJobs = [] } = useGetMyWorkOrders()
 
   const activeJobs = myJobs.filter((a) => a.status === 'IN_PROGRESS')
   const completedJobs = myJobs.filter((a) => a.status === 'COMPLETED')
   const pendingJobs = myJobs.filter(
-    (a) => a.status === 'CONFIRMED' || a.status === 'PENDING',
+    (a) => a.status === 'OPEN' || a.status === 'DIAGNOSING',
   )
 
   const metrics = [
@@ -132,38 +130,42 @@ function TechnicianDashboardContent() {
                     <th className="py-3 px-3">Job ID</th>
                     <th className="py-3 px-3">Vehicle ID</th>
                     <th className="py-3 px-3">Service Package</th>
-                    <th className="py-3 px-3">Scheduled Date</th>
+                    <th className="py-3 px-3">Opened</th>
                     <th className="py-3 px-3">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {myJobs.slice(0, 5).map((apt) => (
+                  {myJobs.slice(0, 5).map((workOrder) => (
                     <tr
-                      key={apt.id}
+                      key={workOrder.id}
                       className="hover:bg-muted/50 transition-colors"
                     >
                       <td className="py-3.5 px-3 font-mono font-semibold">
-                        {apt.id}
+                        {workOrder.id}
                       </td>
-                      <td className="py-3.5 px-3 font-mono">{apt.vehicleId}</td>
+                      <td className="py-3.5 px-3 font-mono">
+                        {workOrder.vehicleId}
+                      </td>
                       <td className="py-3.5 px-3 font-medium">
-                        {apt.serviceId}
+                        {workOrder.serviceId}
                       </td>
                       <td className="py-3.5 px-3 text-muted-foreground">
-                        {apt.appointmentDate} ({apt.timeSlot})
+                        {workOrder.openedAt
+                          ? new Date(workOrder.openedAt).toLocaleDateString()
+                          : 'Just opened'}
                       </td>
                       <td className="py-3.5 px-3">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
-                            apt.status === 'CONFIRMED'
+                            workOrder.status === 'IN_PROGRESS'
                               ? 'text-status-confirmed border-status-confirmed/30 bg-status-confirmed/10'
-                              : apt.status === 'COMPLETED'
+                              : workOrder.status === 'COMPLETED'
                                 ? 'text-status-completed border-status-completed/30 bg-status-completed/10'
                                 : 'text-status-pending border-status-pending/30 bg-status-pending/10'
                           }`}
                         >
                           <CheckCircle2 className="w-3 h-3" />
-                          {apt.status}
+                          {workOrder.status}
                         </span>
                       </td>
                     </tr>
