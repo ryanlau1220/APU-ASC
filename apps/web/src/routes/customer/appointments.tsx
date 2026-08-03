@@ -13,6 +13,7 @@ import type {
   ServiceDto,
   VehicleDto,
 } from '../../api/generated/models'
+import { useSlotAvailability } from '../../api/scheduling'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { bffFetch } from '../../lib/apiClient'
@@ -37,6 +38,11 @@ function CustomerAppointmentsContent() {
 
   const { data: appointmentsData = [], refetch } = useGetMyAppointments()
   const myAppointments = (appointmentsData || []) as AppointmentDto[]
+  const {
+    data: slotAvailability = [],
+    isFetching: isLoadingAvailability,
+    refetch: refetchAvailability,
+  } = useSlotAvailability(appointmentDate)
 
   const createAppointmentMutation = useCreateAppointment({
     mutation: {
@@ -47,6 +53,7 @@ function CustomerAppointmentsContent() {
         setAppointmentDate('')
         setNotes('')
         refetch()
+        refetchAvailability()
       },
       onError: (err: Error) => {
         setMessage(err.message || 'Failed to book appointment.')
@@ -62,6 +69,7 @@ function CustomerAppointmentsContent() {
     onSuccess: () => {
       setMessage('Appointment cancelled successfully!')
       refetch()
+      refetchAvailability()
     },
     onError: (err: Error) => {
       setMessage(err.message || 'Failed to cancel appointment.')
@@ -72,6 +80,12 @@ function CustomerAppointmentsContent() {
     e.preventDefault()
     if (!selectedVehicleId || !selectedServiceId || !appointmentDate) {
       setMessage('Please select a vehicle, service package, and date.')
+      return
+    }
+    if (
+      !slotAvailability.find((slot) => slot.timeSlot === timeSlot)?.bookable
+    ) {
+      setMessage('Please choose a time slot with remaining workshop capacity.')
       return
     }
     setMessage(null)
@@ -204,11 +218,26 @@ function CustomerAppointmentsContent() {
                 onChange={(e) => setTimeSlot(e.target.value)}
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
               >
-                <option value="09:00 - 10:00 AM">09:00 - 10:00 AM</option>
-                <option value="10:00 - 11:00 AM">10:00 - 11:00 AM</option>
-                <option value="02:00 - 03:00 PM">02:00 - 03:00 PM</option>
-                <option value="04:00 - 05:00 PM">04:00 - 05:00 PM</option>
+                {!appointmentDate && (
+                  <option value="09:00 - 10:00 AM">Select a date first</option>
+                )}
+                {slotAvailability.map((slot) => (
+                  <option
+                    key={slot.timeSlot}
+                    value={slot.timeSlot}
+                    disabled={!slot.bookable}
+                  >
+                    {slot.timeSlot} — {slot.available} of {slot.capacity}{' '}
+                    available
+                    {!slot.bookable ? ' (full)' : ''}
+                  </option>
+                ))}
               </select>
+              {appointmentDate && isLoadingAvailability && (
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Checking workshop capacity…
+                </p>
+              )}
             </div>
 
             <div>
@@ -231,7 +260,12 @@ function CustomerAppointmentsContent() {
             <div className="sm:col-span-2 lg:col-span-1 flex items-end">
               <button
                 type="submit"
-                disabled={createAppointmentMutation.isPending}
+                disabled={
+                  createAppointmentMutation.isPending ||
+                  isLoadingAvailability ||
+                  !slotAvailability.find((slot) => slot.timeSlot === timeSlot)
+                    ?.bookable
+                }
                 className="w-full py-2 px-4 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {createAppointmentMutation.isPending
