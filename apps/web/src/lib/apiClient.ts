@@ -106,11 +106,25 @@ export const customInstance = <T>(
     ).toString()
     if (query) url += `?${query}`
   }
+  const isFormData =
+    typeof FormData !== 'undefined' && config.data instanceof FormData
+  const headers: Record<string, string> = {
+    ...(config.headers || {}),
+    ...((options?.headers as Record<string, string>) || {}),
+  }
+  if (isFormData) {
+    delete headers['Content-Type']
+  }
+
   return bffFetch<T>(url, {
-    method: config.method,
-    body: config.data ? JSON.stringify(config.data) : undefined,
-    headers: config.headers,
-    signal: config.signal,
     ...options,
+    method: config.method,
+    body: isFormData
+      ? (config.data as FormData)
+      : config.data
+        ? JSON.stringify(config.data)
+        : undefined,
+    headers,
+    signal: config.signal,
   })
 }
