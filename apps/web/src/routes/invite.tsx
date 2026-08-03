@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CheckCircle2, Lock, Mail, UserCheck } from 'lucide-react'
+import { CheckCircle2, Lock, UserCheck } from 'lucide-react'
 import * as React from 'react'
-import { bffFetch } from '../lib/apiClient'
+import { useActivateInvitation } from '../api/generated/endpoints'
 
 export const Route = createFileRoute('/invite')({
   component: InviteAccountSetupPage,
@@ -12,23 +12,26 @@ function InviteAccountSetupPage() {
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search)
       : new URLSearchParams()
-  const initialEmail = searchParams.get('email') || ''
-
-  const email = initialEmail
+  const invitationToken = searchParams.get('token') || ''
   const [newPassword, setNewPassword] = React.useState('')
   const [confirmPassword, setConfirmPassword] = React.useState('')
-  const [loading, setLoading] = React.useState(false)
   const [message, setMessage] = React.useState('')
   const [error, setError] = React.useState('')
   const [isSuccess, setIsSuccess] = React.useState(false)
+  const activateInvitationMutation = useActivateInvitation<Error>()
 
   const handleActivateAccount = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setMessage('')
 
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long.')
+    if (!invitationToken) {
+      setError('This invitation link is invalid or incomplete.')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long.')
       return
     }
 
@@ -37,17 +40,14 @@ function InviteAccountSetupPage() {
       return
     }
 
-    setLoading(true)
-
     try {
-      const res = await bffFetch<{ success: boolean; message: string }>(
-        '/api/v1/auth/invite/activate',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, newPassword }),
+      const res = await activateInvitationMutation.mutateAsync({
+        data: {
+          token: invitationToken,
+          newPassword,
+          confirmPassword,
         },
-      )
+      })
       if (res.success) {
         setIsSuccess(true)
         setMessage(
@@ -57,15 +57,11 @@ function InviteAccountSetupPage() {
         setError(res.message || 'Failed to activate account.')
       }
     } catch (err: unknown) {
-      const errorObj = err as Error
-      // Fallback: If activation endpoint is processed, grant clean activation feedback
-      setIsSuccess(true)
-      setMessage(
-        errorObj.message ||
-          'Account setup completed! Please proceed to Sign In.',
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to activate this invitation. Please request a new link.',
       )
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -108,25 +104,6 @@ function InviteAccountSetupPage() {
 
             <div className="space-y-1">
               <label
-                htmlFor="invite-email"
-                className="font-semibold text-muted-foreground flex items-center gap-1.5"
-              >
-                <Mail className="w-3.5 h-3.5 text-primary" />
-                Invited Email Address
-              </label>
-              <input
-                id="invite-email"
-                type="email"
-                required
-                readOnly
-                value={email}
-                placeholder="e.g. employee@apu-asc.com"
-                className="w-full px-3 py-2 rounded-lg bg-muted text-muted-foreground border border-border outline-none cursor-not-allowed opacity-80"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label
                 htmlFor="invite-pass"
                 className="font-semibold text-muted-foreground flex items-center gap-1.5"
               >
@@ -137,7 +114,7 @@ function InviteAccountSetupPage() {
                 id="invite-pass"
                 type="password"
                 required
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-input border border-border outline-none focus:border-primary transition-colors"
@@ -165,10 +142,10 @@ function InviteAccountSetupPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={activateInvitationMutation.isPending}
               className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 mt-2"
             >
-              {loading
+              {activateInvitationMutation.isPending
                 ? 'Activating Account...'
                 : 'Set Password & Activate Account'}
             </button>

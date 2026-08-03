@@ -5,6 +5,7 @@ import {
   useCreateUser,
   useGetAllPayments,
   useGetAllUsers,
+  useReissueEmployeeInvitation,
   useUpdateUserStatus,
 } from '../../api/generated/endpoints'
 import type { PaymentDto, UserDto } from '../../api/generated/models'
@@ -20,9 +21,7 @@ function ManagerOperationsContent() {
   const [username, setUsername] = React.useState('')
   const [fullName, setFullName] = React.useState('')
   const [email, setEmail] = React.useState('')
-  const [role, setRole] = React.useState<
-    'STAFF' | 'TECHNICIAN' | 'MANAGER' | 'CUSTOMER'
-  >('STAFF')
+  const [role, setRole] = React.useState<'STAFF' | 'TECHNICIAN'>('STAFF')
   const [message, setMessage] = React.useState<string | null>(null)
 
   const { data: paymentsData = [] } = useGetAllPayments()
@@ -62,6 +61,18 @@ function ManagerOperationsContent() {
     },
   })
 
+  const reissueInvitationMutation = useReissueEmployeeInvitation<Error>({
+    mutation: {
+      onSuccess: (user) => {
+        setMessage(`A secure invitation link was reissued to ${user.email}.`)
+        refetchUsers()
+      },
+      onError: (err) => {
+        setMessage(err.message || 'Failed to reissue the employee invitation.')
+      },
+    },
+  })
+
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault()
     if (!username || !email) {
@@ -74,8 +85,8 @@ function ManagerOperationsContent() {
         username,
         fullName,
         email,
-        role: role as 'STAFF' | 'TECHNICIAN' | 'MANAGER' | 'CUSTOMER',
-        status: 'ACTIVE',
+        role,
+        status: 'PENDING_VERIFICATION',
       },
     })
   }
@@ -88,6 +99,18 @@ function ManagerOperationsContent() {
         params: { status: nextStatus },
       })
     }
+  }
+
+  const handleReissueInvitation = (user: UserDto) => {
+    if (!user.id) return
+    if (
+      !window.confirm(
+        `Reissue the invitation for ${user.username}? This disables their account until they complete password setup.`,
+      )
+    ) {
+      return
+    }
+    reissueInvitationMutation.mutate({ id: user.id })
   }
 
   return (
@@ -106,9 +129,8 @@ function ManagerOperationsContent() {
               Operations: User Management & Financial Audits
             </h1>
             <p className="text-xs text-muted-foreground">
-              Provision internal accounts (Staff, Technicians, Managers) with
-              email password invite, manage user statuses, and inspect billing
-              ledgers.
+              Provision staff and technician accounts with secure password
+              invites, manage user statuses, and inspect billing ledgers.
             </p>
           </div>
 
@@ -165,20 +187,12 @@ function ManagerOperationsContent() {
                     id="user-role"
                     value={role}
                     onChange={(e) =>
-                      setRole(
-                        e.target.value as
-                          | 'STAFF'
-                          | 'TECHNICIAN'
-                          | 'MANAGER'
-                          | 'CUSTOMER',
-                      )
+                      setRole(e.target.value as 'STAFF' | 'TECHNICIAN')
                     }
                     className="w-full px-3 py-2 rounded-lg bg-background border border-border focus:border-primary outline-none"
                   >
                     <option value="STAFF">Staff</option>
                     <option value="TECHNICIAN">Technician</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="CUSTOMER">Customer</option>
                   </select>
                 </div>
 
@@ -331,16 +345,36 @@ function ManagerOperationsContent() {
                         </span>
                       </td>
                       <td className="py-3.5 px-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleStatus(u)}
-                          disabled={updateStatusMutation.isPending}
-                          className="px-2.5 py-1 rounded border border-border hover:bg-muted text-[11px] font-semibold transition-colors"
-                        >
-                          {u.status === 'ACTIVE' || !u.status
-                            ? 'Deactivate'
-                            : 'Activate'}
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          {u.status === 'PENDING_VERIFICATION' &&
+                          (u.role === 'STAFF' || u.role === 'TECHNICIAN') ? (
+                            <span className="text-[11px] font-semibold text-muted-foreground">
+                              Awaiting setup
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleStatus(u)}
+                              disabled={updateStatusMutation.isPending}
+                              className="px-2.5 py-1 rounded border border-border hover:bg-muted text-[11px] font-semibold transition-colors"
+                            >
+                              {u.status === 'ACTIVE' || !u.status
+                                ? 'Deactivate'
+                                : 'Activate'}
+                            </button>
+                          )}
+                          {(u.role === 'STAFF' || u.role === 'TECHNICIAN') &&
+                            u.status !== 'INACTIVE' && (
+                              <button
+                                type="button"
+                                onClick={() => handleReissueInvitation(u)}
+                                disabled={reissueInvitationMutation.isPending}
+                                className="px-2.5 py-1 rounded border border-border hover:bg-muted text-[11px] font-semibold transition-colors disabled:opacity-50"
+                              >
+                                Reissue invite
+                              </button>
+                            )}
+                        </div>
                       </td>
                     </tr>
                   ))}

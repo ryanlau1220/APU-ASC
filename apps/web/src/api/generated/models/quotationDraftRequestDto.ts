@@ -15,5 +15,5 @@ export interface QuotationDraftRequestDto {
    */
   notes?: string
   validUntil: string
-  items: QuotationLineRequestDto[]
+  items?: QuotationLineRequestDto[]
 }

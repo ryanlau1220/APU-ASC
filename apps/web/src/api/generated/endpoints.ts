@@ -32,6 +32,8 @@ import type {
   GetCurrentUser200,
   GetRootStatus200,
   GetSlotAvailabilityParams,
+  InvitationActivationRequest,
+  InvitationActivationResponse,
   LoginRequest,
   LoginResponse,
   PaymentDto,
@@ -3373,6 +3375,93 @@ export const useCreateUser = <TError = unknown, TContext = unknown>(
 }
 
 /**
+ * Disables the employee account and emails a replacement one-time setup link
+ * @summary Reissue an employee invitation
+ */
+export const reissueEmployeeInvitation = (
+  id: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<UserDto>(
+    { url: `/api/v1/users/${id}/invitation/reissue`, method: 'POST', signal },
+    options,
+  )
+}
+
+export const getReissueEmployeeInvitationMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof reissueEmployeeInvitation>>,
+    TError,
+    { id: string },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof reissueEmployeeInvitation>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['reissueEmployeeInvitation']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof reissueEmployeeInvitation>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {}
+
+    return reissueEmployeeInvitation(id, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ReissueEmployeeInvitationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof reissueEmployeeInvitation>>
+>
+
+export type ReissueEmployeeInvitationMutationError = unknown
+
+/**
+ * @summary Reissue an employee invitation
+ */
+export const useReissueEmployeeInvitation = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof reissueEmployeeInvitation>>,
+      TError,
+      { id: string },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof reissueEmployeeInvitation>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getReissueEmployeeInvitationMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
  * @summary Upload profile avatar picture
  */
 export const uploadAvatar = (
@@ -5125,6 +5214,96 @@ export const useLogin = <TError = unknown, TContext = unknown>(
   TContext
 > => {
   const mutationOptions = getLoginMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
+ * Consumes a one-time invitation token and sets the employee password
+ * @summary Activate an invited employee account
+ */
+export const activateInvitation = (
+  invitationActivationRequest: InvitationActivationRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<InvitationActivationResponse>(
+    {
+      url: `/api/v1/auth/invite/activate`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: invitationActivationRequest,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getActivateInvitationMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof activateInvitation>>,
+    TError,
+    { data: InvitationActivationRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof activateInvitation>>,
+  TError,
+  { data: InvitationActivationRequest },
+  TContext
+> => {
+  const mutationKey = ['activateInvitation']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof activateInvitation>>,
+    { data: InvitationActivationRequest }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return activateInvitation(data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ActivateInvitationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof activateInvitation>>
+>
+export type ActivateInvitationMutationBody = InvitationActivationRequest
+export type ActivateInvitationMutationError = unknown
+
+/**
+ * @summary Activate an invited employee account
+ */
+export const useActivateInvitation = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof activateInvitation>>,
+      TError,
+      { data: InvitationActivationRequest },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof activateInvitation>>,
+  TError,
+  { data: InvitationActivationRequest },
+  TContext
+> => {
+  const mutationOptions = getActivateInvitationMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
