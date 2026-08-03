@@ -1,16 +1,15 @@
 package com.apu.asc.user.internal;
 
 import com.apu.asc.common.event.AuditEvent;
+import com.apu.asc.common.event.EmployeeInvitationRequestedEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
 import com.apu.asc.user.UserStatus;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +21,6 @@ class UserServiceImpl implements UserApi {
   private final UserRepository userRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final KeycloakAdminService keycloakAdminService;
-  private final EmailService emailService;
-  private final InvitationTokenService invitationTokenService;
-
-  @Value("${invitations.expiry-hours:48}")
-  private long invitationExpiryHours;
 
   @Override
   @Transactional(readOnly = true)
@@ -93,9 +87,6 @@ class UserServiceImpl implements UserApi {
             : userDto.status() == null || userDto.status().isBlank()
                 ? UserStatus.ACTIVE.name()
                 : UserStatus.fromString(userDto.status()).name();
-    InvitationTokenService.InvitationToken invitation =
-        requiresEmployeeInvitation ? invitationTokenService.issue() : null;
-
     // Provision user in Keycloak if not provided
     String keycloakId = userDto.keycloakId();
     if (keycloakId == null || keycloakId.isBlank()) {
@@ -118,16 +109,12 @@ class UserServiceImpl implements UserApi {
             .role(userRole)
             .status(userStatus)
             .avatarUrl(userDto.avatarUrl())
-            .invitationTokenHash(invitation != null ? invitation.tokenHash() : null)
-            .invitationExpiresAt(
-                invitation != null ? Instant.now().plusSeconds(invitationExpiryHours * 3600) : null)
             .build();
 
     UserDto created = toDto(userRepository.save(entity));
 
-    if (invitation != null) {
-      emailService.sendWelcomeInviteEmail(
-          created.email(), created.username(), created.role(), invitation.rawToken());
+    if (requiresEmployeeInvitation) {
+      eventPublisher.publishEvent(new EmployeeInvitationRequestedEvent(created.id()));
     }
 
     eventPublisher.publishEvent(
@@ -202,18 +189,16 @@ class UserServiceImpl implements UserApi {
           "Reactivate the employee account before reissuing an invitation.");
     }
 
-    InvitationTokenService.InvitationToken invitation = invitationTokenService.issue();
     entity.setStatus(UserStatus.PENDING_VERIFICATION.name());
-    entity.setInvitationTokenHash(invitation.tokenHash());
-    entity.setInvitationExpiresAt(Instant.now().plusSeconds(invitationExpiryHours * 3600));
+    entity.setInvitationTokenHash(null);
+    entity.setInvitationExpiresAt(null);
     entity.setInvitationAcceptedAt(null);
     if (entity.getKeycloakId() != null) {
       keycloakAdminService.disableKeycloakUser(entity.getKeycloakId());
     }
 
     UserDto updated = toDto(userRepository.save(entity));
-    emailService.sendWelcomeInviteEmail(
-        updated.email(), updated.username(), updated.role(), invitation.rawToken());
+    eventPublisher.publishEvent(new EmployeeInvitationRequestedEvent(updated.id()));
     eventPublisher.publishEvent(
         new AuditEvent(
             updated.id(),

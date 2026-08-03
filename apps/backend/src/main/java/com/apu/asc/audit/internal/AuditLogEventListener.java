@@ -6,10 +6,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @Slf4j
@@ -28,8 +26,7 @@ class AuditLogEventListener {
         Counter.builder("audit.log.write.failure").register(meterRegistry);
   }
 
-  @Async
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+  @ApplicationModuleListener(id = "audit-log-write")
   public void handleAuditEvent(AuditEvent event) {
     try {
       log.info(
@@ -47,6 +44,7 @@ class AuditLogEventListener {
           event.entityName(),
           e.getMessage());
       auditWriteFailureCounter.increment();
+      throw new IllegalStateException("Could not persist audit log event " + event.eventId(), e);
     }
   }
 }

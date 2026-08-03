@@ -6,7 +6,6 @@ import com.apu.asc.common.event.AuditContextSnapshot;
 import com.apu.asc.common.event.AuditEvent;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +49,13 @@ class AuditLogServiceImpl implements AuditLogApi {
   @Override
   @Transactional
   public AuditLogDto logAction(final AuditEvent event) {
-    String logId = "AUD-" + UUID.randomUUID().toString();
+    String logId = "AUD-" + event.eventId();
+    Instant createdAt = event.occurredAt();
+    AuditLogId auditLogId = new AuditLogId(logId, createdAt);
+    var existing = auditLogRepository.findById(auditLogId);
+    if (existing.isPresent()) {
+      return toDto(existing.get());
+    }
     String formattedDetails =
         event.entityId() != null
             ? "[Entity ID: " + event.entityId() + "] " + event.details()
@@ -75,7 +80,7 @@ class AuditLogServiceImpl implements AuditLogApi {
             .userAgent(context.userAgent())
             .beforeState(event.beforeState())
             .afterState(event.afterState())
-            .createdAt(Instant.now())
+            .createdAt(createdAt)
             .build();
     return toDto(auditLogRepository.save(log));
   }

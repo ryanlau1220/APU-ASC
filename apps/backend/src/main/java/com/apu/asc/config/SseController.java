@@ -16,10 +16,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,12 +38,15 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class SseController {
 
   private final CurrentUserService currentUserService;
+  private final ApplicationEventPublisher eventPublisher;
   private final ConcurrentMap<String, Subscriber> subscribers = new ConcurrentHashMap<>();
   private final ScheduledExecutorService heartbeatExecutor =
       Executors.newSingleThreadScheduledExecutor();
 
-  public SseController(CurrentUserService currentUserService) {
+  public SseController(
+      CurrentUserService currentUserService, ApplicationEventPublisher eventPublisher) {
     this.currentUserService = currentUserService;
+    this.eventPublisher = eventPublisher;
     heartbeatExecutor.scheduleAtFixedRate(
         () -> {
           for (Map.Entry<String, Subscriber> entry : subscribers.entrySet()) {
@@ -82,7 +87,8 @@ public class SseController {
     return emitter;
   }
 
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+  @Async
+  @TransactionalEventListener(id = "live-update-delivery")
   public void handleLiveUpdateEvent(LiveUpdateEvent event) {
     int recipients = 0;
     for (Map.Entry<String, Subscriber> entry : subscribers.entrySet()) {
@@ -115,9 +121,10 @@ public class SseController {
 
   @PostMapping("/trigger/{entity}")
   @PreAuthorize("hasRole('MANAGER')")
+  @Transactional
   @Operation(summary = "Trigger a manager-only live update (for testing)")
   public void triggerEvent(@PathVariable String entity) {
-    handleLiveUpdateEvent(LiveUpdateEvent.forRoles(entity, null, "MANAGER"));
+    eventPublisher.publishEvent(LiveUpdateEvent.forRoles(entity, null, "MANAGER"));
   }
 
   @PreDestroy

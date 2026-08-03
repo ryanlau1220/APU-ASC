@@ -7,9 +7,8 @@ import java.util.Arrays;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /** Records the accepted estimate locally so execution can enforce customer approval. */
 @Component
@@ -19,8 +18,7 @@ class WorkOrderQuotationApprovalListener {
   private final WorkOrderRepository workOrderRepository;
   private final ApplicationEventPublisher eventPublisher;
 
-  @EventListener
-  @Transactional
+  @ApplicationModuleListener(id = "work-order-quotation-approval")
   void on(QuotationApprovedEvent event) {
     WorkOrderEntity workOrder =
         workOrderRepository
