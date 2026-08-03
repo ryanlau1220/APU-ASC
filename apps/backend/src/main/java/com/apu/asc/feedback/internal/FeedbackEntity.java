@@ -23,7 +23,7 @@ class FeedbackEntity {
 
   @Id private String id;
 
-  @Column(name = "appointment_id", nullable = false)
+  @Column(name = "appointment_id")
   private String appointmentId;
 
   @Column(name = "work_order_id")

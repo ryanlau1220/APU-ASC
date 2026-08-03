@@ -8,6 +8,7 @@ import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
 import com.apu.asc.user.CurrentUserService;
+import com.apu.asc.workorder.WorkOrderApi;
 import java.math.BigDecimal;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,13 +27,15 @@ class PaymentControllerAuthorizationTest {
       new TestingAuthenticationToken("customer-a", "n/a");
 
   @Mock private PaymentApi paymentApi;
+  @Mock private WorkOrderApi workOrderApi;
   @Mock private CurrentUserService currentUserService;
 
   private PaymentController controller;
 
   @BeforeEach
   void setUp() {
-    controller = new PaymentController(paymentApi, currentUserService, new AccessPolicy());
+    controller =
+        new PaymentController(paymentApi, workOrderApi, currentUserService, new AccessPolicy());
   }
 
   @Test
@@ -54,6 +57,7 @@ class PaymentControllerAuthorizationTest {
         BigDecimal.TEN,
         "ONLINE_CARD",
         "UNPAID",
+        null,
         null,
         null);
   }

@@ -3,12 +3,12 @@ package com.apu.asc.feedback.internal;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.feedback.FeedbackApi;
 import com.apu.asc.feedback.FeedbackDto;
 import com.apu.asc.user.CurrentUserService;
+import com.apu.asc.workorder.WorkOrderApi;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class FeedbackControllerAuthorizationTest {
       new TestingAuthenticationToken("customer-a", "n/a");
 
   @Mock private FeedbackApi feedbackApi;
-  @Mock private AppointmentApi appointmentApi;
+  @Mock private WorkOrderApi workOrderApi;
   @Mock private CurrentUserService currentUserService;
 
   private FeedbackController controller;
@@ -34,7 +34,7 @@ class FeedbackControllerAuthorizationTest {
   @BeforeEach
   void setUp() {
     controller =
-        new FeedbackController(feedbackApi, appointmentApi, currentUserService, new AccessPolicy());
+        new FeedbackController(feedbackApi, workOrderApi, currentUserService, new AccessPolicy());
   }
 
   @Test
@@ -49,6 +49,6 @@ class FeedbackControllerAuthorizationTest {
 
   private FeedbackDto feedback(String customerId) {
     return new FeedbackDto(
-        "FBK-OTHER", "APT-OTHER", customerId, "USR-TECH", 5, "Great", null, null);
+        "FBK-OTHER", "APT-OTHER", customerId, "USR-TECH", 5, "Great", null, null, "WO-OTHER");
   }
 }

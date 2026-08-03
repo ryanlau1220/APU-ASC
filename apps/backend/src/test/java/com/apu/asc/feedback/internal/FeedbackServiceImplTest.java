@@ -45,7 +45,7 @@ class FeedbackServiceImplTest {
     when(feedbackRepository.save(any())).thenReturn(entity);
 
     FeedbackDto dto =
-        new FeedbackDto(null, "APT-1", "CUST-1", null, 5, "Excellent service!", null, null);
+        new FeedbackDto(null, "APT-1", "CUST-1", null, 5, "Excellent service!", null, null, "WO-1");
 
     FeedbackDto created = feedbackService.submitFeedback(dto);
 

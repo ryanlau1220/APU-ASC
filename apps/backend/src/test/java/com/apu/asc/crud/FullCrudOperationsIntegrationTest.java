@@ -221,6 +221,7 @@ class FullCrudOperationsIntegrationTest {
                 "CREDIT_CARD",
                 "UNPAID",
                 null,
+                null,
                 null));
 
     assertThat(invoice.id()).startsWith("PAY-");
@@ -342,6 +343,7 @@ class FullCrudOperationsIntegrationTest {
             5,
             "Excellent service!",
             "Replaced oil filter",
+            null,
             null);
 
     FeedbackDto created = feedbackApi.submitFeedback(fbDto);
