@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {
   Activity,
+  ArrowRightLeft,
   Calendar,
   Filter,
+  Fingerprint,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -44,8 +46,11 @@ function AuditLogsContent() {
     const matchesSearch =
       !searchTerm ||
       log.userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.actorUsername?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.actorId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.entityName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.details?.toLowerCase().includes(searchTerm.toLowerCase())
+      log.details?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.correlationId?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesAction =
       actionFilter === 'ALL' || log.actionType === actionFilter
@@ -73,7 +78,8 @@ function AuditLogsContent() {
               System Audit Event Trail
             </h1>
             <p className="text-xs text-muted-foreground">
-              Immutable partition-logged security and business action logs.
+              Append-only security and business events with actor, trace, and
+              state-transition evidence.
             </p>
           </div>
 
@@ -93,7 +99,7 @@ function AuditLogsContent() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Filter by user ID, entity name, or details..."
+              placeholder="Filter by actor, subject, entity, trace, or details..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 rounded-lg bg-muted border border-border text-xs focus:border-primary outline-none transition-colors"
@@ -125,17 +131,18 @@ function AuditLogsContent() {
               <thead>
                 <tr className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider">
                   <th className="py-3 px-4">Timestamp</th>
-                  <th className="py-3 px-4">User ID</th>
+                  <th className="py-3 px-4">Actor</th>
                   <th className="py-3 px-4">Action</th>
-                  <th className="py-3 px-4">Entity</th>
-                  <th className="py-3 px-4">Details</th>
+                  <th className="py-3 px-4">Subject</th>
+                  <th className="py-3 px-4">Change evidence</th>
+                  <th className="py-3 px-4">Request trace</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {isLoading ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="py-8 text-center text-muted-foreground"
                     >
                       Loading audit compliance trail...
@@ -144,7 +151,7 @@ function AuditLogsContent() {
                 ) : filteredLogs.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="py-8 text-center text-muted-foreground"
                     >
                       No audit log entries found matching criteria.
@@ -167,7 +174,13 @@ function AuditLogsContent() {
                       <td className="py-3.5 px-4 font-semibold text-foreground whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                          {log.userId || 'SYSTEM'}
+                          <div>
+                            <div>{log.actorUsername || 'SYSTEM'}</div>
+                            <div className="text-[10px] font-normal text-muted-foreground">
+                              {log.actorRole || 'SYSTEM'} ·{' '}
+                              {log.actorId || 'SYSTEM'}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
@@ -177,10 +190,45 @@ function AuditLogsContent() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 font-bold text-foreground">
-                        {log.entityName}
+                        <div>{log.entityName}</div>
+                        <div className="text-[10px] font-normal text-muted-foreground">
+                          {log.userId || 'SYSTEM'}
+                        </div>
                       </td>
-                      <td className="py-3.5 px-4 text-muted-foreground font-sans max-w-md truncate">
-                        {log.details}
+                      <td className="py-3.5 px-4 text-muted-foreground font-sans min-w-64 max-w-sm">
+                        <div className="max-w-sm truncate">{log.details}</div>
+                        {(log.beforeState || log.afterState) && (
+                          <div className="mt-1.5 flex items-start gap-1 text-[10px] leading-4 text-foreground">
+                            <ArrowRightLeft className="mt-0.5 w-3 h-3 shrink-0 text-primary" />
+                            <span className="break-words">
+                              {log.beforeState || '—'} → {log.afterState || '—'}
+                            </span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-muted-foreground font-sans min-w-52">
+                        <div className="flex items-center gap-1.5 text-[10px]">
+                          <Fingerprint className="w-3 h-3 shrink-0 text-primary" />
+                          <span title={log.correlationId || undefined}>
+                            {log.correlationId
+                              ? `${log.correlationId.slice(0, 12)}…`
+                              : 'No request trace'}
+                          </span>
+                        </div>
+                        {(log.requestMethod || log.requestPath) && (
+                          <div className="mt-1 text-[10px] break-all">
+                            {log.requestMethod || 'SYSTEM'}{' '}
+                            {log.requestPath || ''}
+                          </div>
+                        )}
+                        {log.clientIp && (
+                          <div
+                            className="mt-1 text-[10px]"
+                            title={log.userAgent || undefined}
+                          >
+                            IP {log.clientIp}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))

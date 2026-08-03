@@ -12,5 +12,15 @@ export interface AuditLogDto {
   actionType?: string
   entityName?: string
   details?: string
+  actorId?: string
+  actorUsername?: string
+  actorRole?: string
+  correlationId?: string
+  requestMethod?: string
+  requestPath?: string
+  clientIp?: string
+  userAgent?: string
+  beforeState?: string
+  afterState?: string
   createdAt?: string
 }
