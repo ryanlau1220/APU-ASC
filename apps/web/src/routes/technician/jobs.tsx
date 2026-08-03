@@ -8,6 +8,10 @@ import {
 } from '../../api/workOrders'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
+import {
+  workOrderTransitionLabels,
+  workOrderTransitionTargets,
+} from '../../lib/lifecycle'
 
 export const Route = createFileRoute('/technician/jobs')({
   component: TechnicianJobsContent,
@@ -69,8 +73,9 @@ function TechnicianJobsContent() {
             Bay Job Management & Progress Tracker
           </h1>
           <p className="text-xs text-muted-foreground">
-            Update work order progress with single-tap controls: IN_PROGRESS
-            $\rightarrow$ DIAGNOSING $\rightarrow$ COMPLETED.
+            Update work order progress through its controlled lifecycle: OPEN
+            $\rightarrow$ DIAGNOSING $\rightarrow$ IN_PROGRESS $\rightarrow$
+            COMPLETED.
           </p>
         </section>
 
@@ -144,31 +149,28 @@ function TechnicianJobsContent() {
                       Bay Action Status
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          j.id && handleUpdate(j.id, 'IN_PROGRESS')
-                        }
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                          j.status === 'IN_PROGRESS'
-                            ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-muted hover:border-primary/40'
-                        }`}
-                      >
-                        Start Servicing
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => j.id && handleUpdate(j.id, 'COMPLETED')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                          j.status === 'COMPLETED'
-                            ? 'bg-status-completed text-white border-status-completed'
-                            : 'bg-muted hover:border-status-completed/40'
-                        }`}
-                      >
-                        Mark Completed
-                      </button>
+                      {workOrderTransitionTargets(j.status).map((status) => (
+                        <button
+                          key={status}
+                          type="button"
+                          onClick={() => j.id && handleUpdate(j.id, status)}
+                          disabled={updateStatusMutation.isPending}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors disabled:opacity-50 ${
+                            status === 'COMPLETED'
+                              ? 'border-status-completed/40 text-status-completed hover:bg-status-completed/10'
+                              : status === 'CANCELLED'
+                                ? 'border-destructive/40 text-destructive hover:bg-destructive/10'
+                                : 'bg-muted hover:border-primary/40'
+                          }`}
+                        >
+                          {workOrderTransitionLabels[status]}
+                        </button>
+                      ))}
+                      {workOrderTransitionTargets(j.status).length === 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          Final state
+                        </span>
+                      )}
                     </div>
                   </div>
 
