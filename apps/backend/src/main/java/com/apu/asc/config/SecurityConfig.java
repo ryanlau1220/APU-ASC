@@ -107,7 +107,6 @@ public class SecurityConfig {
                         "/actuator/health",
                         "/actuator/health/**",
                         "/api/v1/auth/**",
-                        "/api/v1/events/stream",
                         "/api/v1/users/avatar/file/**",
                         "/api/v1/audit-logs/sentry-test",
                         "/login/**",
