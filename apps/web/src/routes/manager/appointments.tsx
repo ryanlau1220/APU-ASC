@@ -7,6 +7,10 @@ import {
   useUpdateAppointmentStatus,
 } from '../../api/generated/endpoints'
 import type { AppointmentDto } from '../../api/generated/models'
+import {
+  useSlotAvailability,
+  useUpdateSlotCapacity,
+} from '../../api/scheduling'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 import { appointmentTransitionTargets } from '../../lib/lifecycle'
@@ -17,9 +21,16 @@ export const Route = createFileRoute('/manager/appointments')({
 
 function ManagerAppointmentsContent() {
   const [message, setMessage] = React.useState<string | null>(null)
+  const [capacityDate, setCapacityDate] = React.useState(
+    new Date().toISOString().slice(0, 10),
+  )
+  const [capacityDrafts, setCapacityDrafts] = React.useState<
+    Record<string, string>
+  >({})
 
   const { data: appointmentsData = [], refetch } = useGetAllAppointments()
   const appointments = (appointmentsData || []) as AppointmentDto[]
+  const { data: slotAvailability = [] } = useSlotAvailability(capacityDate)
 
   const updateStatusMutation = useUpdateAppointmentStatus({
     mutation: {
@@ -44,6 +55,7 @@ function ManagerAppointmentsContent() {
       },
     },
   })
+  const updateCapacityMutation = useUpdateSlotCapacity()
 
   const handleStatusChange = (id: string, status: string) => {
     setMessage(null)
@@ -58,6 +70,30 @@ function ManagerAppointmentsContent() {
       setMessage(null)
       deleteAppointmentMutation.mutate({ id })
     }
+  }
+
+  const handleCapacityUpdate = (timeSlot: string, currentCapacity: number) => {
+    const capacity = Number(capacityDrafts[timeSlot] ?? currentCapacity)
+    if (!Number.isInteger(capacity) || capacity < 1) {
+      setMessage('Capacity must be a whole number of at least one.')
+      return
+    }
+    updateCapacityMutation.mutate(
+      { appointmentDate: capacityDate, timeSlot, capacity },
+      {
+        onSuccess: () => {
+          setMessage('Workshop slot capacity updated!')
+          setCapacityDrafts((current) => {
+            const next = { ...current }
+            delete next[timeSlot]
+            return next
+          })
+        },
+        onError: (err: Error) => {
+          setMessage(err.message || 'Failed to update workshop capacity.')
+        },
+      },
+    )
   }
 
   return (
@@ -90,6 +126,85 @@ function ManagerAppointmentsContent() {
             {message}
           </div>
         )}
+
+        <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="font-heading text-lg font-bold">
+                Workshop Slot Capacity
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Capacity includes pending and confirmed bookings and cannot go
+                below reservations.
+              </p>
+            </div>
+            <div>
+              <label
+                htmlFor="capacityDate"
+                className="mb-1 block text-xs font-semibold text-muted-foreground"
+              >
+                Schedule date
+              </label>
+              <input
+                id="capacityDate"
+                type="date"
+                value={capacityDate}
+                onChange={(event) => setCapacityDate(event.target.value)}
+                className="rounded-lg border border-border bg-input px-3 py-2 text-xs outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground">
+                  <th className="px-3 py-2">Time slot</th>
+                  <th className="px-3 py-2">Reserved</th>
+                  <th className="px-3 py-2">Available</th>
+                  <th className="px-3 py-2">Capacity</th>
+                  <th className="px-3 py-2" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {slotAvailability.map((slot) => (
+                  <tr key={slot.timeSlot}>
+                    <td className="px-3 py-2 font-medium">{slot.timeSlot}</td>
+                    <td className="px-3 py-2">{slot.reserved}</td>
+                    <td className="px-3 py-2">{slot.available}</td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min={slot.reserved || 1}
+                        value={
+                          capacityDrafts[slot.timeSlot] ?? String(slot.capacity)
+                        }
+                        onChange={(event) =>
+                          setCapacityDrafts((current) => ({
+                            ...current,
+                            [slot.timeSlot]: event.target.value,
+                          }))
+                        }
+                        className="w-20 rounded border border-border bg-input px-2 py-1 text-xs outline-none focus:border-primary"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCapacityUpdate(slot.timeSlot, slot.capacity)
+                        }
+                        disabled={updateCapacityMutation.isPending}
+                        className="rounded border border-primary/40 px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         {/* Master Schedule Table */}
         <section className="bg-card border border-border rounded-xl p-6 space-y-4">
