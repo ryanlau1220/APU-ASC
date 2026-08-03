@@ -3,8 +3,10 @@ package com.apu.asc.appointment.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 import com.apu.asc.appointment.AppointmentDto;
+import com.apu.asc.scheduling.SchedulingApi;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,13 +21,15 @@ import org.springframework.context.ApplicationEventPublisher;
 class AppointmentDoubleBookingTest {
 
   @Mock private AppointmentRepository appointmentRepository;
+  @Mock private SchedulingApi schedulingApi;
   @Mock private ApplicationEventPublisher eventPublisher;
 
   private AppointmentServiceImpl appointmentService;
 
   @BeforeEach
   void setUp() {
-    appointmentService = new AppointmentServiceImpl(appointmentRepository, eventPublisher);
+    appointmentService =
+        new AppointmentServiceImpl(appointmentRepository, schedulingApi, eventPublisher);
   }
 
   @Test
@@ -132,5 +136,30 @@ class AppointmentDoubleBookingTest {
     AppointmentDto created = appointmentService.createAppointment(request);
     assertThat(created).isNotNull();
     assertThat(created.id()).isEqualTo("APT-1001");
+    verify(schedulingApi).reserveSlot(today, "10:00-11:00");
+  }
+
+  @Test
+  @DisplayName("Should release the reserved capacity when an appointment is cancelled")
+  void shouldReleaseCapacityWhenCancelled() {
+    LocalDate today = LocalDate.now();
+    AppointmentEntity appointment =
+        AppointmentEntity.builder()
+            .id("APT-1001")
+            .customerId("CUST-1")
+            .vehicleId("VEH-1")
+            .serviceId("SVC-1")
+            .appointmentDate(today)
+            .timeSlot("10:00-11:00")
+            .status("PENDING")
+            .build();
+    Mockito.when(appointmentRepository.findById("APT-1001"))
+        .thenReturn(java.util.Optional.of(appointment));
+    Mockito.when(appointmentRepository.save(any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    appointmentService.updateStatus("APT-1001", "CANCELLED");
+
+    verify(schedulingApi).releaseSlot(today, "10:00-11:00");
   }
 }
