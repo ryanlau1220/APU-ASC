@@ -29,12 +29,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest
 @ActiveProfiles("dev")
 class EventDrivenAuditLogIntegrationTest {
 
   @Autowired private ApplicationEventPublisher eventPublisher;
+  @Autowired private TransactionTemplate transactionTemplate;
   @Autowired private AuditLogApi auditLogApi;
   @Autowired private UserApi userApi;
   @Autowired private VehicleApi vehicleApi;
@@ -95,8 +97,9 @@ class EventDrivenAuditLogIntegrationTest {
   }
 
   @Test
-  @DisplayName("Direct AuditEvent publishing should persist audit record in partitioned database")
-  void testDirectAuditEventPublishing() {
+  @DisplayName(
+      "Transactionally published AuditEvent should persist audit record in partitioned database")
+  void testTransactionallyPublishedAuditEvent() {
     String suffix = UUID.randomUUID().toString().substring(0, 6);
     UserDto user =
         userApi.createUser(
@@ -113,9 +116,11 @@ class EventDrivenAuditLogIntegrationTest {
                 null));
     createdUsers.add(user.id());
 
-    eventPublisher.publishEvent(
-        new AuditEvent(
-            user.id(), "MANUAL_TEST_ACTION", "USER", user.id(), "Manual audit test log"));
+    transactionTemplate.executeWithoutResult(
+        status ->
+            eventPublisher.publishEvent(
+                new AuditEvent(
+                    user.id(), "MANUAL_TEST_ACTION", "USER", user.id(), "Manual audit test log")));
 
     await()
         .atMost(Duration.ofSeconds(5))

@@ -22,5 +22,7 @@ class AuditEventTest {
     assertThat(event.context().actorRole()).isEqualTo("SYSTEM");
     assertThat(event.beforeState()).contains("PENDING_VERIFICATION");
     assertThat(event.afterState()).contains("ACTIVE");
+    assertThat(event.eventId()).isNotNull();
+    assertThat(event.occurredAt()).isNotNull();
   }
 }
