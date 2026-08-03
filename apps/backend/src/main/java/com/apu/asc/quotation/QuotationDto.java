@@ -22,4 +22,9 @@ public record QuotationDto(
     Instant respondedAt,
     Instant createdAt,
     Instant updatedAt,
-    List<QuotationLineDto> items) {}
+    List<QuotationLineDto> items) {
+
+  public QuotationDto {
+    items = items == null ? List.of() : List.copyOf(items);
+  }
+}

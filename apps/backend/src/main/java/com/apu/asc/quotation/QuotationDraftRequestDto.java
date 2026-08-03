@@ -13,4 +13,16 @@ public record QuotationDraftRequestDto(
     @NotBlank String workOrderId,
     @Size(max = 2000) String notes,
     @NotNull @FutureOrPresent LocalDate validUntil,
-    @NotEmpty List<@Valid QuotationLineRequestDto> items) {}
+    @NotEmpty List<@Valid QuotationLineRequestDto> items) {
+
+  public QuotationDraftRequestDto {
+    if (items != null) {
+      items = List.copyOf(items);
+    }
+  }
+
+  @Override
+  public List<QuotationLineRequestDto> items() {
+    return items == null ? null : List.copyOf(items);
+  }
+}

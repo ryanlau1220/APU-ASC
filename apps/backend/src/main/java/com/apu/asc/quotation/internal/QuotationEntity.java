@@ -1,5 +1,6 @@
 package com.apu.asc.quotation.internal;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,6 +28,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SuppressFBWarnings(
+    value = "EI_EXPOSE_REP2",
+    justification =
+        "JPA manages this mutable bidirectional collection; defensive copying would detach it from Hibernate.")
 class QuotationEntity {
 
   @Id private String id;

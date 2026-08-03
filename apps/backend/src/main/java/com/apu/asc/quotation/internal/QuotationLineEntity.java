@@ -1,5 +1,6 @@
 package com.apu.asc.quotation.internal;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,6 +22,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SuppressFBWarnings(
+    value = "EI_EXPOSE_REP2",
+    justification =
+        "The quotation reference is a Hibernate-managed bidirectional association and must not be defensively copied.")
 class QuotationLineEntity {
 
   @Id private String id;
