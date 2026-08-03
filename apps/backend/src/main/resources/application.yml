@@ -65,6 +65,21 @@ spring:
     baseline-version: 0
     locations: classpath:db/migration
 
+  modulith:
+    # Replays events left incomplete by a restart. Event consumers are implemented idempotently.
+    republish-outstanding-events-on-restart: true
+
+  task:
+    execution:
+      pool:
+        core-size: ${ASYNC_CORE_POOL_SIZE:4}
+        max-size: ${ASYNC_MAX_POOL_SIZE:8}
+        queue-capacity: ${ASYNC_QUEUE_CAPACITY:200}
+        keep-alive: 60s
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
+
   security:
     oauth2:
       client:
@@ -164,3 +179,12 @@ app:
 
 invitations:
   expiry-hours: ${INVITATION_EXPIRY_HOURS:48}
+
+event-publications:
+  retry:
+    initial-delay-ms: ${EVENT_PUBLICATION_RETRY_INITIAL_DELAY_MS:60000}
+    fixed-delay-ms: ${EVENT_PUBLICATION_RETRY_DELAY_MS:60000}
+    minimum-age: ${EVENT_PUBLICATION_RETRY_MINIMUM_AGE:PT30S}
+  cleanup:
+    cron: "${EVENT_PUBLICATION_CLEANUP_CRON:0 15 3 * * *}"
+    retention: ${EVENT_PUBLICATION_RETENTION:P30D}
