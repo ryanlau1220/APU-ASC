@@ -47,7 +47,8 @@ class QuotationController {
   @GetMapping("/my")
   @PreAuthorize("hasRole('CUSTOMER')")
   @Operation(
-      operationId = "getMyQuotations", summary = "Get quotations for the authenticated customer")
+      operationId = "getMyQuotations",
+      summary = "Get quotations for the authenticated customer")
   public ResponseEntity<List<QuotationDto>> getMyQuotations(Authentication authentication) {
     AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
     return ResponseEntity.ok(quotationApi.findByCustomer(currentUser.id()));
@@ -111,8 +112,7 @@ class QuotationController {
 
   @PostMapping("/{id}/submit")
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
-  @Operation(
-      operationId = "submitQuotation", summary = "Submit a quotation for customer approval")
+  @Operation(operationId = "submitQuotation", summary = "Submit a quotation for customer approval")
   public ResponseEntity<QuotationDto> submit(
       @PathVariable String id, Authentication authentication) {
     currentUserService.requireCurrentUser(authentication);
@@ -121,8 +121,7 @@ class QuotationController {
 
   @PostMapping("/{id}/decision")
   @PreAuthorize("hasRole('CUSTOMER')")
-  @Operation(
-      operationId = "decideQuotation", summary = "Approve or reject a pending quotation")
+  @Operation(operationId = "decideQuotation", summary = "Approve or reject a pending quotation")
   public ResponseEntity<QuotationDto> decide(
       @PathVariable String id,
       @Valid @RequestBody QuotationDecisionRequestDto request,

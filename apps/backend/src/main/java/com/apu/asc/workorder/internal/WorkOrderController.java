@@ -64,7 +64,9 @@ class WorkOrderController {
 
   @GetMapping("/my")
   @PreAuthorize("hasAnyRole('CUSTOMER', 'TECHNICIAN', 'STAFF', 'MANAGER')")
-  @Operation(operationId = "getMyWorkOrders", summary = "Get work orders for the authenticated user")
+  @Operation(
+      operationId = "getMyWorkOrders",
+      summary = "Get work orders for the authenticated user")
   public ResponseEntity<List<WorkOrderDto>> getMyWorkOrders(Authentication authentication) {
     AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
     if (accessPolicy.isTechnician(currentUser)) {
@@ -140,9 +142,7 @@ class WorkOrderController {
 
   @PatchMapping("/{id}/status")
   @PreAuthorize("hasAnyRole('TECHNICIAN', 'STAFF', 'MANAGER')")
-  @Operation(
-      operationId = "updateWorkOrderStatus",
-      summary = "Update work-order execution status")
+  @Operation(operationId = "updateWorkOrderStatus", summary = "Update work-order execution status")
   public ResponseEntity<WorkOrderDto> updateStatus(
       @PathVariable String id,
       @RequestParam WorkOrderStatus status,
