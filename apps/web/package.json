@@ -13,7 +13,7 @@
     "test": "vitest run --environment node",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
-    "generate:api": "orval",
+    "generate:api": "orval --biome",
     "format": "biome format --write .",
     "lint": "biome lint .",
     "check": "biome check ."
