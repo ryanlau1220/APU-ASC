@@ -5,8 +5,12 @@
  * Automotive Service Management RESTful API Specifications
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateUserStatusStatus } from './updateUserStatusStatus'
 
-export type UpdateUserStatusParams = {
-  status: UpdateUserStatusStatus
+export interface SlotAvailabilityDto {
+  appointmentDate?: string
+  timeSlot?: string
+  capacity?: number
+  reserved?: number
+  available?: number
+  bookable?: boolean
 }

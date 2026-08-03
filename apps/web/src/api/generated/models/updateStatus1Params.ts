@@ -7,5 +7,5 @@
  */
 
 export type UpdateStatus1Params = {
-status: string;
-};
+  status: string
+}

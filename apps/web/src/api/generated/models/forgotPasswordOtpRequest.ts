@@ -7,5 +7,5 @@
  */
 
 export interface ForgotPasswordOtpRequest {
-  email: string;
+  email: string
 }

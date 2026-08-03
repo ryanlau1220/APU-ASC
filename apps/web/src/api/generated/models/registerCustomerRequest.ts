@@ -7,8 +7,8 @@
  */
 
 export interface RegisterCustomerRequest {
-  username: string;
-  email: string;
-  fullName: string;
-  password: string;
+  username: string
+  email: string
+  fullName: string
+  password: string
 }

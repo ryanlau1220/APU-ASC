@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetRootStatus200 = {[key: string]: { [key: string]: unknown }};
+export type GetRootStatus200 = { [key: string]: { [key: string]: unknown } }

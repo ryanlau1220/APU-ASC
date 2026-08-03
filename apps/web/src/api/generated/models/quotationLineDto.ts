@@ -5,8 +5,11 @@
  * Automotive Service Management RESTful API Specifications
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateUserStatusStatus } from './updateUserStatusStatus'
 
-export type UpdateUserStatusParams = {
-  status: UpdateUserStatusStatus
+export interface QuotationLineDto {
+  id?: string
+  description?: string
+  quantity?: number
+  unitPrice?: number
+  lineTotal?: number
 }

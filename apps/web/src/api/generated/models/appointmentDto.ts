@@ -7,15 +7,15 @@
  */
 
 export interface AppointmentDto {
-  id?: string;
-  customerId?: string;
-  vehicleId?: string;
-  serviceId?: string;
-  technicianId?: string;
-  appointmentDate?: string;
-  timeSlot?: string;
-  status?: string;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  id?: string
+  customerId?: string
+  vehicleId?: string
+  serviceId?: string
+  technicianId?: string
+  appointmentDate?: string
+  timeSlot?: string
+  status?: string
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
 }

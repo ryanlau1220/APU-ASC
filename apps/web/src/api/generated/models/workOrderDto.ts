@@ -6,14 +6,19 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface FeedbackDto {
+export interface WorkOrderDto {
   id?: string
   appointmentId?: string
   customerId?: string
+  vehicleId?: string
+  serviceId?: string
   technicianId?: string
-  rating?: number
-  comments?: string
-  technicianDiagnosticNotes?: string
+  status?: string
+  intakeNotes?: string
+  diagnosticNotes?: string
+  openedAt?: string
+  startedAt?: string
+  completedAt?: string
   createdAt?: string
-  workOrderId?: string
+  updatedAt?: string
 }

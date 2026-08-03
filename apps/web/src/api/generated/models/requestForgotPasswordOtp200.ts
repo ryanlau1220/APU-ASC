@@ -6,4 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type RequestForgotPasswordOtp200 = {[key: string]: { [key: string]: unknown }};
+export type RequestForgotPasswordOtp200 = {
+  [key: string]: { [key: string]: unknown }
+}

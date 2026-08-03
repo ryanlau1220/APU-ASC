@@ -5,8 +5,8 @@
  * Automotive Service Management RESTful API Specifications
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateUserStatusStatus } from './updateUserStatusStatus'
+import type { UpdateWorkOrderStatusStatus } from './updateWorkOrderStatusStatus'
 
-export type UpdateUserStatusParams = {
-  status: UpdateUserStatusStatus
+export type UpdateWorkOrderStatusParams = {
+  status: UpdateWorkOrderStatusStatus
 }

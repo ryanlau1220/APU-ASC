@@ -6,4 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetCurrentUser200 = { [key: string]: unknown };
+export type GetCurrentUser200 = { [key: string]: unknown }

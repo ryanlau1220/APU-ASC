@@ -7,8 +7,8 @@
  */
 
 export interface CategoryDto {
-  id?: string;
-  name?: string;
-  description?: string;
-  createdAt?: string;
+  id?: string
+  name?: string
+  description?: string
+  createdAt?: string
 }

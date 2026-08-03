@@ -5,7 +5,8 @@
  * Automotive Service Management RESTful API Specifications
  * OpenAPI spec version: 1.0.0
  */
+import type { UpdateAppointmentStatusStatus } from './updateAppointmentStatusStatus'
 
 export type UpdateAppointmentStatusParams = {
-status: string;
-};
+  status: UpdateAppointmentStatusStatus
+}
