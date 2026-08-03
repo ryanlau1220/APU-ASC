@@ -48,6 +48,7 @@ public class RateLimiterFilter implements Filter {
     boolean isStrictEndpoint =
         uri != null
             && (uri.startsWith("/api/v1/auth/forgot-password")
+                || uri.startsWith("/api/v1/auth/invite")
                 || uri.startsWith("/api/v1/auth/login")
                 || uri.startsWith("/api/v1/auth/register"));
 
