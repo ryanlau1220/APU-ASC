@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   CheckCircle2,
@@ -8,39 +9,40 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 import {
-  useCreateInvoice,
   useGetAllPayments,
   useProcessPayment,
 } from '../../api/generated/endpoints'
 import type { PaymentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
+import { bffFetch } from '../../lib/apiClient'
 
 export const Route = createFileRoute('/staff/payments')({
   component: StaffPaymentsContent,
 })
 
 function StaffPaymentsContent() {
-  const [appointmentId, setAppointmentId] = React.useState('')
-  const [customerId, setCustomerId] = React.useState('')
+  const [workOrderId, setWorkOrderId] = React.useState('')
   const [amount, setAmount] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
 
   const { data: paymentsData = [], refetch } = useGetAllPayments()
   const payments = (paymentsData || []) as PaymentDto[]
 
-  const createInvoiceMutation = useCreateInvoice({
-    mutation: {
-      onSuccess: () => {
-        setMessage('Invoice created successfully!')
-        setAppointmentId('')
-        setCustomerId('')
-        setAmount('')
-        refetch()
-      },
-      onError: (err: Error) => {
-        setMessage(err.message || 'Failed to create invoice.')
-      },
+  const createInvoiceMutation = useMutation({
+    mutationFn: (data: { workOrderId: string; amount: number }) =>
+      bffFetch<PaymentDto>('/api/v1/payments', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      setMessage('Invoice created successfully!')
+      setWorkOrderId('')
+      setAmount('')
+      refetch()
+    },
+    onError: (err: Error) => {
+      setMessage(err.message || 'Failed to create invoice.')
     },
   })
 
@@ -60,11 +62,8 @@ function StaffPaymentsContent() {
     e.preventDefault()
     setMessage(null)
     createInvoiceMutation.mutate({
-      data: {
-        appointmentId,
-        customerId,
-        amount: Number(amount),
-      },
+      workOrderId,
+      amount: Number(amount),
     })
   }
 
@@ -118,40 +117,22 @@ function StaffPaymentsContent() {
 
           <form
             onSubmit={handleCreateInvoice}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
           >
             <div>
               <label
                 htmlFor="aptIdInput"
                 className="block text-xs font-semibold text-muted-foreground mb-1"
               >
-                Appointment ID
+                Work Order ID
               </label>
               <input
-                id="aptIdInput"
+                id="workOrderIdInput"
                 type="text"
                 required
-                value={appointmentId}
-                onChange={(e) => setAppointmentId(e.target.value)}
-                placeholder="e.g. APT-201"
-                className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="custIdInput"
-                className="block text-xs font-semibold text-muted-foreground mb-1"
-              >
-                Customer ID
-              </label>
-              <input
-                id="custIdInput"
-                type="text"
-                required
-                value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-                placeholder="e.g. USR-401"
+                value={workOrderId}
+                onChange={(e) => setWorkOrderId(e.target.value)}
+                placeholder="e.g. WO-201"
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
               />
             </div>
@@ -207,7 +188,7 @@ function StaffPaymentsContent() {
                   <tr className="border-b border-border text-muted-foreground font-semibold">
                     <th className="py-3 px-3">Invoice ID</th>
                     <th className="py-3 px-3">Customer ID</th>
-                    <th className="py-3 px-3">Appointment ID</th>
+                    <th className="py-3 px-3">Work Order ID</th>
                     <th className="py-3 px-3">Amount</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3">Counter POS Action</th>
@@ -226,7 +207,7 @@ function StaffPaymentsContent() {
                         {p.customerId}
                       </td>
                       <td className="py-3.5 px-3 font-mono">
-                        {p.appointmentId}
+                        {p.appointmentId || 'Work order linked'}
                       </td>
                       <td className="py-3.5 px-3 font-bold text-primary">
                         RM {Number(p.amount || 0).toFixed(2)}

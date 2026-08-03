@@ -1,14 +1,13 @@
+import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { MessageSquare, Star } from 'lucide-react'
 import * as React from 'react'
-import {
-  useGetMyFeedback,
-  useSubmitFeedback,
-} from '../../api/generated/endpoints'
+import { useGetMyFeedback } from '../../api/generated/endpoints'
 import type { FeedbackDto } from '../../api/generated/models'
 import { useGetMyWorkOrders } from '../../api/workOrders'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
+import { bffFetch } from '../../lib/apiClient'
 
 export const Route = createFileRoute('/customer/feedback')({
   component: CustomerFeedbackContent,
@@ -29,18 +28,25 @@ function CustomerFeedbackContent() {
     useGetMyFeedback()
   const myFeedbacks = (myFeedbackData || []) as FeedbackDto[]
 
-  const submitFeedbackMutation = useSubmitFeedback({
-    mutation: {
-      onSuccess: () => {
-        setMessage('Thank you! Your service feedback has been submitted.')
-        setWorkOrderId('')
-        setRating(5)
-        setComments('')
-        refetchFeedback()
-      },
-      onError: (err: Error) => {
-        setMessage(err.message || 'Failed to submit feedback.')
-      },
+  const submitFeedbackMutation = useMutation({
+    mutationFn: (data: {
+      workOrderId: string
+      rating: number
+      comments: string
+    }) =>
+      bffFetch<FeedbackDto>('/api/v1/feedback', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      setMessage('Thank you! Your service feedback has been submitted.')
+      setWorkOrderId('')
+      setRating(5)
+      setComments('')
+      refetchFeedback()
+    },
+    onError: (err: Error) => {
+      setMessage(err.message || 'Failed to submit feedback.')
     },
   })
 
@@ -54,11 +60,9 @@ function CustomerFeedbackContent() {
     }
     setMessage(null)
     submitFeedbackMutation.mutate({
-      data: {
-        workOrderId,
-        rating,
-        comments,
-      },
+      workOrderId,
+      rating,
+      comments,
     })
   }
 
@@ -195,7 +199,7 @@ function CustomerFeedbackContent() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-foreground">
-                      Work Order #{fb.workOrderId || fb.appointmentId}
+                      Work Order #{fb.appointmentId}
                     </span>
                     <span className="font-bold text-amber-500 flex items-center gap-1">
                       {'⭐'.repeat(fb.rating || 5)} ({fb.rating}/5)
