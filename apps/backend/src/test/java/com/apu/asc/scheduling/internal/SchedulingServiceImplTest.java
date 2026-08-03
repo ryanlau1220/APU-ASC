@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.apu.asc.common.event.SseBroadcastEvent;
+import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.scheduling.SlotAvailabilityDto;
 import com.apu.asc.scheduling.SlotCapacityUpdateDto;
 import java.time.LocalDate;
@@ -60,6 +60,9 @@ class SchedulingServiceImplTest {
 
     schedulingService.updateCapacity(new SlotCapacityUpdateDto(DATE, SLOT, 4));
 
-    verify(eventPublisher).publishEvent(new SseBroadcastEvent("scheduling"));
+    verify(eventPublisher)
+        .publishEvent(
+            LiveUpdateEvent.forRoles(
+                "scheduling", null, "CUSTOMER", "TECHNICIAN", "STAFF", "MANAGER"));
   }
 }

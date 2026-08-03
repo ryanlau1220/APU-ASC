@@ -1,14 +1,16 @@
 package com.apu.asc.workorder.internal;
 
 import com.apu.asc.common.event.AuditEvent;
-import com.apu.asc.common.event.SseBroadcastEvent;
+import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.workorder.WorkOrderApi;
 import com.apu.asc.workorder.WorkOrderDto;
 import com.apu.asc.workorder.WorkOrderStatus;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -139,7 +141,7 @@ class WorkOrderServiceImpl implements WorkOrderApi {
   public void deleteWorkOrder(String id) {
     WorkOrderEntity entity = findEntity(id);
     workOrderRepository.delete(entity);
-    eventPublisher.publishEvent(new SseBroadcastEvent("work-orders"));
+    publishLiveUpdate(toDto(entity));
     eventPublisher.publishEvent(
         new AuditEvent(
             entity.getCustomerId(), "WORK_ORDER_DELETED", "WORK_ORDER", id, "Deleted work order"));
@@ -161,7 +163,7 @@ class WorkOrderServiceImpl implements WorkOrderApi {
       String details,
       String beforeState,
       String afterState) {
-    eventPublisher.publishEvent(new SseBroadcastEvent("work-orders"));
+    publishLiveUpdate(workOrder);
     eventPublisher.publishEvent(
         new AuditEvent(
             workOrder.customerId(),
@@ -182,6 +184,15 @@ class WorkOrderServiceImpl implements WorkOrderApi {
         + entity.getStartedAt()
         + "; completedAt="
         + entity.getCompletedAt();
+  }
+
+  private void publishLiveUpdate(WorkOrderDto workOrder) {
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forUsersAndRoles(
+            "work-orders",
+            workOrder.id(),
+            Arrays.asList(workOrder.customerId(), workOrder.technicianId()),
+            Set.of("STAFF", "MANAGER")));
   }
 
   private WorkOrderDto toDto(WorkOrderEntity entity) {

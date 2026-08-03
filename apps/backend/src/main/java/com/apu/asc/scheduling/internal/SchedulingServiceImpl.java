@@ -1,6 +1,6 @@
 package com.apu.asc.scheduling.internal;
 
-import com.apu.asc.common.event.SseBroadcastEvent;
+import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.scheduling.SchedulingApi;
 import com.apu.asc.scheduling.SchedulingTimeSlots;
 import com.apu.asc.scheduling.SlotAvailabilityDto;
@@ -73,7 +73,8 @@ class SchedulingServiceImpl implements SchedulingApi {
                 () ->
                     new IllegalArgumentException(
                         "Capacity cannot be lower than the appointments already reserved."));
-    eventPublisher.publishEvent(new SseBroadcastEvent("scheduling"));
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forRoles("scheduling", null, "CUSTOMER", "TECHNICIAN", "STAFF", "MANAGER"));
     return availability;
   }
 

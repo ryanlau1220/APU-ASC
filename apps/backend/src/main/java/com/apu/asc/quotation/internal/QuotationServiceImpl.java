@@ -1,8 +1,8 @@
 package com.apu.asc.quotation.internal;
 
 import com.apu.asc.common.event.AuditEvent;
+import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.event.QuotationApprovedEvent;
-import com.apu.asc.common.event.SseBroadcastEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.quotation.QuotationApi;
 import com.apu.asc.quotation.QuotationDecisionRequestDto;
@@ -17,6 +17,7 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -253,7 +254,12 @@ class QuotationServiceImpl implements QuotationApi {
       String details,
       String beforeState,
       String afterState) {
-    eventPublisher.publishEvent(new SseBroadcastEvent("quotations"));
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forUsersAndRoles(
+            "quotations",
+            quotation.id(),
+            Set.of(quotation.customerId()),
+            Set.of("STAFF", "MANAGER")));
     eventPublisher.publishEvent(
         new AuditEvent(
             quotation.customerId(),

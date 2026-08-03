@@ -4,11 +4,13 @@ import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.appointment.AppointmentDto;
 import com.apu.asc.appointment.AppointmentStatus;
 import com.apu.asc.common.event.AuditEvent;
-import com.apu.asc.common.event.SseBroadcastEvent;
+import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.scheduling.SchedulingApi;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -110,7 +112,7 @@ class AppointmentServiceImpl implements AppointmentApi {
     // Flush before publishing events so a rejected database write cannot produce a false audit
     // entry or a live-update notification.
     AppointmentDto created = toDto(appointmentRepository.saveAndFlush(entity));
-    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
+    publishLiveUpdates(created);
     eventPublisher.publishEvent(
         new AuditEvent(
             created.customerId(),
@@ -161,7 +163,7 @@ class AppointmentServiceImpl implements AppointmentApi {
     if (oldReservation && (!newReservation || slotChanged)) {
       schedulingApi.releaseSlot(oldDate, oldTimeSlot);
     }
-    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
+    publishLiveUpdates(updated);
     eventPublisher.publishEvent(
         new AuditEvent(
             updated.customerId(),
@@ -187,7 +189,7 @@ class AppointmentServiceImpl implements AppointmentApi {
     if (reservesCapacity(oldStatus) && !reservesCapacity(targetStatus)) {
       schedulingApi.releaseSlot(entity.getAppointmentDate(), entity.getTimeSlot());
     }
-    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
+    publishLiveUpdates(updated);
     eventPublisher.publishEvent(
         new AuditEvent(
             updated.customerId(),
@@ -210,7 +212,7 @@ class AppointmentServiceImpl implements AppointmentApi {
       schedulingApi.releaseSlot(entity.getAppointmentDate(), entity.getTimeSlot());
     }
     appointmentRepository.delete(entity);
-    eventPublisher.publishEvent(new SseBroadcastEvent("appointments"));
+    publishLiveUpdates(toDto(entity));
     eventPublisher.publishEvent(
         new AuditEvent(
             entity.getCustomerId(),
@@ -261,5 +263,17 @@ class AppointmentServiceImpl implements AppointmentApi {
 
   private boolean reservesCapacity(AppointmentStatus status) {
     return status == AppointmentStatus.PENDING || status == AppointmentStatus.CONFIRMED;
+  }
+
+  private void publishLiveUpdates(AppointmentDto appointment) {
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forUsersAndRoles(
+            "appointments",
+            appointment.id(),
+            Arrays.asList(appointment.customerId(), appointment.technicianId()),
+            Set.of("STAFF", "MANAGER")));
+    // A booking changes the remaining capacity even though it originates in the appointment module.
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forRoles("scheduling", null, "CUSTOMER", "TECHNICIAN", "STAFF", "MANAGER"));
   }
 }
