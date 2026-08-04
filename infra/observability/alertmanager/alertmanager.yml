@@ -1,0 +1,19 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: operational-email
+  group_by: [alertname]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: operational-email
+    email_configs:
+      - to: ${ALERT_EMAIL_TO}
+        from: ${SPRING_MAIL_USERNAME}
+        smarthost: ${SPRING_MAIL_HOST}:${SPRING_MAIL_PORT}
+        auth_username: ${SPRING_MAIL_USERNAME}
+        auth_password: ${SPRING_MAIL_PASSWORD}
+        require_tls: true
