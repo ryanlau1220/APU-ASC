@@ -143,9 +143,7 @@ services:
     image: prom/alertmanager:v0.27.0
     container_name: apu-asc-alertmanager
     profiles: [observability]
-    command:
-      - --config.file=/etc/alertmanager/alertmanager.yml
-      - --config.expand-env
+    entrypoint: [/bin/sh, /etc/alertmanager/entrypoint.sh]
     environment:
       ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-}
       SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
@@ -153,7 +151,8 @@ services:
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
     volumes:
-      - ./infra/observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./infra/observability/alertmanager/alertmanager.yml.tmpl:/etc/alertmanager/alertmanager.yml.tmpl:ro
+      - ./infra/observability/alertmanager/entrypoint.sh:/etc/alertmanager/entrypoint.sh:ro
     networks:
       - apu-asc-net
 
@@ -179,10 +178,12 @@ services:
       - apu-asc-net
 
   loki:
-    image: grafana/loki:3.1.0
+    image: grafana/loki:3.6.8
     container_name: apu-asc-loki
     profiles: [observability]
-    command: -config.file=/etc/loki/config.yml -config.expand-env=true
+    command:
+      - -config.file=/etc/loki/config.yml
+      - -config.expand-env=true
     environment:
       OBSERVABILITY_S3_ENDPOINT: ${OBSERVABILITY_S3_ENDPOINT:?Set OBSERVABILITY_S3_ENDPOINT in .env}
       OBSERVABILITY_S3_REGION: ${OBSERVABILITY_S3_REGION:-auto}
@@ -198,7 +199,11 @@ services:
     image: grafana/tempo:2.6.1
     container_name: apu-asc-tempo
     profiles: [observability]
-    command: -config.file=/etc/tempo/config.yml -config.expand-env=true
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        export OBSERVABILITY_S3_ENDPOINT="$${OBSERVABILITY_S3_ENDPOINT#https://}"
+        exec /tempo -config.file=/etc/tempo/config.yml -config.expand-env=true
     environment:
       OBSERVABILITY_S3_ENDPOINT: ${OBSERVABILITY_S3_ENDPOINT:?Set OBSERVABILITY_S3_ENDPOINT in .env}
       OBSERVABILITY_S3_ACCESS_KEY: ${OBSERVABILITY_S3_ACCESS_KEY:?Set OBSERVABILITY_S3_ACCESS_KEY in .env}
