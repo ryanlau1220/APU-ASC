@@ -42,6 +42,14 @@ case "$1" in
         done
         echo -e "${GREEN}✓ [OK] Keycloak OIDC Service is READY!${RESET}"
 
+        prometheus_cidr="$(docker network inspect --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}' apu-asc-net 2>/dev/null || true)"
+        if [ -n "${prometheus_cidr}" ]; then
+            export OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR="${prometheus_cidr}"
+            echo -e "${GREEN}✓ [OK] Prometheus scrape CIDR configured for ${prometheus_cidr}.${RESET}"
+        else
+            echo -e "${YELLOW}⚠️  [WARN] Could not determine the Docker bridge CIDR; using OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR from .env.${RESET}"
+        fi
+
         # Automatically free ports 8081 and 3000 from lingering background processes
         fuser -k 8081/tcp 3000/tcp 2>/dev/null || true
 
@@ -61,9 +69,9 @@ case "$1" in
         wait
         ;;
     docker)
-        echo -e "${YELLOW}Starting Docker Compose infrastructure stack (PostgreSQL, Keycloak, MinIO, Traefik)...${RESET}"
-        docker compose up -d
-        echo -e "${GREEN}✓ [OK] Docker infrastructure containers started successfully in detached mode.${RESET}"
+        echo -e "${YELLOW}Starting Docker Compose infrastructure and observability stack...${RESET}"
+        docker compose --profile observability up -d
+        echo -e "${GREEN}✓ [OK] Docker infrastructure and observability containers started successfully in detached mode.${RESET}"
         ;;
     build)
         echo "Building backend Fat JAR..."
