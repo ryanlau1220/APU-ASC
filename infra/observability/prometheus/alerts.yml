@@ -1,0 +1,24 @@
+groups:
+  - name: apu-asc
+    rules:
+      - alert: ApuAscBackendDown
+        expr: up{job="apu-asc-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: APU-ASC backend cannot be scraped for two minutes.
+      - alert: ApuAscServerErrors
+        expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count[5m])), 1) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than 5% of backend requests are failing with 5xx responses.
+      - alert: ApuAscAsyncAuditFailures
+        expr: increase(audit_log_write_failure_total[10m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: A durable audit-log write has failed.
