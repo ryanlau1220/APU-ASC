@@ -14,12 +14,14 @@ Tech Stack:
 - Logging: Logback + SLF4J
 - Identity Management: Keycloak
 - Email Delivery: Jakarta Mail + Thymeleaf
-- Object Storage: MinIO + AWS S3 SDK
-- Observability Layer: Micrometer + OTel + PostHog + pg_cron
+- Object Storage: MinIO + Cloudflare R2 + AWS S3 SDK
+- Observability Layer: Micrometer + Prometheus + OpenTelemetry/OTLP + Alloy + Tempo + Loki + Grafana + Alertmanager + Sentry + PostHog
 - Reverse Proxy: Traefik
 - Testing: JUnit 5 + Vitest + Playwright
 - OpenAPI Docs: SpringDoc + Scalar
 - Rate Limiting: bucket4j
+- Security: Spring Security + OAuth2 / OIDC
+- Infrastructure: Docker Compose
 - Tools: Turborepo, Biome, Spotless, Checkstyle, SpotBugs, PMD, OpenApi-Typescript, Orval
 
 To run project
@@ -58,6 +60,7 @@ Project URL
 - Scalar: http://localhost:8081/scalar
 - MinIO: http://localhost:9001
 - Traefik: http://localhost:8088
+- Grafana: http://localhost:3001
 
 Credentials
 username: admin
