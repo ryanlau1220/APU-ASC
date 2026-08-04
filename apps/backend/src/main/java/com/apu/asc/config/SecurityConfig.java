@@ -67,8 +67,8 @@ public class SecurityConfig {
       "${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:http://localhost/auth/realms/apu-asc/protocol/openid-connect/certs}")
   private String jwkSetUri;
 
-  @Value("${observability.prometheus.allowed-cidr:172.18.0.0/16}")
-  private String prometheusAllowedCidr;
+  @Value("${observability.prometheus.allowed-cidr:127.0.0.1/32}")
+  private String prometheusAllowedCidrs;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -120,9 +120,7 @@ public class SecurityConfig {
                     .requestMatchers("/actuator/prometheus")
                     .access(
                         (authentication, context) ->
-                            new AuthorizationDecision(
-                                new IpAddressMatcher(prometheusAllowedCidr)
-                                    .matches(context.getRequest())))
+                            prometheusScrapeAccessDecision(context.getRequest()))
                     .requestMatchers("/actuator/**")
                     .hasAnyRole("MANAGER", "SYSTEM_ADMIN")
                     .anyRequest()
@@ -132,6 +130,15 @@ public class SecurityConfig {
                 oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
     return http.build();
+  }
+
+  AuthorizationDecision prometheusScrapeAccessDecision(HttpServletRequest request) {
+    boolean isAllowed =
+        List.of(prometheusAllowedCidrs.split(",")).stream()
+            .map(String::trim)
+            .filter(cidr -> !cidr.isEmpty())
+            .anyMatch(cidr -> new IpAddressMatcher(cidr).matches(request));
+    return new AuthorizationDecision(isAllowed);
   }
 
   private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {

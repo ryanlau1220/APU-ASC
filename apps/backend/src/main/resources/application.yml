@@ -204,4 +204,4 @@ event-publications:
 
 observability:
   prometheus:
-    allowed-cidr: ${OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR:172.18.0.0/16}
+    allowed-cidr: ${OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR:127.0.0.1/32}
