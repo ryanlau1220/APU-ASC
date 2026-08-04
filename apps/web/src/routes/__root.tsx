@@ -108,6 +108,24 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  React.useEffect(() => {
+    const userId = userSession.authenticated ? userSession.id : undefined
+    if (userId) {
+      posthog.identify(userId, { roles: userSession.roles ?? [] })
+    } else {
+      posthog.reset()
+    }
+
+    void import('@sentry/react').then((Sentry) => {
+      if (userId) {
+        Sentry.setUser({ id: userId })
+        Sentry.setTag('user.roles', (userSession.roles ?? []).join(','))
+      } else {
+        Sentry.setUser(null)
+      }
+    })
+  }, [userSession.authenticated, userSession.id, userSession.roles])
+
   return (
     <UserSessionContext.Provider value={{ userSession, loading }}>
       {children}
@@ -131,16 +149,22 @@ function ClientPostHogProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     setIsMounted(true)
 
-    // Safely initialize Sentry on client browser only
-    import('@sentry/react').then((Sentry) => {
-      Sentry.init({
-        dsn:
-          import.meta.env.VITE_SENTRY_DSN ||
-          'https://examplePublicKey@o0.ingest.sentry.io/0',
-        integrations: [Sentry.browserTracingIntegration()],
-        tracesSampleRate: 1.0,
+    const sentryDsn = import.meta.env.VITE_SENTRY_DSN
+    if (sentryDsn) {
+      void import('@sentry/react').then((Sentry) => {
+        Sentry.init({
+          dsn: sentryDsn,
+          environment:
+            import.meta.env.VITE_OBSERVABILITY_ENVIRONMENT || 'development',
+          release: import.meta.env.VITE_OBSERVABILITY_RELEASE || undefined,
+          integrations: [Sentry.browserTracingIntegration()],
+          tracesSampleRate: Number(
+            import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || 0.1,
+          ),
+          sendDefaultPii: false,
+        })
       })
-    })
+    }
 
     // Safely initialize PostHog on client browser only
     const posthogKey = import.meta.env.VITE_POSTHOG_KEY
