@@ -73,6 +73,11 @@ case "$1" in
         docker compose --profile observability up -d
         echo -e "${GREEN}✓ [OK] Docker infrastructure and observability containers started successfully in detached mode.${RESET}"
         ;;
+    docker:down)
+        echo -e "${YELLOW}Stopping Docker Compose infrastructure and observability stack...${RESET}"
+        docker compose --profile observability down
+        echo -e "${GREEN}✓ [OK] Docker infrastructure and observability containers stopped and removed.${RESET}"
+        ;;
     build)
         echo "Building backend Fat JAR..."
         (cd apps/backend && mvn clean package -DskipTests)
@@ -119,7 +124,7 @@ case "$1" in
         echo "Clean complete."
         ;;
     *)
-        echo "Usage: ./manage.sh {dev|docker|build|lint|check|test|test:e2e|clean}"
+        echo "Usage: ./manage.sh {dev|docker|docker:down|build|lint|check|test|test:e2e|clean}"
         exit 1
         ;;
 esac
