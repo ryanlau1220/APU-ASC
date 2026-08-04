@@ -44,8 +44,8 @@ case "$1" in
 
         prometheus_cidr="$(docker network inspect --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}' apu-asc-net 2>/dev/null || true)"
         if [ -n "${prometheus_cidr}" ]; then
-            export OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR="${prometheus_cidr}"
-            echo -e "${GREEN}✓ [OK] Prometheus scrape CIDR configured for ${prometheus_cidr}.${RESET}"
+            export OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR="127.0.0.1/32,${prometheus_cidr}"
+            echo -e "${GREEN}✓ [OK] Prometheus scrape allow-list configured for loopback and ${prometheus_cidr}.${RESET}"
         else
             echo -e "${YELLOW}⚠️  [WARN] Could not determine the Docker bridge CIDR; using OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR from .env.${RESET}"
         fi
