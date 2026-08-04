@@ -14,14 +14,22 @@ Tech Stack:
 - Logging: Logback + SLF4J
 - Identity Management: Keycloak
 - Email Delivery: Jakarta Mail + Thymeleaf
-- Object Storage: MinIO + Cloudflare R2 + AWS S3 SDK
-- Observability Layer: Micrometer + Prometheus + OpenTelemetry/OTLP + Alloy + Tempo + Loki + Grafana + Alertmanager + Sentry + PostHog
+- Object Storage: MinIO + AWS S3 SDK
 - Reverse Proxy: Traefik
 - Testing: JUnit 5 + Vitest + Playwright
 - OpenAPI Docs: SpringDoc + Scalar
 - Rate Limiting: bucket4j
 - Security: Spring Security + OAuth2 / OIDC
 - Infrastructure: Docker Compose
+- Instrumentation: Micrometer 
+- Distributed Tracing: OTLP
+- Collector: Grafana Alloy 
+- Metrics Storage & Aler: Prometheus + Alertmanager
+- Trace Storage: Grafana Tempo + Cloudflare R2
+- Logs Aggregation: Grafana Loki + Cloudflare R2
+- Observability Dashboard: Grafana 
+- Error & Session Tracking: Sentry
+- Product Analytics: PostHog
 - Tools: Turborepo, Biome, Spotless, Checkstyle, SpotBugs, PMD, OpenApi-Typescript, Orval
 
 To run project
