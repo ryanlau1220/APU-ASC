@@ -201,3 +201,7 @@ event-publications:
   cleanup:
     cron: "${EVENT_PUBLICATION_CLEANUP_CRON:0 15 3 * * *}"
     retention: ${EVENT_PUBLICATION_RETENTION:P30D}
+
+observability:
+  prometheus:
+    allowed-cidr: ${OBSERVABILITY_PROMETHEUS_ALLOWED_CIDR:172.18.0.0/16}

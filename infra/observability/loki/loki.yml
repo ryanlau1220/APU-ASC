@@ -7,6 +7,7 @@ common:
   path_prefix: /loki
   replication_factor: 1
   ring:
+    zone_awareness_enabled: false
     kvstore:
       store: inmemory
 
@@ -38,3 +39,4 @@ compactor:
   working_directory: /loki/compactor
   compaction_interval: 10m
   retention_enabled: true
+  delete_request_store: filesystem

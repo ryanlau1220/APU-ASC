@@ -11,9 +11,9 @@ route:
 receivers:
   - name: operational-email
     email_configs:
-      - to: ${ALERT_EMAIL_TO}
-        from: ${SPRING_MAIL_USERNAME}
-        smarthost: ${SPRING_MAIL_HOST}:${SPRING_MAIL_PORT}
-        auth_username: ${SPRING_MAIL_USERNAME}
-        auth_password: ${SPRING_MAIL_PASSWORD}
+      - to: __ALERT_EMAIL_TO__
+        from: __SPRING_MAIL_USERNAME__
+        smarthost: __SPRING_MAIL_HOST__:__SPRING_MAIL_PORT__
+        auth_username: __SPRING_MAIL_USERNAME__
+        auth_password: __SPRING_MAIL_PASSWORD__
         require_tls: true
