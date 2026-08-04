@@ -17,6 +17,7 @@
 .env
 .env.local
 .env.*.local
+.secrets/
 
 # IDE & OS
 .idea/
@@ -30,3 +31,4 @@ Thumbs.db
 tmp/
 *.log
 data/
+walg-private.asc
