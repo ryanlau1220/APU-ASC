@@ -97,6 +97,118 @@ services:
     networks:
       - apu-asc-net
 
+  grafana:
+    image: grafana/grafana:11.5.0
+    container_name: apu-asc-grafana
+    profiles: [observability]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_ROOT_URL: http://localhost:3001
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - apu-asc-net
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: apu-asc-prometheus
+    profiles: [observability]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+    volumes:
+      - ./infra/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - alertmanager
+    networks:
+      - apu-asc-net
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: apu-asc-alertmanager
+    profiles: [observability]
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --config.expand-env
+    environment:
+      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+    volumes:
+      - ./infra/observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - apu-asc-net
+
+  alloy:
+    image: grafana/alloy:v1.4.0
+    container_name: apu-asc-alloy
+    profiles: [observability]
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    environment:
+      OBSERVABILITY_S3_ENDPOINT: ${OBSERVABILITY_S3_ENDPOINT:?Set OBSERVABILITY_S3_ENDPOINT in .env}
+      OBSERVABILITY_S3_REGION: ${OBSERVABILITY_S3_REGION:-auto}
+      OBSERVABILITY_S3_ACCESS_KEY: ${OBSERVABILITY_S3_ACCESS_KEY:?Set OBSERVABILITY_S3_ACCESS_KEY in .env}
+      OBSERVABILITY_S3_SECRET_KEY: ${OBSERVABILITY_S3_SECRET_KEY:?Set OBSERVABILITY_S3_SECRET_KEY in .env}
+    ports:
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - ./infra/observability/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki
+      - tempo
+    networks:
+      - apu-asc-net
+
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: apu-asc-loki
+    profiles: [observability]
+    command: -config.file=/etc/loki/config.yml -config.expand-env=true
+    environment:
+      OBSERVABILITY_S3_ENDPOINT: ${OBSERVABILITY_S3_ENDPOINT:?Set OBSERVABILITY_S3_ENDPOINT in .env}
+      OBSERVABILITY_S3_REGION: ${OBSERVABILITY_S3_REGION:-auto}
+      OBSERVABILITY_S3_ACCESS_KEY: ${OBSERVABILITY_S3_ACCESS_KEY:?Set OBSERVABILITY_S3_ACCESS_KEY in .env}
+      OBSERVABILITY_S3_SECRET_KEY: ${OBSERVABILITY_S3_SECRET_KEY:?Set OBSERVABILITY_S3_SECRET_KEY in .env}
+      LOKI_S3_BUCKET: ${LOKI_S3_BUCKET:?Set LOKI_S3_BUCKET in .env}
+    volumes:
+      - ./infra/observability/loki/loki.yml:/etc/loki/config.yml:ro
+    networks:
+      - apu-asc-net
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: apu-asc-tempo
+    profiles: [observability]
+    command: -config.file=/etc/tempo/config.yml -config.expand-env=true
+    environment:
+      OBSERVABILITY_S3_ENDPOINT: ${OBSERVABILITY_S3_ENDPOINT:?Set OBSERVABILITY_S3_ENDPOINT in .env}
+      OBSERVABILITY_S3_ACCESS_KEY: ${OBSERVABILITY_S3_ACCESS_KEY:?Set OBSERVABILITY_S3_ACCESS_KEY in .env}
+      OBSERVABILITY_S3_SECRET_KEY: ${OBSERVABILITY_S3_SECRET_KEY:?Set OBSERVABILITY_S3_SECRET_KEY in .env}
+      TEMPO_S3_BUCKET: ${TEMPO_S3_BUCKET:?Set TEMPO_S3_BUCKET in .env}
+    volumes:
+      - ./infra/observability/tempo/tempo.yml:/etc/tempo/config.yml:ro
+    networks:
+      - apu-asc-net
+
 networks:
   apu-asc-net:
     name: apu-asc-net
@@ -106,3 +218,5 @@ volumes:
   postgres_data:
   minio_data:
   valkey_data:
+  grafana_data:
+  prometheus_data:
