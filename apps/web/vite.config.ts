@@ -5,6 +5,8 @@ import viteReact from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 const config = defineConfig({
+  // The repository owns one ignored .env file shared by local Docker, backend, and frontend.
+  envDir: '../..',
   server: {
     proxy: {
       '/api': {
