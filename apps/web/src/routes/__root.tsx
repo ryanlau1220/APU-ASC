@@ -167,9 +167,7 @@ function ClientPostHogProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Safely initialize PostHog on client browser only
-    const posthogKey =
-      import.meta.env.VITE_POSTHOG_PROJECT_TOKEN ||
-      import.meta.env.VITE_POSTHOG_KEY
+    const posthogKey = import.meta.env.VITE_POSTHOG_PROJECT_TOKEN
     const posthogHost =
       import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
     if (posthogKey) {
