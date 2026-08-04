@@ -122,17 +122,30 @@ management:
         include: health, info, prometheus
   tracing:
     sampling:
-      probability: 1.0
+      probability: ${OTEL_TRACING_SAMPLING_PROBABILITY:1.0}
+    propagation:
+      type: w3c
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+      timeout: 5s
   health:
     mail:
       enabled: false
   endpoint:
     health:
-      show-details: always
+      show-details: when_authorized
+      show-components: when_authorized
+      roles: MANAGER,SYSTEM_ADMIN
+      probes:
+        enabled: true
+        add-additional-paths: true
 
 sentry:
-  dsn: ${SENTRY_DSN:https://examplePublicKey@o0.ingest.sentry.io/0}
-  traces-sample-rate: 1.0
+  dsn: ${SENTRY_DSN:}
+  environment: ${OBSERVABILITY_ENVIRONMENT:development}
+  release: ${OBSERVABILITY_RELEASE:dev}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
   send-default-pii: false
   exception-resolver-order: -2147483647
 
