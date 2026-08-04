@@ -4,6 +4,9 @@ import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.user.CurrentUserService;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.PreDestroy;
@@ -39,14 +42,29 @@ public class SseController {
 
   private final CurrentUserService currentUserService;
   private final ApplicationEventPublisher eventPublisher;
+  private final Counter deliveredUpdates;
+  private final Counter failedDeliveries;
   private final ConcurrentMap<String, Subscriber> subscribers = new ConcurrentHashMap<>();
   private final ScheduledExecutorService heartbeatExecutor =
       Executors.newSingleThreadScheduledExecutor();
 
   public SseController(
-      CurrentUserService currentUserService, ApplicationEventPublisher eventPublisher) {
+      CurrentUserService currentUserService,
+      ApplicationEventPublisher eventPublisher,
+      MeterRegistry meterRegistry) {
     this.currentUserService = currentUserService;
     this.eventPublisher = eventPublisher;
+    this.deliveredUpdates =
+        Counter.builder("sse.live_update.delivered")
+            .description("Delivered live updates")
+            .register(meterRegistry);
+    this.failedDeliveries =
+        Counter.builder("sse.live_update.delivery.failure")
+            .description("Failed live-update deliveries")
+            .register(meterRegistry);
+    Gauge.builder("sse.subscribers.active", subscribers, ConcurrentMap::size)
+        .description("Active authenticated SSE subscribers")
+        .register(meterRegistry);
     heartbeatExecutor.scheduleAtFixedRate(
         () -> {
           for (Map.Entry<String, Subscriber> entry : subscribers.entrySet()) {
@@ -114,7 +132,9 @@ public class SseController {
                   .data(
                       new LiveUpdateMessage(
                           event.topic(), event.resourceId(), event.occurredAt())));
+      deliveredUpdates.increment();
     } catch (Exception e) {
+      failedDeliveries.increment();
       removeSubscriber(subscriberId, subscriber);
     }
   }
