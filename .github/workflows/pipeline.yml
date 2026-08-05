@@ -60,7 +60,7 @@ jobs:
         run: ./manage.sh test
       - name: Show service logs on failure
         if: failure()
-        run: docker compose logs --no-color
+        run: docker compose logs --no-color || true
 
   e2e:
     name: End-to-end tests
@@ -96,7 +96,7 @@ jobs:
           if-no-files-found: ignore
       - name: Show service logs on failure
         if: failure()
-        run: docker compose logs --no-color
+        run: docker compose logs --no-color || true
 
   images:
     name: Build ARM64 release images
