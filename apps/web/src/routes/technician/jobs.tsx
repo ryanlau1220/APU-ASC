@@ -9,6 +9,7 @@ import {
 import type { UpdateWorkOrderStatusStatus } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
+import { WorkOrderDocuments } from '../../components/WorkOrderDocuments'
 import {
   workOrderTransitionLabels,
   workOrderTransitionTargets,
@@ -207,6 +208,8 @@ function TechnicianJobsContent() {
                       Save diagnostics
                     </button>
                   </div>
+
+                  {j.id && <WorkOrderDocuments workOrderId={j.id} />}
                 </div>
               ))}
             </div>

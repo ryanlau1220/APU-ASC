@@ -1,5 +1,6 @@
 package com.apu.asc.user.internal;
 
+import com.apu.asc.common.storage.ObjectStorageApi;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
@@ -17,6 +18,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -26,7 +28,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 @Service
 @RequiredArgsConstructor
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
-class S3StorageService {
+class S3StorageService implements ObjectStorageApi {
 
   @Value("${s3.endpoint:http://localhost:9000}")
   private String s3Endpoint;
@@ -112,6 +114,32 @@ class S3StorageService {
 
   public InputStream getAvatarFile(String filename) {
     String key = "avatars/" + filename;
+    return get(key);
+  }
+
+  @Override
+  public void put(String key, byte[] content, String contentType) {
+    try {
+      s3Client.putObject(
+          PutObjectRequest.builder().bucket(bucket).key(key).contentType(contentType).build(),
+          RequestBody.fromBytes(content));
+    } catch (Exception e) {
+      log.error("Failed to upload object {}: {}", key, e.getMessage(), e);
+      throw new IllegalStateException("Document storage upload failed.", e);
+    }
+  }
+
+  @Override
+  public InputStream get(String key) {
     return s3Client.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build());
+  }
+
+  @Override
+  public void delete(String key) {
+    try {
+      s3Client.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(key).build());
+    } catch (Exception e) {
+      log.warn("Could not remove orphaned object {}: {}", key, e.getMessage());
+    }
   }
 }
