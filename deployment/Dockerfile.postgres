@@ -1,0 +1,9 @@
+FROM golang:1.23-alpine AS wal-g-build
+ARG WALG_VERSION=v3.0.3
+RUN apk add --no-cache git make build-base
+RUN git clone --depth 1 --branch ${WALG_VERSION} https://github.com/wal-g/wal-g.git /src
+WORKDIR /src
+RUN go build -mod=mod -ldflags "-s -w" -o /wal-g ./main/pg
+
+FROM postgres:16-alpine
+COPY --from=wal-g-build /wal-g /usr/local/bin/wal-g

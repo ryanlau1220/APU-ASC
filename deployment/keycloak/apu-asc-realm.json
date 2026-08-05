@@ -1,0 +1,75 @@
+{
+  "id": "apu-asc",
+  "realm": "apu-asc",
+  "displayName": "APU Automotive Service Centre",
+  "loginTheme": "apu-asc",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "rememberMe": true,
+  "verifyEmail": true,
+  "defaultRoles": ["CUSTOMER"],
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "smtpServer": {
+    "host": "${SMTP_HOST}",
+    "port": "${SMTP_PORT}",
+    "from": "${SMTP_FROM}",
+    "fromDisplayName": "APU-ASC Security",
+    "auth": "true",
+    "ssl": "false",
+    "starttls": "true",
+    "user": "${SMTP_USERNAME}",
+    "password": "${SMTP_PASSWORD}"
+  },
+  "roles": {
+    "realm": [
+      { "name": "SYSTEM_ADMIN", "description": "System Administrator with full control" },
+      { "name": "MANAGER", "description": "Workshop Manager with administrative control" },
+      { "name": "STAFF", "description": "Counter Staff with booking and billing privileges" },
+      { "name": "TECHNICIAN", "description": "Technician with job ticket and inspection privileges" },
+      { "name": "CUSTOMER", "description": "Customer account for service appointments" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "apu-asc-web",
+      "name": "APU-ASC Web Client",
+      "description": "Public SPA/SSR Client using OAuth2 PKCE",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "baseUrl": "${APP_FRONTEND_BASE_URL}",
+      "redirectUris": ["${APP_FRONTEND_BASE_URL}/*"],
+      "webOrigins": ["${APP_FRONTEND_BASE_URL}"]
+    },
+    {
+      "clientId": "apu-asc-api",
+      "name": "APU-ASC Backend API Service",
+      "description": "OAuth2 Resource Server Audience Client",
+      "enabled": true,
+      "bearerOnly": true
+    }
+  ],
+  "users": [
+    {
+      "username": "${INITIAL_MANAGER_USERNAME}",
+      "email": "${INITIAL_MANAGER_EMAIL}",
+      "firstName": "System",
+      "lastName": "Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${INITIAL_MANAGER_PASSWORD}",
+          "temporary": true
+        }
+      ],
+      "realmRoles": ["SYSTEM_ADMIN", "MANAGER"]
+    }
+  ]
+}
