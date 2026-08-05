@@ -3,8 +3,34 @@ name: CI and production release
 on:
   pull_request:
     branches: [main]
+    paths:
+      - apps/backend/**
+      - apps/web/**
+      - deployment/**
+      - infra/**
+      - .github/**
+      - Dockerfile
+      - docker-compose.yml
+      - manage.sh
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - turbo.json
   push:
     branches: [main]
+    paths:
+      - apps/backend/**
+      - apps/web/**
+      - deployment/**
+      - infra/**
+      - .github/**
+      - Dockerfile
+      - docker-compose.yml
+      - manage.sh
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - turbo.json
   workflow_dispatch:
 
 permissions:
@@ -153,8 +179,9 @@ jobs:
       - name: Configure deployment SSH key
         run: |
           install -d -m 700 ~/.ssh
-          printf '%s\n' "$VPS_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
           printf '%s\n' "$VPS_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
         env:
