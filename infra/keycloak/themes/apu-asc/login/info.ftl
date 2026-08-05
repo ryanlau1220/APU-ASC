@@ -12,9 +12,9 @@
             <#if actionUri??>
                 <a href="${actionUri}" class="btn-primary">${msg("proceedWithAction")}</a>
             <#elseif client?? && client.baseUrl??>
-                <a href="http://localhost:3000/oauth2/authorization/keycloak" class="btn-primary">${msg("backToApplication")}</a>
+                <a href="${client.baseUrl!'/'}${(client.baseUrl??)?then('/oauth2/authorization/keycloak', '')}" class="btn-primary">${msg("backToApplication")}</a>
             <#else>
-                <a href="http://localhost:3000/oauth2/authorization/keycloak" class="btn-primary">Proceed to APU-ASC Sign In</a>
+                <a href="${client.baseUrl!'/'}${(client.baseUrl??)?then('/oauth2/authorization/keycloak', '')}" class="btn-primary">Proceed to APU-ASC Sign In</a>
             </#if>
         </div>
     </#if>

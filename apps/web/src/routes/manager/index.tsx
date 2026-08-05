@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
-  FileCode,
   Plus,
   ShieldCheck,
 } from 'lucide-react'
@@ -108,15 +107,6 @@ function ManagerDashboardContent() {
               <Plus className="w-4 h-4 text-primary-foreground" />
               Manage Bookings
             </Link>
-            <a
-              href="http://localhost:8081/scalar"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-muted hover:border-primary/40 text-sm font-semibold transition-colors"
-            >
-              <FileCode className="w-4 h-4 text-primary" />
-              Scalar API Docs
-            </a>
           </div>
         </section>
 

@@ -57,19 +57,12 @@
       "publicClient": true,
       "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
+      "baseUrl": "${APP_FRONTEND_BASE_URL:http://localhost:3000}",
       "redirectUris": [
-        "http://localhost:3000/*",
-        "http://localhost:8081/*",
-        "http://localhost:8081/login/oauth2/code/*",
-        "http://localhost/login/oauth2/code/*",
-        "http://localhost/*",
-        "http://localhost/login/callback"
+        "${APP_FRONTEND_BASE_URL:http://localhost:3000}/*"
       ],
       "webOrigins": [
-        "http://localhost:3000",
-        "http://localhost:8081",
-        "http://localhost",
-        "+"
+        "${APP_FRONTEND_BASE_URL:http://localhost:3000}"
       ]
     },
     {

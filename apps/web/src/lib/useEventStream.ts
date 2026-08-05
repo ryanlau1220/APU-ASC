@@ -2,8 +2,6 @@ import type { QueryClient, QueryKey } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8081'
-
 const TOPIC_QUERY_PREFIXES: Record<string, readonly string[]> = {
   appointments: ['/api/v1/appointments'],
   scheduling: ['/api/v1/scheduling'],
@@ -60,7 +58,7 @@ export function useEventStream(enabled: boolean = true) {
   useEffect(() => {
     if (typeof window === 'undefined' || !enabled) return
 
-    const eventSource = new EventSource(`${BACKEND_URL}/api/v1/events/stream`, {
+    const eventSource = new EventSource('/api/v1/events/stream', {
       withCredentials: true,
     })
     let hasOpened = false

@@ -28,7 +28,7 @@ export async function bffFetch<T>(
 
   let url = endpoint
   if (typeof window === 'undefined' && endpoint.startsWith('/')) {
-    url = `http://localhost:8081${endpoint}`
+    url = `${process.env.INTERNAL_BACKEND_URL || 'http://localhost:8081'}${endpoint}`
   }
 
   const fetchOptions: RequestInit = {

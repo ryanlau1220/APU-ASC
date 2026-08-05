@@ -1,14 +1,12 @@
-import { CheckCircle2, FileCode, ShieldCheck } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 import { useUserSession } from '../routes/__root'
 
 export default function Footer() {
   const { userSession } = useUserSession()
   const roles = userSession?.roles ?? []
 
-  const isInternalUser =
-    roles.includes('MANAGER') ||
-    roles.includes('STAFF') ||
-    roles.includes('SYSTEM_ADMIN')
+  const canManageIdentity =
+    roles.includes('MANAGER') || roles.includes('SYSTEM_ADMIN')
 
   return (
     <footer className="border-t border-border bg-card py-6 mt-auto transition-colors">
@@ -21,30 +19,10 @@ export default function Footer() {
           </span>
         </div>
 
-        {isInternalUser && (
+        {canManageIdentity && (
           <div className="flex flex-wrap items-center gap-4">
             <a
-              href="http://localhost:8081/"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1.5 text-status-active hover:underline font-medium transition-colors"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Spring Boot API Online
-            </a>
-            <span className="text-border">|</span>
-            <a
-              href="http://localhost:8081/scalar"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 hover:text-foreground transition-colors font-medium"
-            >
-              <FileCode className="w-3.5 h-3.5 text-primary" />
-              Scalar Docs
-            </a>
-            <span className="text-border">|</span>
-            <a
-              href="http://localhost/auth/admin/"
+              href="/auth/admin/"
               target="_blank"
               rel="noreferrer"
               className="hover:text-foreground transition-colors"

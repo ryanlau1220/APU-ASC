@@ -70,6 +70,9 @@ public class SecurityConfig {
   @Value("${observability.prometheus.allowed-cidr:127.0.0.1/32}")
   private String prometheusAllowedCidrs;
 
+  @Value("${app.frontend-base-url:http://localhost:3000}")
+  private String frontendBaseUrl;
+
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.cors(Customizer.withDefaults())
@@ -83,8 +86,8 @@ public class SecurityConfig {
             oauth2 ->
                 oauth2
                     .userInfoEndpoint(userInfo -> userInfo.oidcUserService(customOidcUserService))
-                    .defaultSuccessUrl("http://localhost:3000", true)
-                    .failureUrl("http://localhost:3000/login?error=true"))
+                    .defaultSuccessUrl(frontendBaseUrl, true)
+                    .failureUrl(frontendBaseUrl + "/login?error=true"))
         .logout(
             logout ->
                 logout
@@ -144,7 +147,7 @@ public class SecurityConfig {
   private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
     OidcClientInitiatedLogoutSuccessHandler handler =
         new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-    handler.setPostLogoutRedirectUri("http://localhost:3000/oauth2/authorization/keycloak");
+    handler.setPostLogoutRedirectUri(frontendBaseUrl + "/oauth2/authorization/keycloak");
     return handler;
   }
 

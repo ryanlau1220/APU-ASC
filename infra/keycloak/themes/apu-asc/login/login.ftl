@@ -18,7 +18,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.375rem;">
                     <label for="password" class="form-label" style="margin-bottom: 0;">${msg("password")}</label>
                     <#if realm.resetPasswordAllowed>
-                        <a tabindex="5" href="http://localhost:3000/forgot-password" style="font-size: 0.75rem; color: var(--primary); text-decoration: none; font-weight: 500;">${msg("doForgotPassword")}</a>
+                        <a tabindex="5" href="${client.baseUrl!'/'}${(client.baseUrl??)?then('/forgot-password', '')}" style="font-size: 0.75rem; color: var(--primary); text-decoration: none; font-weight: 500;">${msg("doForgotPassword")}</a>
                     </#if>
                 </div>
                 <div class="input-wrapper">
