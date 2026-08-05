@@ -46,6 +46,7 @@ class NotificationEventListener {
           .forEach(recipients::add);
     }
 
+    recipients.removeIf(recipientId -> !userApi.isInAppNotificationsEnabled(recipientId));
     recipients.forEach(recipientId -> notificationApi.create(event, recipientId));
     if (!recipients.isEmpty()) {
       eventPublisher.publishEvent(
