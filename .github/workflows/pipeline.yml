@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - apps/backend/**
+      - apps/mobile/**
       - apps/web/**
       - deployment/**
       - infra/**
@@ -20,6 +21,7 @@ on:
     branches: [main]
     paths:
       - apps/backend/**
+      - apps/mobile/**
       - apps/web/**
       - deployment/**
       - infra/**
