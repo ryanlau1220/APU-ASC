@@ -15,6 +15,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
@@ -54,11 +55,16 @@ class S3StorageService {
               .credentialsProvider(
                   StaticCredentialsProvider.create(
                       AwsBasicCredentials.create(accessKey, secretKey)))
-              .forcePathStyle(true)
+              // Required for Cloudflare R2 and remains compatible with MinIO.
+              .serviceConfiguration(
+                  S3Configuration.builder()
+                      .pathStyleAccessEnabled(true)
+                      .chunkedEncodingEnabled(false)
+                      .build())
               .build();
       ensureBucketExists();
     } catch (Exception e) {
-      log.warn("MinIO/S3 Storage initialization warning: {}", e.getMessage());
+      log.warn("S3 storage initialization warning: {}", e.getMessage());
     }
   }
 
@@ -69,7 +75,7 @@ class S3StorageService {
       log.info("Bucket {} does not exist. Creating now...", bucket);
       s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
     } catch (Exception e) {
-      log.warn("Could not check/create MinIO bucket: {}", e.getMessage());
+      log.warn("Could not check/create S3 bucket: {}", e.getMessage());
     }
   }
 
@@ -99,7 +105,7 @@ class S3StorageService {
       log.info("Successfully uploaded avatar for user {} to key {}", userId, key);
       return "/api/v1/users/avatar/file/" + filename;
     } catch (Exception e) {
-      log.error("Failed to upload avatar to MinIO S3: {}", e.getMessage(), e);
+      log.error("Failed to upload avatar to S3: {}", e.getMessage(), e);
       throw new RuntimeException("Avatar upload failed: " + e.getMessage(), e);
     }
   }
