@@ -2,10 +2,7 @@ name: apu-asc-prod
 
 services:
   postgres:
-    build:
-      context: ..
-      dockerfile: deployment/Dockerfile.postgres
-    image: apu-asc-postgres:local
+    image: ${IMAGE_REGISTRY:?Set IMAGE_REGISTRY in deployment/.env.prod}/apu-asc-postgres:${IMAGE_TAG:?Set IMAGE_TAG in deployment/.env.prod}
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in deployment/.env.prod}
@@ -48,7 +45,7 @@ services:
     networks: [app]
 
   postgres-backup:
-    image: apu-asc-postgres:local
+    image: ${IMAGE_REGISTRY:?Set IMAGE_REGISTRY in deployment/.env.prod}/apu-asc-postgres:${IMAGE_TAG:?Set IMAGE_TAG in deployment/.env.prod}
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in deployment/.env.prod}
@@ -136,9 +133,7 @@ services:
     networks: [app]
 
   backend:
-    build:
-      context: ..
-      dockerfile: deployment/Dockerfile.backend
+    image: ${IMAGE_REGISTRY:?Set IMAGE_REGISTRY in deployment/.env.prod}/apu-asc-backend:${IMAGE_TAG:?Set IMAGE_TAG in deployment/.env.prod}
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -193,16 +188,7 @@ services:
     networks: [app]
 
   web:
-    build:
-      context: ..
-      dockerfile: deployment/Dockerfile.web
-      args:
-        VITE_OBSERVABILITY_ENVIRONMENT: ${VITE_OBSERVABILITY_ENVIRONMENT:-production}
-        VITE_OBSERVABILITY_RELEASE: ${VITE_OBSERVABILITY_RELEASE:-manual}
-        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
-        VITE_SENTRY_TRACES_SAMPLE_RATE: ${VITE_SENTRY_TRACES_SAMPLE_RATE:-0.1}
-        VITE_POSTHOG_PROJECT_TOKEN: ${VITE_POSTHOG_PROJECT_TOKEN:-}
-        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST:-https://us.i.posthog.com}
+    image: ${IMAGE_REGISTRY:?Set IMAGE_REGISTRY in deployment/.env.prod}/apu-asc-web:${IMAGE_TAG:?Set IMAGE_TAG in deployment/.env.prod}
     restart: unless-stopped
     environment:
       PORT: 3000
