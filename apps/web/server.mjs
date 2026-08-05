@@ -17,6 +17,7 @@ const contentTypes = {
   '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.map': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
@@ -40,9 +41,12 @@ async function serveAsset(request, response) {
   }
 
   response.writeHead(200, {
-    'Cache-Control': pathname.startsWith('/assets/')
-      ? 'public, max-age=31536000, immutable'
-      : 'public, max-age=3600',
+    'Cache-Control':
+      pathname === '/service-worker.js'
+        ? 'no-cache'
+        : pathname.startsWith('/assets/')
+          ? 'public, max-age=31536000, immutable'
+          : 'public, max-age=3600',
     'Content-Type': contentTypes[extname(assetPath)] || 'application/octet-stream',
   })
   createReadStream(assetPath).pipe(response)
