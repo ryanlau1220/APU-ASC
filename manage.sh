@@ -78,6 +78,25 @@ case "$1" in
         docker compose --profile observability down
         echo -e "${GREEN}✓ [OK] Docker infrastructure and observability containers stopped and removed.${RESET}"
         ;;
+    prod:up)
+        prod_env="${2:-deployment/.env.prod}"
+        if [ ! -f "$prod_env" ]; then
+            echo -e "${RED}Production environment file not found: $prod_env${RESET}"
+            exit 1
+        fi
+        echo -e "${YELLOW}Starting the production stack...${RESET}"
+        docker compose --env-file "$prod_env" -f deployment/docker-compose.prod.yml up -d --build
+        echo -e "${GREEN}✓ [OK] Production stack started. Check status with: ./manage.sh prod:status${RESET}"
+        ;;
+    prod:down)
+        prod_env="${2:-deployment/.env.prod}"
+        echo -e "${YELLOW}Stopping the production stack without deleting volumes...${RESET}"
+        docker compose --env-file "$prod_env" -f deployment/docker-compose.prod.yml down
+        ;;
+    prod:status)
+        prod_env="${2:-deployment/.env.prod}"
+        docker compose --env-file "$prod_env" -f deployment/docker-compose.prod.yml ps
+        ;;
     build)
         echo "Building backend Fat JAR..."
         (cd apps/backend && mvn clean package -DskipTests)
@@ -124,7 +143,7 @@ case "$1" in
         echo "Clean complete."
         ;;
     *)
-        echo "Usage: ./manage.sh {dev|docker|docker:down|build|lint|check|test|test:e2e|clean}"
+        echo "Usage: ./manage.sh {dev|docker|docker:down|prod:up|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
         exit 1
         ;;
 esac
