@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {
+  BellRing,
   Car,
   CheckCircle2,
+  Globe2,
   KeyRound,
   LayoutDashboard,
   Lock,
@@ -15,12 +17,23 @@ import {
 import * as React from 'react'
 import {
   useChangePassword,
+  useGetMyPreferences,
+  useUpdateMyPreferences,
   useUpdateUser,
   useUploadAvatar,
 } from '../api/generated/endpoints'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
 import { useUserSession } from './__root'
+
+const TIME_ZONES = [
+  ['Asia/Kuala_Lumpur', 'Kuala Lumpur (UTC+8)'],
+  ['Asia/Singapore', 'Singapore (UTC+8)'],
+  ['Asia/Bangkok', 'Bangkok (UTC+7)'],
+  ['Asia/Jakarta', 'Jakarta (UTC+7)'],
+  ['Asia/Manila', 'Manila (UTC+8)'],
+  ['UTC', 'UTC'],
+] as const
 
 export const Route = createFileRoute('/profile')({
   head: () => ({
@@ -70,14 +83,30 @@ function ProfilePage() {
   const [avatarUploading, setAvatarUploading] = React.useState(false)
   const [avatarSuccess, setAvatarSuccess] = React.useState('')
 
+  const [timeZone, setTimeZone] = React.useState('Asia/Kuala_Lumpur')
+  const [inAppNotificationsEnabled, setInAppNotificationsEnabled] =
+    React.useState(true)
+  const [preferencesSaved, setPreferencesSaved] = React.useState(false)
+  const [preferencesError, setPreferencesError] = React.useState('')
+
   const uploadAvatarMutation = useUploadAvatar<Error>()
   const updateUserMutation = useUpdateUser<Error>()
   const changePasswordMutation = useChangePassword<Error>()
+  const { data: preferences } = useGetMyPreferences()
+  const updatePreferencesMutation = useUpdateMyPreferences<Error>()
 
   React.useEffect(() => {
     if (userSession?.fullName) setFullName(userSession.fullName)
     if (userSession?.email) setEmail(userSession.email)
   }, [userSession])
+
+  React.useEffect(() => {
+    if (!preferences) return
+    if (preferences.timeZone) setTimeZone(preferences.timeZone)
+    if (typeof preferences.inAppNotificationsEnabled === 'boolean') {
+      setInAppNotificationsEnabled(preferences.inAppNotificationsEnabled)
+    }
+  }, [preferences])
 
   const handleAvatarUpload = async () => {
     if (!avatarFile) return
@@ -181,6 +210,22 @@ function ProfilePage() {
       setPassError(errorMsg)
     } finally {
       setPassLoading(false)
+    }
+  }
+
+  const handlePreferencesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPreferencesSaved(false)
+    setPreferencesError('')
+    try {
+      await updatePreferencesMutation.mutateAsync({
+        data: { timeZone, inAppNotificationsEnabled },
+      })
+      setPreferencesSaved(true)
+    } catch (error) {
+      setPreferencesError(
+        error instanceof Error ? error.message : 'Unable to save preferences.',
+      )
     }
   }
 
@@ -445,6 +490,93 @@ function ProfilePage() {
               >
                 <Save className="w-4 h-4" />
                 {loading ? 'Saving Changes...' : 'Save Profile Changes'}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section className="bg-card border border-border rounded-xl p-6 sm:p-8 space-y-6">
+          <div className="border-b border-border pb-3">
+            <h2 className="font-heading text-lg font-bold flex items-center gap-2">
+              <BellRing className="w-5 h-5 text-primary" />
+              Preferences
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Use your local time zone for notification timestamps and control
+              in-app alerts.
+            </p>
+          </div>
+
+          {preferencesSaved && (
+            <div className="p-3.5 rounded-lg bg-status-completed/10 border border-status-completed/30 text-status-completed text-xs font-medium flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              Preferences saved.
+            </div>
+          )}
+          {preferencesError && (
+            <div className="p-3.5 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-xs font-medium">
+              {preferencesError}
+            </div>
+          )}
+
+          <form
+            onSubmit={handlePreferencesSubmit}
+            className="space-y-5 text-xs"
+          >
+            <div className="space-y-1.5">
+              <label
+                htmlFor="time-zone"
+                className="font-semibold text-foreground block"
+              >
+                Time Zone
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
+                  <Globe2 className="w-4 h-4" />
+                </div>
+                <select
+                  id="time-zone"
+                  value={timeZone}
+                  onChange={(e) => setTimeZone(e.target.value)}
+                  className="w-full appearance-none pl-9 pr-3 py-2.5 rounded-lg bg-muted border border-border focus:border-primary text-foreground outline-none transition-colors"
+                >
+                  {TIME_ZONES.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={inAppNotificationsEnabled}
+                onChange={(e) => setInAppNotificationsEnabled(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-primary"
+              />
+              <span className="space-y-1">
+                <span className="block font-semibold text-foreground">
+                  In-app notifications
+                </span>
+                <span className="block text-muted-foreground">
+                  Receive appointment, quotation, and work-order updates in the
+                  portal.
+                </span>
+              </span>
+            </label>
+
+            <div className="pt-1 flex justify-end">
+              <button
+                type="submit"
+                disabled={updatePreferencesMutation.isPending}
+                className="px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {updatePreferencesMutation.isPending
+                  ? 'Saving Preferences...'
+                  : 'Save Preferences'}
               </button>
             </div>
           </form>

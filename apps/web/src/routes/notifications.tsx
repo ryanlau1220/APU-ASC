@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { Bell, CheckCheck, Circle, Inbox } from 'lucide-react'
 import {
   useGetMyNotifications,
+  useGetMyPreferences,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from '../api/generated/endpoints'
@@ -28,6 +29,7 @@ function NotificationsRoute() {
 
 function NotificationsPage() {
   const { data = [], isLoading } = useGetMyNotifications({ limit: 100 })
+  const { data: preferences } = useGetMyPreferences()
   const markRead = useMarkNotificationRead<Error>()
   const markAllRead = useMarkAllNotificationsRead<Error>()
   const unreadCount = data.filter((notification) => !notification.readAt).length
@@ -120,7 +122,10 @@ function NotificationsPage() {
                           {notification.title}
                         </h2>
                         <time className="text-xs text-muted-foreground">
-                          {formatTimestamp(notification.createdAt)}
+                          {formatTimestamp(
+                            notification.createdAt,
+                            preferences?.timeZone,
+                          )}
                         </time>
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">
@@ -139,12 +144,13 @@ function NotificationsPage() {
   )
 }
 
-function formatTimestamp(value?: string) {
+function formatTimestamp(value?: string, timeZone?: string) {
   if (!value) return ''
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ''
   return new Intl.DateTimeFormat('en-MY', {
     dateStyle: 'medium',
     timeStyle: 'short',
+    timeZone,
   }).format(date)
 }
