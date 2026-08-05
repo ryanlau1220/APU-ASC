@@ -1,0 +1,177 @@
+name: CI and production release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apu-asc-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Quality checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run canonical quality checks
+        run: ./manage.sh check
+
+  test:
+    name: Unit and integration tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Start disposable test services
+        run: |
+          cp .github/ci.env .env
+          docker compose up -d --wait postgres valkey minio traefik keycloak
+      - name: Run canonical test suite
+        run: ./manage.sh test
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browser
+        run: pnpm --filter @apu-asc/web exec playwright install --with-deps chromium
+      - name: Start disposable test services
+        run: |
+          cp .github/ci.env .env
+          docker compose up -d --wait postgres valkey minio traefik keycloak
+      - name: Run canonical end-to-end suite
+        run: ./manage.sh test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          if-no-files-found: ignore
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+  images:
+    name: Build ARM64 release images
+    needs: [quality, test, e2e]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: backend
+            dockerfile: deployment/Dockerfile.backend
+          - image: web
+            dockerfile: deployment/Dockerfile.web
+          - image: postgres
+            dockerfile: deployment/Dockerfile.postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: printf '%s' "$GITHUB_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Build and publish image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/arm64
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ghcr.io/${{ github.repository_owner }}/apu-asc-${{ matrix.image }}:${{ github.sha }}
+          build-args: |
+            VITE_OBSERVABILITY_ENVIRONMENT=production
+            VITE_OBSERVABILITY_RELEASE=${{ github.sha }}
+            VITE_SENTRY_DSN=${{ vars.VITE_SENTRY_DSN }}
+            VITE_SENTRY_TRACES_SAMPLE_RATE=${{ vars.VITE_SENTRY_TRACES_SAMPLE_RATE || '0.1' }}
+            VITE_POSTHOG_PROJECT_TOKEN=${{ vars.VITE_POSTHOG_PROJECT_TOKEN }}
+            VITE_POSTHOG_HOST=${{ vars.VITE_POSTHOG_HOST || 'https://us.i.posthog.com' }}
+
+  deploy:
+    name: Deploy to production
+    needs: images
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure deployment SSH key
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+        env:
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+      - name: Synchronize deployment configuration
+        run: |
+          target="ubuntu@${VPS_HOST}"
+          rsync -az --exclude='.env.prod' --exclude='.secrets/' deployment/ "${target}:/home/ubuntu/APU-ASC/deployment/"
+          rsync -az infra/ "${target}:/home/ubuntu/APU-ASC/infra/"
+          rsync -az manage.sh "${target}:/home/ubuntu/APU-ASC/manage.sh"
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+      - name: Release the immutable image version
+        run: |
+          image_registry="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}"
+          ssh "ubuntu@${VPS_HOST}" \
+            "cd /home/ubuntu/APU-ASC && ./manage.sh prod:deploy deployment/.env.prod '${GITHUB_SHA}' '${image_registry}'"
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
