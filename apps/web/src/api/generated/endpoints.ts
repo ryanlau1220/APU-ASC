@@ -27,6 +27,7 @@ import type {
   CategoryDto,
   ChangePassword200,
   ChangePasswordRequest,
+  DocumentDto,
   FeedbackDto,
   ForgotPasswordOtpRequest,
   GetCurrentUser200,
@@ -56,6 +57,8 @@ import type {
   UpdateUserStatusParams,
   UpdateWorkOrderStatusParams,
   UploadAvatarBody,
+  UploadWorkOrderDocumentBody,
+  UploadWorkOrderDocumentParams,
   UserDto,
   UserPreferencesDto,
   UserPreferencesUpdateRequest,
@@ -3164,6 +3167,299 @@ export const useCreateWorkOrder = <TError = unknown, TContext = unknown>(
   TContext
 > => {
   const mutationOptions = getCreateWorkOrderMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+
+/**
+ * @summary List documents for a work order
+ */
+export const getWorkOrderDocuments = (
+  workOrderId: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<DocumentDto[]>(
+    {
+      url: `/api/v1/work-orders/${workOrderId}/documents`,
+      method: 'GET',
+      signal,
+    },
+    options,
+  )
+}
+
+export const getGetWorkOrderDocumentsQueryKey = (workOrderId?: string) => {
+  return [`/api/v1/work-orders/${workOrderId}/documents`] as const
+}
+
+export const getGetWorkOrderDocumentsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+  TError = unknown,
+>(
+  workOrderId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetWorkOrderDocumentsQueryKey(workOrderId)
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWorkOrderDocuments>>
+  > = ({ signal }) => getWorkOrderDocuments(workOrderId, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!workOrderId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetWorkOrderDocumentsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkOrderDocuments>>
+>
+export type GetWorkOrderDocumentsQueryError = unknown
+
+export function useGetWorkOrderDocuments<
+  TData = Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+  TError = unknown,
+>(
+  workOrderId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkOrderDocuments>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetWorkOrderDocuments<
+  TData = Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+  TError = unknown,
+>(
+  workOrderId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkOrderDocuments>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useGetWorkOrderDocuments<
+  TData = Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+  TError = unknown,
+>(
+  workOrderId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+/**
+ * @summary List documents for a work order
+ */
+
+export function useGetWorkOrderDocuments<
+  TData = Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+  TError = unknown,
+>(
+  workOrderId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkOrderDocuments>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
+  const queryOptions = getGetWorkOrderDocumentsQueryOptions(
+    workOrderId,
+    options,
+  )
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * @summary Upload evidence or a supporting file
+ */
+export const uploadWorkOrderDocument = (
+  workOrderId: string,
+  uploadWorkOrderDocumentBody: UploadWorkOrderDocumentBody,
+  params: UploadWorkOrderDocumentParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  const formData = new FormData()
+  formData.append(`file`, uploadWorkOrderDocumentBody.file)
+
+  return customInstance<DocumentDto>(
+    {
+      url: `/api/v1/work-orders/${workOrderId}/documents`,
+      method: 'POST',
+      headers: { 'Content-Type': 'multipart/form-data' },
+      data: formData,
+      params,
+      signal,
+    },
+    options,
+  )
+}
+
+export const getUploadWorkOrderDocumentMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadWorkOrderDocument>>,
+    TError,
+    {
+      workOrderId: string
+      data: UploadWorkOrderDocumentBody
+      params: UploadWorkOrderDocumentParams
+    },
+    TContext
+  >
+  request?: SecondParameter<typeof customInstance>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadWorkOrderDocument>>,
+  TError,
+  {
+    workOrderId: string
+    data: UploadWorkOrderDocumentBody
+    params: UploadWorkOrderDocumentParams
+  },
+  TContext
+> => {
+  const mutationKey = ['uploadWorkOrderDocument']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadWorkOrderDocument>>,
+    {
+      workOrderId: string
+      data: UploadWorkOrderDocumentBody
+      params: UploadWorkOrderDocumentParams
+    }
+  > = (props) => {
+    const { workOrderId, data, params } = props ?? {}
+
+    return uploadWorkOrderDocument(workOrderId, data, params, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UploadWorkOrderDocumentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadWorkOrderDocument>>
+>
+export type UploadWorkOrderDocumentMutationBody = UploadWorkOrderDocumentBody
+export type UploadWorkOrderDocumentMutationError = unknown
+
+/**
+ * @summary Upload evidence or a supporting file
+ */
+export const useUploadWorkOrderDocument = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof uploadWorkOrderDocument>>,
+      TError,
+      {
+        workOrderId: string
+        data: UploadWorkOrderDocumentBody
+        params: UploadWorkOrderDocumentParams
+      },
+      TContext
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof uploadWorkOrderDocument>>,
+  TError,
+  {
+    workOrderId: string
+    data: UploadWorkOrderDocumentBody
+    params: UploadWorkOrderDocumentParams
+  },
+  TContext
+> => {
+  const mutationOptions = getUploadWorkOrderDocumentMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
@@ -9571,6 +9867,178 @@ export function useSubscribe<
   queryKey: DataTag<QueryKey, TData, TError>
 } {
   const queryOptions = getSubscribeQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * @summary Download a document
+ */
+export const downloadDocument = (
+  id: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<Blob>(
+    {
+      url: `/api/v1/documents/${id}/download`,
+      method: 'GET',
+      responseType: 'blob',
+      signal,
+    },
+    options,
+  )
+}
+
+export const getDownloadDocumentQueryKey = (id?: string) => {
+  return [`/api/v1/documents/${id}/download`] as const
+}
+
+export const getDownloadDocumentQueryOptions = <
+  TData = Awaited<ReturnType<typeof downloadDocument>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof downloadDocument>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getDownloadDocumentQueryKey(id)
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof downloadDocument>>
+  > = ({ signal }) => downloadDocument(id, requestOptions, signal)
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof downloadDocument>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadDocumentQueryResult = NonNullable<
+  Awaited<ReturnType<typeof downloadDocument>>
+>
+export type DownloadDocumentQueryError = unknown
+
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<typeof downloadDocument>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof downloadDocument>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadDocument>>,
+          TError,
+          Awaited<ReturnType<typeof downloadDocument>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<typeof downloadDocument>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof downloadDocument>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadDocument>>,
+          TError,
+          Awaited<ReturnType<typeof downloadDocument>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<typeof downloadDocument>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof downloadDocument>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+}
+/**
+ * @summary Download a document
+ */
+
+export function useDownloadDocument<
+  TData = Awaited<ReturnType<typeof downloadDocument>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof downloadDocument>>,
+        TError,
+        TData
+      >
+    >
+    request?: SecondParameter<typeof customInstance>
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>
+} {
+  const queryOptions = getDownloadDocumentQueryOptions(id, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
