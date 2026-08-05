@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import {
+  Bell,
   BookOpen,
   Calendar,
   Car,
@@ -18,6 +19,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import * as React from 'react'
+import { useGetUnreadNotificationCount } from '../api/generated/endpoints'
 import { useUserSession } from '../routes/__root'
 
 export interface NavItem {
@@ -158,6 +160,10 @@ export default function Header() {
 
   const { theme, toggleTheme } = useTheme()
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState<boolean>(false)
+  const { data: unreadNotifications } = useGetUnreadNotificationCount({
+    query: { enabled: isAuthenticated, staleTime: 30_000 },
+  })
+  const unreadCount = unreadNotifications?.count ?? 0
 
   const userMenuRef = React.useRef<HTMLDivElement>(null)
 
@@ -245,6 +251,22 @@ export default function Header() {
               <Moon className="w-4 h-4 text-primary" />
             )}
           </button>
+
+          {isAuthenticated && (
+            <Link
+              to="/notifications"
+              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+              className="relative p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4 text-primary" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 min-w-4 h-4 rounded-full bg-destructive px-1 text-[9px] leading-4 text-destructive-foreground text-center font-bold">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* User Menu / Sign In */}
           {isAuthenticated ? (
