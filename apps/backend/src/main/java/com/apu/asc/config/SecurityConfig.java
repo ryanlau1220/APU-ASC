@@ -28,11 +28,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -66,6 +64,10 @@ public class SecurityConfig {
   @Value(
       "${spring.security.oauth2.resourceserver.jwt.jwk-set-uri:http://localhost/auth/realms/apu-asc/protocol/openid-connect/certs}")
   private String jwkSetUri;
+
+  @Value(
+      "${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost/auth/realms/apu-asc}")
+  private String jwtIssuerUri;
 
   @Value("${observability.prometheus.allowed-cidr:127.0.0.1/32}")
   private String prometheusAllowedCidrs;
@@ -154,9 +156,7 @@ public class SecurityConfig {
   @Bean
   public JwtDecoder jwtDecoder() {
     NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-    OAuth2TokenValidator<Jwt> validator =
-        new DelegatingOAuth2TokenValidator<>(new JwtTimestampValidator());
-    jwtDecoder.setJwtValidator(validator);
+    jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(jwtIssuerUri));
     return jwtDecoder;
   }
 
