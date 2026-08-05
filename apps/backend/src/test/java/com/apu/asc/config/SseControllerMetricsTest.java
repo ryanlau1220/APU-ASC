@@ -6,6 +6,8 @@ import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
+import com.apu.asc.user.UserPreferencesDto;
+import com.apu.asc.user.UserPreferencesUpdateRequest;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Optional;
@@ -119,6 +121,22 @@ class SseControllerMetricsTest {
     public UserDto syncJitUser(
         String keycloakId, String username, String email, String fullName, String role) {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public UserPreferencesDto getPreferences(String userId) {
+      return new UserPreferencesDto("Asia/Kuala_Lumpur", true);
+    }
+
+    @Override
+    public UserPreferencesDto updatePreferences(
+        String userId, UserPreferencesUpdateRequest preferencesUpdateRequest) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isInAppNotificationsEnabled(String userId) {
+      return true;
     }
   }
 }

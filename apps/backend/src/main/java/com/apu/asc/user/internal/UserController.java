@@ -5,6 +5,8 @@ import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
+import com.apu.asc.user.UserPreferencesDto;
+import com.apu.asc.user.UserPreferencesUpdateRequest;
 import com.apu.asc.user.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,6 +44,26 @@ class UserController {
   @Operation(summary = "Get all system users", description = "Retrieves a complete list of users")
   public ResponseEntity<List<UserDto>> getAllUsers() {
     return ResponseEntity.ok(userApi.findAllUsers());
+  }
+
+  @GetMapping("/me/preferences")
+  @PreAuthorize("isAuthenticated()")
+  @Operation(operationId = "getMyPreferences", summary = "Get preferences for the current user")
+  public ResponseEntity<UserPreferencesDto> getMyPreferences(Authentication authentication) {
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    return ResponseEntity.ok(userApi.getPreferences(currentUser.id()));
+  }
+
+  @PutMapping("/me/preferences")
+  @PreAuthorize("isAuthenticated()")
+  @Operation(
+      operationId = "updateMyPreferences",
+      summary = "Update preferences for the current user")
+  public ResponseEntity<UserPreferencesDto> updateMyPreferences(
+      @Valid @RequestBody UserPreferencesUpdateRequest preferencesUpdateRequest,
+      Authentication authentication) {
+    AuthenticatedUser currentUser = currentUserService.requireCurrentUser(authentication);
+    return ResponseEntity.ok(userApi.updatePreferences(currentUser.id(), preferencesUpdateRequest));
   }
 
   @GetMapping("/{id}")

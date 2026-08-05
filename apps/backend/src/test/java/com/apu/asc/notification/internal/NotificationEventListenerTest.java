@@ -38,6 +38,7 @@ class NotificationEventListenerTest {
                 user("USR-staff", "STAFF", "ACTIVE"),
                 user("USR-inactive", "STAFF", "INACTIVE"),
                 user("USR-customer", "CUSTOMER", "ACTIVE")));
+    when(userApi.isInAppNotificationsEnabled("USR-staff")).thenReturn(true);
     NotificationEventListener listener =
         new NotificationEventListener(
             notificationApi, userApi, eventPublisher, new SimpleMeterRegistry());
@@ -57,6 +58,26 @@ class NotificationEventListenerTest {
     verify(eventPublisher).publishEvent(liveUpdate.capture());
     assertThat(liveUpdate.getValue().topic()).isEqualTo("notifications");
     assertThat(liveUpdate.getValue().audienceUserIds()).containsExactly("USR-staff");
+  }
+
+  @Test
+  void skipsRecipientsWhoDisabledInAppNotifications() {
+    when(userApi.isInAppNotificationsEnabled("USR-customer")).thenReturn(false);
+    NotificationEventListener listener =
+        new NotificationEventListener(
+            notificationApi, userApi, eventPublisher, new SimpleMeterRegistry());
+    NotificationRequestedEvent event =
+        NotificationRequestedEvent.forUsers(
+            NotificationType.APPOINTMENT_STATUS_CHANGED,
+            List.of("USR-customer"),
+            "Appointment updated",
+            "Your appointment status changed.",
+            "/customer/appointments");
+
+    listener.handle(event);
+
+    verify(notificationApi, never()).create(any(), eq("USR-customer"));
+    verify(eventPublisher, never()).publishEvent(any());
   }
 
   private UserDto user(String id, String role, String status) {

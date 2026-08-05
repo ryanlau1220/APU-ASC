@@ -5,7 +5,11 @@ import com.apu.asc.common.event.EmployeeInvitationRequestedEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
+import com.apu.asc.user.UserPreferencesDto;
+import com.apu.asc.user.UserPreferencesUpdateRequest;
 import com.apu.asc.user.UserStatus;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -285,6 +289,49 @@ class UserServiceImpl implements UserApi {
     return created;
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public UserPreferencesDto getPreferences(String userId) {
+    return userRepository
+        .findById(userId)
+        .map(this::toPreferencesDto)
+        .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+  }
+
+  @Override
+  @Transactional
+  public UserPreferencesDto updatePreferences(
+      String userId, UserPreferencesUpdateRequest preferencesUpdateRequest) {
+    UserEntity entity =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+    String timeZone = normalizeTimeZone(preferencesUpdateRequest.timeZone());
+    String beforeState = preferencesAuditState(entity);
+    entity.setTimeZone(timeZone);
+    entity.setInAppNotificationsEnabled(preferencesUpdateRequest.inAppNotificationsEnabled());
+    UserPreferencesDto updated = toPreferencesDto(userRepository.save(entity));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            userId,
+            "USER_PREFERENCES_UPDATED",
+            "USER",
+            userId,
+            "Updated personal preferences.",
+            beforeState,
+            preferencesAuditState(entity)));
+    return updated;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isInAppNotificationsEnabled(String userId) {
+    return userRepository
+        .findById(userId)
+        .map(UserEntity::isInAppNotificationsEnabled)
+        .orElse(false);
+  }
+
   private UserDto toDto(UserEntity entity) {
     return new UserDto(
         entity.getId(),
@@ -297,6 +344,19 @@ class UserServiceImpl implements UserApi {
         entity.getAvatarUrl(),
         entity.getCreatedAt(),
         entity.getUpdatedAt());
+  }
+
+  private UserPreferencesDto toPreferencesDto(UserEntity entity) {
+    return new UserPreferencesDto(entity.getTimeZone(), entity.isInAppNotificationsEnabled());
+  }
+
+  private String normalizeTimeZone(String value) {
+    String timeZone = value.trim();
+    try {
+      return ZoneId.of(timeZone).getId();
+    } catch (DateTimeException exception) {
+      throw new IllegalArgumentException("timeZone must be a valid IANA time zone.");
+    }
   }
 
   private void transitionStatus(UserEntity entity, UserStatus target) {
@@ -328,5 +388,12 @@ class UserServiceImpl implements UserApi {
 
   private String userAuditState(UserEntity entity) {
     return "role=" + entity.getRole() + "; status=" + entity.getStatus();
+  }
+
+  private String preferencesAuditState(UserEntity entity) {
+    return "timeZone="
+        + entity.getTimeZone()
+        + "; inAppNotificationsEnabled="
+        + entity.isInAppNotificationsEnabled();
   }
 }

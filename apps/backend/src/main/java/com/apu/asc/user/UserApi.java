@@ -30,4 +30,11 @@ public interface UserApi {
 
   UserDto syncJitUser(
       String keycloakId, String username, String email, String fullName, String role);
+
+  UserPreferencesDto getPreferences(String userId);
+
+  UserPreferencesDto updatePreferences(
+      String userId, UserPreferencesUpdateRequest preferencesUpdateRequest);
+
+  boolean isInAppNotificationsEnabled(String userId);
 }

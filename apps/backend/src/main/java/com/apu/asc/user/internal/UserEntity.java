@@ -45,6 +45,14 @@ class UserEntity {
   @Column(name = "avatar_url")
   private String avatarUrl;
 
+  @Builder.Default
+  @Column(name = "time_zone", nullable = false, length = 64)
+  private String timeZone = "Asia/Kuala_Lumpur";
+
+  @Builder.Default
+  @Column(name = "in_app_notifications_enabled", nullable = false)
+  private boolean inAppNotificationsEnabled = true;
+
   @Column(name = "invitation_token_hash", length = 64, unique = true)
   private String invitationTokenHash;
 
@@ -65,6 +73,7 @@ class UserEntity {
     if (createdAt == null) createdAt = Instant.now();
     updatedAt = Instant.now();
     if (status == null) status = "ACTIVE";
+    if (timeZone == null || timeZone.isBlank()) timeZone = "Asia/Kuala_Lumpur";
   }
 
   @PreUpdate
