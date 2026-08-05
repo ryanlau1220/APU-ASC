@@ -9,6 +9,7 @@ function queryClientWithLiveData() {
   const queryClient = new QueryClient()
   queryClient.setQueryData(['/api/v1/appointments/my'], ['appointment'])
   queryClient.setQueryData(['/api/v1/work-orders/my'], ['work-order'])
+  queryClient.setQueryData(['/api/v1/work-orders/WO-1/documents'], ['document'])
   queryClient.setQueryData(['/api/v1/quotations/my'], ['quotation'])
   queryClient.setQueryData(
     ['/api/v1/scheduling/availability', { date: '2026-08-04' }],
@@ -33,6 +34,10 @@ describe('live-update cache invalidation', () => {
     ).toBe(true)
     expect(
       queryClient.getQueryState(['/api/v1/work-orders/my'])?.isInvalidated,
+    ).toBe(false)
+    expect(
+      queryClient.getQueryState(['/api/v1/work-orders/WO-1/documents'])
+        ?.isInvalidated,
     ).toBe(false)
   })
 
@@ -63,5 +68,16 @@ describe('live-update cache invalidation', () => {
     expect(
       queryClient.getQueryState(['/api/v1/vehicles/my'])?.isInvalidated,
     ).toBe(false)
+  })
+
+  it('invalidates document lists for a document upload event', () => {
+    const queryClient = queryClientWithLiveData()
+
+    invalidateLiveUpdateTopic(queryClient, 'documents')
+
+    expect(
+      queryClient.getQueryState(['/api/v1/work-orders/WO-1/documents'])
+        ?.isInvalidated,
+    ).toBe(true)
   })
 })
