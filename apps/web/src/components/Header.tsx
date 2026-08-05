@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LogIn,
   LogOut,
+  Menu,
   MessageSquare,
   Moon,
   ShieldCheck,
@@ -17,6 +18,7 @@ import {
   User as UserIcon,
   Users,
   Wrench,
+  X,
 } from 'lucide-react'
 import * as React from 'react'
 import { useGetUnreadNotificationCount } from '../api/generated/endpoints'
@@ -160,6 +162,7 @@ export default function Header() {
 
   const { theme, toggleTheme } = useTheme()
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState<boolean>(false)
+  const [isMobileNavOpen, setIsMobileNavOpen] = React.useState(false)
   const { data: unreadNotifications } = useGetUnreadNotificationCount({
     query: { enabled: isAuthenticated, staleTime: 30_000 },
   })
@@ -181,6 +184,16 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  React.useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setIsUserMenuOpen(false)
+      setIsMobileNavOpen(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [])
+
   const handleLogout = () => {
     setIsUserMenuOpen(false)
     window.location.href = '/logout'
@@ -195,17 +208,20 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b border-border transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo - Navigates to user's role-specific portal home */}
-        <Link to={homeRoute as never} className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-bold text-xl">
+        <Link
+          to={homeRoute as never}
+          className="flex items-center gap-2 sm:gap-3"
+        >
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-bold text-xl">
             <Wrench className="w-5 h-5" />
           </div>
           <div>
             <span className="font-heading font-bold text-lg tracking-tight block leading-none">
               APU-ASC
             </span>
-            <span className="text-[10px] text-muted-foreground tracking-widest uppercase block mt-1">
+            <span className="hidden sm:block text-[10px] text-muted-foreground tracking-widest uppercase mt-1">
               Automotive Service Centre
             </span>
           </div>
@@ -238,12 +254,17 @@ export default function Header() {
         )}
 
         {/* Actions Header */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
+            className="hidden md:block p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
             title="Toggle theme"
+            aria-label={
+              theme === 'dark'
+                ? 'Switch to light theme'
+                : 'Switch to dark theme'
+            }
           >
             {theme === 'dark' ? (
               <Sun className="w-4 h-4 text-primary" />
@@ -256,7 +277,7 @@ export default function Header() {
             <Link
               to="/notifications"
               aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
-              className="relative p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
+              className="relative min-h-11 min-w-11 inline-flex items-center justify-center p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
               title="Notifications"
             >
               <Bell className="w-4 h-4 text-primary" />
@@ -268,24 +289,50 @@ export default function Header() {
             </Link>
           )}
 
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={() => setIsMobileNavOpen((open) => !open)}
+              className="md:hidden min-h-11 min-w-11 p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
+              aria-label={
+                isMobileNavOpen
+                  ? 'Close navigation menu'
+                  : 'Open navigation menu'
+              }
+              aria-controls="mobile-primary-navigation"
+              aria-expanded={isMobileNavOpen}
+            >
+              {isMobileNavOpen ? (
+                <X className="w-4 h-4 text-primary" />
+              ) : (
+                <Menu className="w-4 h-4 text-primary" />
+              )}
+            </button>
+          )}
+
           {/* User Menu / Sign In */}
           {isAuthenticated ? (
             <div ref={userMenuRef} className="relative">
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="p-1 rounded-full bg-muted border border-border hover:border-primary/40 transition-colors flex items-center gap-1"
+                className="min-h-11 min-w-11 p-1 rounded-full bg-muted border border-border hover:border-primary/40 transition-colors flex items-center gap-1"
                 title={
                   userSession?.fullName ||
                   userSession?.username ||
                   'User Profile'
                 }
+                aria-label="Open account menu"
+                aria-expanded={isUserMenuOpen}
+                aria-controls="account-menu"
               >
                 <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-[10px] overflow-hidden">
                   {userSession?.avatarUrl ? (
                     <img
                       src={userSession.avatarUrl}
                       alt={userSession.fullName || 'User Avatar'}
+                      width={32}
+                      height={32}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -297,7 +344,7 @@ export default function Header() {
 
               {isUserMenuOpen && (
                 <div
-                  role="menu"
+                  id="account-menu"
                   className="absolute right-0 mt-2 w-52 rounded-xl bg-card opacity-100 shadow-2xl border border-border p-1.5 space-y-1 z-50 font-sans"
                 >
                   <div className="px-3 py-2 border-b border-border text-xs">
@@ -341,6 +388,43 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      {isAuthenticated && isMobileNavOpen && (
+        <nav
+          id="mobile-primary-navigation"
+          aria-label="Primary navigation"
+          className="md:hidden border-t border-border bg-card px-4 py-3"
+        >
+          <div className="grid grid-cols-2 gap-2">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to as never}
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="flex min-w-0 items-center gap-2 rounded-lg border border-border px-3 py-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              )
+            })}
+          </div>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-4 w-4 text-primary" />
+            ) : (
+              <Moon className="h-4 w-4 text-primary" />
+            )}
+            Switch to {theme === 'dark' ? 'light' : 'dark'} theme
+          </button>
+        </nav>
+      )}
     </header>
   )
 }
