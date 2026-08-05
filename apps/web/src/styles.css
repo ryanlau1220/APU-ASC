@@ -94,4 +94,62 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
+}
+
+html {
+  color-scheme: light;
+}
+
+.dark,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary) !important;
+  outline-offset: 3px;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+select {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-200%);
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: transform 150ms ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
