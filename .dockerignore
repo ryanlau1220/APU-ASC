@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+.secrets
+**/node_modules
+**/target
+**/dist
+**/.output
+**/.vinxi
+tmp
+*.log

@@ -1,0 +1,17 @@
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+WORKDIR /workspace
+
+COPY apps/backend/pom.xml apps/backend/pom.xml
+COPY apps/backend/src apps/backend/src
+
+RUN mvn -f apps/backend/pom.xml --batch-mode package -DskipTests
+
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S app && adduser -S app -G app
+WORKDIR /app
+
+COPY --from=build /workspace/apps/backend/target/*.jar app.jar
+
+USER app
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "app.jar"]

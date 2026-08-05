@@ -1,0 +1,34 @@
+FROM node:22-alpine AS build
+WORKDIR /workspace
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json apps/web/package.json
+
+RUN corepack enable && pnpm install --frozen-lockfile
+
+COPY apps/web apps/web
+ARG VITE_OBSERVABILITY_ENVIRONMENT
+ARG VITE_OBSERVABILITY_RELEASE
+ARG VITE_SENTRY_DSN
+ARG VITE_SENTRY_TRACES_SAMPLE_RATE
+ARG VITE_POSTHOG_PROJECT_TOKEN
+ARG VITE_POSTHOG_HOST
+ENV VITE_OBSERVABILITY_ENVIRONMENT=$VITE_OBSERVABILITY_ENVIRONMENT \
+    VITE_OBSERVABILITY_RELEASE=$VITE_OBSERVABILITY_RELEASE \
+    VITE_SENTRY_DSN=$VITE_SENTRY_DSN \
+    VITE_SENTRY_TRACES_SAMPLE_RATE=$VITE_SENTRY_TRACES_SAMPLE_RATE \
+    VITE_POSTHOG_PROJECT_TOKEN=$VITE_POSTHOG_PROJECT_TOKEN \
+    VITE_POSTHOG_HOST=$VITE_POSTHOG_HOST
+RUN pnpm --filter @apu-asc/web build \
+    && pnpm --filter @apu-asc/web --prod deploy /opt/web
+
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=build /opt/web ./
+COPY --from=build /workspace/apps/web/dist ./dist
+
+USER node
+EXPOSE 3000
+CMD ["node", "server.mjs"]
