@@ -21,6 +21,24 @@ cleanup_dev() {
     exit 0
 }
 
+set_env_value() {
+    local env_file="$1"
+    local key="$2"
+    local value="$3"
+
+    if grep -q "^${key}=" "$env_file"; then
+        sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
+    else
+        printf '\n%s=%s\n' "$key" "$value" >> "$env_file"
+    fi
+}
+
+read_env_value() {
+    local env_file="$1"
+    local key="$2"
+    sed -n "s/^${key}=//p" "$env_file" | tail -n 1
+}
+
 case "$1" in
     dev)
         if [ -f .env ]; then
@@ -85,8 +103,50 @@ case "$1" in
             exit 1
         fi
         echo -e "${YELLOW}Starting the production stack...${RESET}"
-        docker compose --env-file "$prod_env" -f deployment/docker-compose.prod.yml up -d --build
+        docker compose --env-file "$prod_env" -f deployment/docker-compose.prod.yml pull
+        docker compose --env-file "$prod_env" -f deployment/docker-compose.prod.yml up -d --no-build --remove-orphans --wait --wait-timeout 180
         echo -e "${GREEN}✓ [OK] Production stack started. Check status with: ./manage.sh prod:status${RESET}"
+        ;;
+    prod:deploy)
+        prod_env="${2:-deployment/.env.prod}"
+        image_tag="${3:-}"
+        image_registry="${4:-}"
+        if [ ! -f "$prod_env" ]; then
+            echo -e "${RED}Production environment file not found: $prod_env${RESET}"
+            exit 1
+        fi
+        if [[ ! "$image_tag" =~ ^[0-9a-f]{40}$ ]]; then
+            echo -e "${RED}IMAGE_TAG must be a 40-character lowercase Git commit SHA.${RESET}"
+            exit 1
+        fi
+        if [[ ! "$image_registry" =~ ^ghcr\.io/[a-z0-9][a-z0-9._-]*$ ]]; then
+            echo -e "${RED}IMAGE_REGISTRY must be a lowercase GHCR namespace, such as ghcr.io/your-account.${RESET}"
+            exit 1
+        fi
+
+        set_env_value "$prod_env" "IMAGE_TAG" "$image_tag"
+        set_env_value "$prod_env" "IMAGE_REGISTRY" "$image_registry"
+        set_env_value "$prod_env" "OBSERVABILITY_RELEASE" "$image_tag"
+
+        ghcr_username="$(read_env_value "$prod_env" "GHCR_USERNAME")"
+        ghcr_pull_token="$(read_env_value "$prod_env" "GHCR_PULL_TOKEN")"
+        if [ -n "$ghcr_username" ] || [ -n "$ghcr_pull_token" ]; then
+            if [ -z "$ghcr_username" ] || [ -z "$ghcr_pull_token" ]; then
+                echo -e "${RED}Set both GHCR_USERNAME and GHCR_PULL_TOKEN, or leave both empty for public images.${RESET}"
+                exit 1
+            fi
+            printf '%s' "$ghcr_pull_token" | docker login ghcr.io --username "$ghcr_username" --password-stdin
+        fi
+
+        "$0" prod:up "$prod_env"
+
+        app_domain="$(read_env_value "$prod_env" "APP_DOMAIN")"
+        if [[ ! "$app_domain" =~ ^[A-Za-z0-9.-]+$ ]]; then
+            echo -e "${RED}APP_DOMAIN must be a valid hostname before deployment verification can run.${RESET}"
+            exit 1
+        fi
+        curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 5 "https://${app_domain}/" >/dev/null
+        echo -e "${GREEN}✓ [OK] Production release ${image_tag} is healthy at https://${app_domain}/.${RESET}"
         ;;
     prod:down)
         prod_env="${2:-deployment/.env.prod}"
@@ -143,7 +203,7 @@ case "$1" in
         echo "Clean complete."
         ;;
     *)
-        echo "Usage: ./manage.sh {dev|docker|docker:down|prod:up|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
+        echo "Usage: ./manage.sh {dev|docker|docker:down|prod:up|prod:deploy|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
         exit 1
         ;;
 esac
