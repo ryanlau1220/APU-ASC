@@ -86,6 +86,18 @@ case "$1" in
         (pnpm --filter @apu-asc/web dev 2>&1 | stdbuf -oL sed "s/^/$(printf "${MAGENTA}[web]${RESET}") /") &
         wait
         ;;
+    mobile)
+        echo -e "${MAGENTA}Launching APU-ASC Mobile (Expo)...${RESET}"
+        pnpm --filter @apu-asc/mobile start
+        ;;
+    mobile:android)
+        echo -e "${MAGENTA}Launching APU-ASC Mobile on Android...${RESET}"
+        pnpm --filter @apu-asc/mobile android
+        ;;
+    mobile:verify)
+        pnpm --filter @apu-asc/mobile typecheck
+        pnpm --filter @apu-asc/mobile verify
+        ;;
     docker)
         echo -e "${YELLOW}Starting Docker Compose infrastructure and observability stack...${RESET}"
         docker compose --profile observability up -d
@@ -174,6 +186,8 @@ case "$1" in
         echo "Running Frontend Quality Checks (Biome check & TypeScript typecheck)..."
         pnpm --filter @apu-asc/web check
         pnpm --filter @apu-asc/web typecheck
+        echo "Running Mobile TypeScript checks..."
+        pnpm --filter @apu-asc/mobile typecheck
         echo "Running Backend Maven Quality Plugins (Spotless, Checkstyle, SpotBugs, PMD)..."
         (cd apps/backend && mvn spotless:check checkstyle:check spotbugs:check pmd:check)
         echo "Full-stack check complete."
@@ -203,7 +217,7 @@ case "$1" in
         echo "Clean complete."
         ;;
     *)
-        echo "Usage: ./manage.sh {dev|docker|docker:down|prod:up|prod:deploy|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
+        echo "Usage: ./manage.sh {dev|mobile|mobile:android|mobile:verify|docker|docker:down|prod:up|prod:deploy|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
         exit 1
         ;;
 esac
