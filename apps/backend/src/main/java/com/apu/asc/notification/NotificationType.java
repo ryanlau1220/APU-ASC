@@ -1,0 +1,9 @@
+package com.apu.asc.notification;
+
+public enum NotificationType {
+  APPOINTMENT_BOOKED,
+  APPOINTMENT_STATUS_CHANGED,
+  QUOTATION_READY_FOR_APPROVAL,
+  QUOTATION_DECIDED,
+  WORK_ORDER_ASSIGNED
+}
