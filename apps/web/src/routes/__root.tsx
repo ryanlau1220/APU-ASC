@@ -70,6 +70,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         rel: 'alternate icon',
         href: '/favicon.ico',
       },
+      {
+        rel: 'manifest',
+        href: '/manifest.webmanifest',
+      },
     ],
   }),
   shellComponent: RootDocument,
@@ -180,6 +184,10 @@ function ClientPostHogProvider({ children }: { children: React.ReactNode }) {
         person_profiles: 'identified_only',
         capture_pageview: true,
       })
+    }
+
+    if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+      void navigator.serviceWorker.register('/service-worker.js')
     }
   }, [])
 
