@@ -6,6 +6,8 @@ import com.apu.asc.appointment.AppointmentStatus;
 import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
+import com.apu.asc.notification.NotificationRequestedEvent;
+import com.apu.asc.notification.NotificationType;
 import com.apu.asc.scheduling.SchedulingApi;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -114,6 +116,17 @@ class AppointmentServiceImpl implements AppointmentApi {
     AppointmentDto created = toDto(appointmentRepository.saveAndFlush(entity));
     publishLiveUpdates(created);
     eventPublisher.publishEvent(
+        NotificationRequestedEvent.forRoles(
+            NotificationType.APPOINTMENT_BOOKED,
+            Set.of("STAFF", "MANAGER"),
+            "New appointment booking",
+            "A customer booked an appointment for "
+                + created.appointmentDate()
+                + " at "
+                + created.timeSlot()
+                + ".",
+            "/staff/appointments"));
+    eventPublisher.publishEvent(
         new AuditEvent(
             created.customerId(),
             "APPOINTMENT_CREATED",
@@ -164,6 +177,9 @@ class AppointmentServiceImpl implements AppointmentApi {
       schedulingApi.releaseSlot(oldDate, oldTimeSlot);
     }
     publishLiveUpdates(updated);
+    if (oldStatus != newStatus) {
+      publishStatusNotifications(updated);
+    }
     eventPublisher.publishEvent(
         new AuditEvent(
             updated.customerId(),
@@ -190,6 +206,9 @@ class AppointmentServiceImpl implements AppointmentApi {
       schedulingApi.releaseSlot(entity.getAppointmentDate(), entity.getTimeSlot());
     }
     publishLiveUpdates(updated);
+    if (oldStatus != targetStatus) {
+      publishStatusNotifications(updated);
+    }
     eventPublisher.publishEvent(
         new AuditEvent(
             updated.customerId(),
@@ -275,5 +294,37 @@ class AppointmentServiceImpl implements AppointmentApi {
     // A booking changes the remaining capacity even though it originates in the appointment module.
     eventPublisher.publishEvent(
         LiveUpdateEvent.forRoles("scheduling", null, "CUSTOMER", "TECHNICIAN", "STAFF", "MANAGER"));
+  }
+
+  private void publishStatusNotifications(AppointmentDto appointment) {
+    String status = appointment.status().toLowerCase().replace('_', ' ');
+    eventPublisher.publishEvent(
+        NotificationRequestedEvent.forUsers(
+            NotificationType.APPOINTMENT_STATUS_CHANGED,
+            Set.of(appointment.customerId()),
+            "Appointment " + status,
+            "Your appointment on "
+                + appointment.appointmentDate()
+                + " at "
+                + appointment.timeSlot()
+                + " is now "
+                + status
+                + ".",
+            "/customer/appointments"));
+    if (appointment.technicianId() != null && !appointment.technicianId().isBlank()) {
+      eventPublisher.publishEvent(
+          NotificationRequestedEvent.forUsers(
+              NotificationType.APPOINTMENT_STATUS_CHANGED,
+              Set.of(appointment.technicianId()),
+              "Appointment " + status,
+              "Your assigned appointment on "
+                  + appointment.appointmentDate()
+                  + " at "
+                  + appointment.timeSlot()
+                  + " is now "
+                  + status
+                  + ".",
+              "/technician/jobs"));
+    }
   }
 }

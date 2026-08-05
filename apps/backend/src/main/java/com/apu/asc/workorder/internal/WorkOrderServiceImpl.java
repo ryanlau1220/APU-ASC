@@ -3,6 +3,8 @@ package com.apu.asc.workorder.internal;
 import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
+import com.apu.asc.notification.NotificationRequestedEvent;
+import com.apu.asc.notification.NotificationType;
 import com.apu.asc.workorder.WorkOrderApi;
 import com.apu.asc.workorder.WorkOrderDto;
 import com.apu.asc.workorder.WorkOrderStatus;
@@ -79,6 +81,7 @@ class WorkOrderServiceImpl implements WorkOrderApi {
             .build();
     WorkOrderDto created = toDto(workOrderRepository.save(entity));
     publish(created, "WORK_ORDER_CREATED", "Opened work order " + created.id());
+    publishTechnicianAssignment(created);
     return created;
   }
 
@@ -86,12 +89,16 @@ class WorkOrderServiceImpl implements WorkOrderApi {
   @Transactional
   public WorkOrderDto updateWorkOrder(String id, WorkOrderDto workOrderDto) {
     WorkOrderEntity entity = findEntity(id);
+    String previousTechnicianId = entity.getTechnicianId();
     if (workOrderDto.technicianId() != null) entity.setTechnicianId(workOrderDto.technicianId());
     if (workOrderDto.intakeNotes() != null) entity.setIntakeNotes(workOrderDto.intakeNotes());
     if (workOrderDto.diagnosticNotes() != null)
       entity.setDiagnosticNotes(workOrderDto.diagnosticNotes());
     WorkOrderDto updated = toDto(workOrderRepository.save(entity));
     publish(updated, "WORK_ORDER_UPDATED", "Updated work order details");
+    if (updated.technicianId() != null && !updated.technicianId().equals(previousTechnicianId)) {
+      publishTechnicianAssignment(updated);
+    }
     return updated;
   }
 
@@ -193,6 +200,19 @@ class WorkOrderServiceImpl implements WorkOrderApi {
             workOrder.id(),
             Arrays.asList(workOrder.customerId(), workOrder.technicianId()),
             Set.of("STAFF", "MANAGER")));
+  }
+
+  private void publishTechnicianAssignment(WorkOrderDto workOrder) {
+    if (workOrder.technicianId() == null || workOrder.technicianId().isBlank()) {
+      return;
+    }
+    eventPublisher.publishEvent(
+        NotificationRequestedEvent.forUsers(
+            NotificationType.WORK_ORDER_ASSIGNED,
+            Set.of(workOrder.technicianId()),
+            "New work order assigned",
+            "Work order " + workOrder.id() + " is assigned to you.",
+            "/technician/jobs"));
   }
 
   private WorkOrderDto toDto(WorkOrderEntity entity) {

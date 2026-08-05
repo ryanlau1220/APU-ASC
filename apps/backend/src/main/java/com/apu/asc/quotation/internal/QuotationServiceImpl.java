@@ -4,6 +4,8 @@ import com.apu.asc.common.event.AuditEvent;
 import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.event.QuotationApprovedEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
+import com.apu.asc.notification.NotificationRequestedEvent;
+import com.apu.asc.notification.NotificationType;
 import com.apu.asc.quotation.QuotationApi;
 import com.apu.asc.quotation.QuotationDecisionRequestDto;
 import com.apu.asc.quotation.QuotationDraftRequestDto;
@@ -119,6 +121,16 @@ class QuotationServiceImpl implements QuotationApi {
         submitted,
         "QUOTATION_SUBMITTED",
         "Sent quotation " + submitted.quoteNumber() + " for customer approval");
+    eventPublisher.publishEvent(
+        NotificationRequestedEvent.forUsers(
+            NotificationType.QUOTATION_READY_FOR_APPROVAL,
+            Set.of(submitted.customerId()),
+            "Quotation ready for approval",
+            submitted.quoteNumber()
+                + " is ready for your review before "
+                + submitted.validUntil()
+                + ".",
+            "/customer/quotations"));
     return submitted;
   }
 
@@ -148,6 +160,16 @@ class QuotationServiceImpl implements QuotationApi {
         (approved ? "Approved " : "Rejected ") + decided.quoteNumber(),
         beforeState,
         quotationAuditState(entity));
+    eventPublisher.publishEvent(
+        NotificationRequestedEvent.forRoles(
+            NotificationType.QUOTATION_DECIDED,
+            Set.of("STAFF", "MANAGER"),
+            "Customer responded to quotation",
+            decided.quoteNumber()
+                + " was "
+                + (approved ? "approved" : "rejected")
+                + " by the customer.",
+            "/staff/quotations"));
     if (approved) {
       eventPublisher.publishEvent(
           new QuotationApprovedEvent(decided.workOrderId(), decided.id(), respondedAt));
