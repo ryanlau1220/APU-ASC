@@ -71,6 +71,20 @@
       "description": "OAuth2 Resource Server Audience Client",
       "enabled": true,
       "bearerOnly": true
+    },
+    {
+      "clientId": "apu-asc-mobile",
+      "name": "APU-ASC Mobile Customer App",
+      "description": "Native mobile public client using Authorization Code with PKCE",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": true,
+      "redirectUris": ["com.apuasc.app://oauthredirect"],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ],
   "users": [
