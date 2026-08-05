@@ -59,6 +59,11 @@ function LoginPage() {
             onClick={toggleTheme}
             className="p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
             title="Toggle theme"
+            aria-label={
+              theme === 'dark'
+                ? 'Switch to light theme'
+                : 'Switch to dark theme'
+            }
           >
             {theme === 'dark' ? (
               <Sun className="w-4 h-4 text-primary" />
@@ -79,7 +84,7 @@ function LoginPage() {
           </h1>
           <p className="text-xs text-muted-foreground">
             Connecting securely to APU Automotive Service Centre Enterprise
-            Identity Service...
+            Identity Service…
           </p>
 
           <button

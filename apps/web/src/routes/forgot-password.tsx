@@ -115,18 +115,20 @@ function ForgotPasswordPage() {
             </p>
           </div>
 
-          {error && (
-            <div className="p-3.5 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-xs font-medium">
-              {error}
-            </div>
-          )}
+          <div aria-live="polite">
+            {error && (
+              <div className="p-3.5 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-xs font-medium">
+                {error}
+              </div>
+            )}
 
-          {message && (
-            <div className="p-3.5 rounded-lg bg-status-completed/10 border border-status-completed/30 text-status-completed text-xs font-medium flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              <span>{message}</span>
-            </div>
-          )}
+            {message && (
+              <div className="p-3.5 rounded-lg bg-status-completed/10 border border-status-completed/30 text-status-completed text-xs font-medium flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                <span>{message}</span>
+              </div>
+            )}
+          </div>
 
           {isSuccess ? (
             <div className="space-y-4 pt-2 text-center">
@@ -153,9 +155,12 @@ function ForgotPasswordPage() {
                   <input
                     id="forgot-email"
                     type="email"
+                    name="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    spellCheck={false}
                     placeholder="user@example.com"
                     className="w-full pl-9 pr-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground text-xs"
                   />
@@ -167,7 +172,7 @@ function ForgotPasswordPage() {
                 disabled={loading}
                 className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground font-semibold py-2.5 px-4 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
               >
-                {loading ? 'Sending Code...' : 'Send OTP Verification Code'}
+                {loading ? 'Sending Code…' : 'Send OTP Verification Code'}
               </button>
 
               <div className="pt-2 text-center">
@@ -196,12 +201,16 @@ function ForgotPasswordPage() {
                   <input
                     id="forgot-otp"
                     type="text"
+                    name="otp"
                     required
                     maxLength={6}
                     value={otp}
                     onChange={(e) =>
                       setOtp(e.target.value.replace(/[^0-9]/g, ''))
                     }
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    spellCheck={false}
                     placeholder="123456"
                     className="w-full pl-9 pr-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground font-mono text-center tracking-widest text-sm"
                   />
@@ -222,10 +231,12 @@ function ForgotPasswordPage() {
                   <input
                     id="forgot-new-pass"
                     type="password"
+                    name="newPassword"
                     required
                     minLength={8}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
                     placeholder="Minimum 8 characters"
                     className="w-full pl-9 pr-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground text-xs"
                   />
@@ -246,10 +257,12 @@ function ForgotPasswordPage() {
                   <input
                     id="forgot-confirm-pass"
                     type="password"
+                    name="confirmPassword"
                     required
                     minLength={8}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
                     placeholder="Re-enter new password"
                     className="w-full pl-9 pr-3 py-2 bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground text-xs"
                   />

@@ -75,6 +75,11 @@ function RegisterPage() {
             onClick={toggleTheme}
             className="p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
             title="Toggle theme"
+            aria-label={
+              theme === 'dark'
+                ? 'Switch to light theme'
+                : 'Switch to dark theme'
+            }
           >
             {theme === 'dark' ? (
               <Sun className="w-4 h-4 text-primary" />
@@ -101,7 +106,7 @@ function RegisterPage() {
           </div>
 
           {submitted ? (
-            <div className="p-5 rounded-xl bg-status-completed/10 border border-status-completed/30 space-y-3 text-center text-xs">
+            <output className="block p-5 rounded-xl bg-status-completed/10 border border-status-completed/30 space-y-3 text-center text-xs">
               <CheckCircle2 className="w-8 h-8 text-status-completed mx-auto" />
               <h3 className="font-heading font-bold text-sm text-foreground">
                 Verification Email Sent!
@@ -118,7 +123,7 @@ function RegisterPage() {
               >
                 Go to Sign In
               </button>
-            </div>
+            </output>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div className="space-y-1.5">
@@ -135,10 +140,12 @@ function RegisterPage() {
                   <input
                     id="reg-fullname"
                     type="text"
+                    name="fullName"
                     required
                     placeholder="Ryan Lau"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    autoComplete="name"
                     className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border border-border focus:border-primary text-foreground placeholder:text-muted-foreground outline-none transition-colors"
                   />
                 </div>
@@ -158,10 +165,13 @@ function RegisterPage() {
                   <input
                     id="reg-email"
                     type="email"
+                    name="email"
                     required
                     placeholder="customer@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    spellCheck={false}
                     className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border border-border focus:border-primary text-foreground placeholder:text-muted-foreground outline-none transition-colors"
                   />
                 </div>
@@ -181,10 +191,12 @@ function RegisterPage() {
                   <input
                     id="reg-password"
                     type="password"
+                    name="password"
                     required
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
                     className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted border border-border focus:border-primary text-foreground placeholder:text-muted-foreground outline-none transition-colors"
                   />
                 </div>
@@ -196,7 +208,7 @@ function RegisterPage() {
                 className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
-                {loading ? 'Creating Account...' : 'Register Customer Account'}
+                {loading ? 'Creating Account…' : 'Register Customer Account'}
               </button>
             </form>
           )}

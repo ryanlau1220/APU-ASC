@@ -10,6 +10,9 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="p-2 rounded-md border border-border bg-card hover:bg-muted text-foreground transition-colors"
       title="Toggle theme"
+      aria-label={
+        theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+      }
     >
       {theme === 'dark' ? (
         <Sun className="w-4 h-4 text-primary" />

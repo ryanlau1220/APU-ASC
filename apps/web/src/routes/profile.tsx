@@ -263,6 +263,8 @@ function ProfilePage() {
                 <img
                   src={avatarPreview || userSession?.avatarUrl}
                   alt="Profile Avatar"
+                  width={80}
+                  height={80}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -340,6 +342,7 @@ function ProfilePage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-muted border border-border focus:border-primary text-foreground outline-none transition-colors"
+                  autoComplete="name"
                 />
               </div>
             </div>
@@ -362,6 +365,8 @@ function ProfilePage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-muted border border-border focus:border-primary text-foreground outline-none transition-colors"
+                  autoComplete="email"
+                  spellCheck={false}
                 />
               </div>
             </div>
@@ -440,7 +445,7 @@ function ProfilePage() {
                           key={portal.key}
                           type="button"
                           onClick={() => setSelectedPortal(portal.key)}
-                          className={`p-3 rounded-lg border text-left transition-all relative flex items-center gap-2.5 ${
+                          className={`p-3 rounded-lg border text-left transition-colors relative flex items-center gap-2.5 ${
                             isSelected
                               ? 'border-primary bg-primary/10 ring-1 ring-primary/40 shadow-sm'
                               : 'border-border bg-muted/30 hover:border-primary/40 hover:bg-muted/70'
@@ -618,6 +623,7 @@ function ProfilePage() {
                   id="old-password"
                   type="password"
                   required
+                  autoComplete="current-password"
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
                   placeholder="Enter your current password"
@@ -643,6 +649,7 @@ function ProfilePage() {
                     type="password"
                     required
                     minLength={8}
+                    autoComplete="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Minimum 8 characters"
@@ -667,6 +674,7 @@ function ProfilePage() {
                     type="password"
                     required
                     minLength={8}
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter new password"
