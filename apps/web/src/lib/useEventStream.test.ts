@@ -15,6 +15,10 @@ function queryClientWithLiveData() {
     ['slot'],
   )
   queryClient.setQueryData(['/api/v1/vehicles/my'], ['vehicle'])
+  queryClient.setQueryData(
+    ['/api/v1/notifications', { limit: 100 }],
+    ['notification'],
+  )
   return queryClient
 }
 
@@ -51,6 +55,10 @@ describe('live-update cache invalidation', () => {
         '/api/v1/scheduling/availability',
         { date: '2026-08-04' },
       ])?.isInvalidated,
+    ).toBe(true)
+    expect(
+      queryClient.getQueryState(['/api/v1/notifications', { limit: 100 }])
+        ?.isInvalidated,
     ).toBe(true)
     expect(
       queryClient.getQueryState(['/api/v1/vehicles/my'])?.isInvalidated,
