@@ -98,6 +98,14 @@ case "$1" in
         EXPO_PUBLIC_KEYCLOAK_ISSUER=http://localhost:8080/auth/realms/apu-asc \
         pnpm --filter @apu-asc/mobile android
         ;;
+    mobile:build)
+        echo -e "${MAGENTA}Creating an Android development build with EAS...${RESET}"
+        (cd apps/mobile && npx eas-cli@latest build --platform android --profile development)
+        ;;
+    mobile:build:local)
+        echo -e "${MAGENTA}Building and installing APU-ASC Mobile on the connected Android device...${RESET}"
+        (cd apps/mobile && npx expo run:android --device)
+        ;;
     mobile:verify)
         pnpm --filter @apu-asc/mobile typecheck
         pnpm --filter @apu-asc/mobile verify
