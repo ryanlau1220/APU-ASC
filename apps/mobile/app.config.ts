@@ -12,13 +12,14 @@ const config: ExpoConfig = {
     bundleIdentifier: 'com.apuasc.mobile',
     supportsTablet: true,
   },
-  android: {
-    package: 'com.apuasc.mobile',
-    adaptiveIcon: {
+    android: {
+      package: 'com.apuasc.mobile',
+      usesCleartextTraffic: process.env.EXPO_PUBLIC_API_BASE_URL?.startsWith('http://') ?? false,
+      adaptiveIcon: {
       backgroundColor: '#2563EB',
-      foregroundImage: './assets/icon.png',
-    },
-  },
+        foregroundImage: './assets/icon.png',
+      },
+    } as NonNullable<ExpoConfig['android']> & { usesCleartextTraffic: boolean },
   plugins: ['expo-router', 'expo-secure-store'],
   experiments: {
     typedRoutes: true,
