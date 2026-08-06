@@ -17,7 +17,7 @@ module.exports = {
     usesCleartextTraffic: usesLocalBackend,
     adaptiveIcon: {
       backgroundColor: '#2563EB',
-      foregroundImage: './assets/icon.png',
+      foregroundImage: './assets/icon-foreground.png',
     },
   },
   plugins: ['expo-router', 'expo-secure-store'],
