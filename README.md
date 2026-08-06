@@ -3,6 +3,7 @@ This is a project refactored from OODJ Assignment (https://github.com/jasonwong1
 Tech Stack:
 - Package Manager: pnpm + maven
 - Web: TanStack Start
+- Mobile: React Native Expo
 - Backend: Spring Boot + Spring Modulith
 - Styles: Tailwind CSS + shadcn-ui
 - State Management: TanStack Query
@@ -19,7 +20,7 @@ Tech Stack:
 - Testing: JUnit 5 + Vitest + Playwright
 - OpenAPI Docs: SpringDoc + Scalar
 - Rate Limiting: bucket4j
-- Security: Spring Security + OAuth2 / OIDC
+- Security: Spring Security + OAuth2 / OIDC + expo-secure-store + expo-auth-session
 - Infrastructure: Docker Compose
 - Instrumentation: Micrometer 
 - Distributed Tracing: OTLP
@@ -31,6 +32,7 @@ Tech Stack:
 - Error & Session Tracking: Sentry
 - Product Analytics: PostHog
 - Tools: Turborepo, Biome, Spotless, Checkstyle, SpotBugs, PMD, OpenApi-Typescript, Orval
+- Deployment: Oracle Always Free Resources + DuckDNS
 
 To run project
 1. ./manage.sh docker
