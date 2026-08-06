@@ -1,6 +1,6 @@
-import type { ExpoConfig } from 'expo/config'
+const usesLocalBackend = process.env.EXPO_PUBLIC_API_BASE_URL?.startsWith('http://') ?? false
 
-const config: ExpoConfig = {
+module.exports = {
   name: 'APU-ASC',
   slug: 'apu-asc-mobile',
   version: '1.0.0',
@@ -12,14 +12,14 @@ const config: ExpoConfig = {
     bundleIdentifier: 'com.apuasc.mobile',
     supportsTablet: true,
   },
-    android: {
-      package: 'com.apuasc.mobile',
-      usesCleartextTraffic: process.env.EXPO_PUBLIC_API_BASE_URL?.startsWith('http://') ?? false,
-      adaptiveIcon: {
+  android: {
+    package: 'com.apuasc.mobile',
+    usesCleartextTraffic: usesLocalBackend,
+    adaptiveIcon: {
       backgroundColor: '#2563EB',
-        foregroundImage: './assets/icon.png',
-      },
-    } as NonNullable<ExpoConfig['android']> & { usesCleartextTraffic: boolean },
+      foregroundImage: './assets/icon.png',
+    },
+  },
   plugins: ['expo-router', 'expo-secure-store'],
   experiments: {
     typedRoutes: true,
@@ -28,6 +28,9 @@ const config: ExpoConfig = {
   runtimeVersion: {
     policy: 'appVersion',
   },
+  extra: {
+    eas: {
+      projectId: '6f82268a-9a40-492c-8434-0abd614f14ab',
+    },
+  },
 }
-
-export default config
