@@ -28,6 +28,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
@@ -68,6 +73,9 @@ public class SecurityConfig {
   @Value(
       "${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost/auth/realms/apu-asc}")
   private String jwtIssuerUri;
+
+  @Value("${app.security.additional-jwt-issuer-uris:}")
+  private String additionalJwtIssuerUris;
 
   @Value("${observability.prometheus.allowed-cidr:127.0.0.1/32}")
   private String prometheusAllowedCidrs;
@@ -156,8 +164,26 @@ public class SecurityConfig {
   @Bean
   public JwtDecoder jwtDecoder() {
     NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-    jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(jwtIssuerUri));
+    jwtDecoder.setJwtValidator(
+        new DelegatingOAuth2TokenValidator<>(
+            JwtValidators.createDefault(), trustedIssuerValidator()));
     return jwtDecoder;
+  }
+
+  OAuth2TokenValidator<Jwt> trustedIssuerValidator() {
+    Set<String> trustedIssuers = new HashSet<>();
+    trustedIssuers.add(jwtIssuerUri);
+    for (String issuer : additionalJwtIssuerUris.split(",")) {
+      if (!issuer.isBlank()) {
+        trustedIssuers.add(issuer.trim());
+      }
+    }
+
+    return jwt ->
+        jwt.getIssuer() != null && trustedIssuers.contains(jwt.getIssuer().toString())
+            ? OAuth2TokenValidatorResult.success()
+            : OAuth2TokenValidatorResult.failure(
+                new OAuth2Error(OAuth2ErrorCodes.INVALID_TOKEN, "Untrusted token issuer", null));
   }
 
   @Bean
