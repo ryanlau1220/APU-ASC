@@ -89,13 +89,13 @@ case "$1" in
     mobile)
         echo -e "${MAGENTA}Launching APU-ASC Mobile (Expo)...${RESET}"
         EXPO_PUBLIC_API_BASE_URL=http://localhost:8081 \
-        EXPO_PUBLIC_KEYCLOAK_ISSUER=http://localhost/auth/realms/apu-asc \
+        EXPO_PUBLIC_KEYCLOAK_ISSUER=http://localhost:8080/auth/realms/apu-asc \
         pnpm --filter @apu-asc/mobile start
         ;;
     mobile:android)
         echo -e "${MAGENTA}Launching APU-ASC Mobile on Android...${RESET}"
         EXPO_PUBLIC_API_BASE_URL=http://localhost:8081 \
-        EXPO_PUBLIC_KEYCLOAK_ISSUER=http://localhost/auth/realms/apu-asc \
+        EXPO_PUBLIC_KEYCLOAK_ISSUER=http://localhost:8080/auth/realms/apu-asc \
         pnpm --filter @apu-asc/mobile android
         ;;
     mobile:verify)

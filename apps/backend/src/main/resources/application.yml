@@ -190,6 +190,8 @@ scheduling:
 
 app:
   frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
+  security:
+    additional-jwt-issuer-uris: ${APP_SECURITY_ADDITIONAL_JWT_ISSUER_URIS:}
 
 invitations:
   expiry-hours: ${INVITATION_EXPIRY_HOURS:48}
