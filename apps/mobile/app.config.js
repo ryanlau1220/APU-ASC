@@ -8,6 +8,11 @@ module.exports = {
   icon: './assets/icon.png',
   scheme: 'com.apuasc.app',
   userInterfaceStyle: 'automatic',
+  splash: {
+    image: './assets/icon.png',
+    resizeMode: 'contain',
+    backgroundColor: '#ffffff',
+  },
   ios: {
     bundleIdentifier: 'com.apuasc.mobile',
     supportsTablet: true,
