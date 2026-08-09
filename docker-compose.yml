@@ -97,6 +97,24 @@ services:
     networks:
       - apu-asc-net
 
+  # Local development only. Stripe CLI forwards sandbox events to the host Spring Boot process.
+  # A deployed public endpoint receives webhooks directly from Stripe; do not enable this in prod.
+  stripe-cli:
+    image: stripe/stripe-cli@sha256:73a0449969bcb4bfa5a53ecb6db82f1ff873189d9e433aff72fa4c8e747acf81
+    container_name: apu-asc-stripe-cli
+    profiles: [stripe]
+    restart: unless-stopped
+    command:
+      - listen
+      - --events=checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,checkout.session.expired
+      - --forward-to=http://host.docker.internal:8081/api/v1/stripe/webhook
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY:?Set STRIPE_SECRET_KEY in .env}
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - apu-asc-net
+
   grafana:
     image: grafana/grafana:11.5.0
     container_name: apu-asc-grafana
