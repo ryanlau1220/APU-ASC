@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   BellRing,
   Car,
@@ -46,6 +46,7 @@ export const Route = createFileRoute('/profile')({
 
 function ProfilePage() {
   const { userSession } = useUserSession()
+  const navigate = useNavigate()
   const [fullName, setFullName] = React.useState(
     userSession?.fullName || 'System Administrator',
   )
@@ -137,7 +138,10 @@ function ProfilePage() {
     }
 
     try {
-      if (userSession?.id) {
+      const profileChanged =
+        fullName !== (userSession?.fullName ?? '') ||
+        email !== (userSession?.email ?? '')
+      if (profileChanged && userSession?.id) {
         await updateUserMutation.mutateAsync({
           id: userSession.id,
           data: { fullName, email },
@@ -152,10 +156,7 @@ function ProfilePage() {
         CUSTOMER: '/customer/',
       }
       const targetRoute = portalRoutes[selectedPortal] || '/manager/'
-
-      setTimeout(() => {
-        window.location.href = targetRoute
-      }, 1000)
+      navigate({ to: targetRoute as never })
     } catch (err) {
       console.error('Failed to save profile changes:', err)
     } finally {
