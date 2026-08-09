@@ -2,8 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { CheckCircle2, CreditCard, DollarSign, ShieldCheck } from 'lucide-react'
 import * as React from 'react'
 import {
+  useCreateCheckoutSession,
   useGetMyPayments,
-  useProcessPayment,
 } from '../../api/generated/endpoints'
 import type { PaymentDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -19,26 +19,36 @@ function CustomerPaymentsContent() {
   const { data: paymentsData = [], refetch } = useGetMyPayments()
   const myPayments = (paymentsData || []) as PaymentDto[]
 
-  const processPaymentMutation = useProcessPayment({
+  React.useEffect(() => {
+    const checkout = new URLSearchParams(window.location.search).get('checkout')
+    if (checkout === 'success') {
+      setMessage(
+        'Payment submitted. Your invoice updates after Stripe confirms it.',
+      )
+      refetch()
+    } else if (checkout === 'cancelled') {
+      setMessage('Checkout was cancelled. Your invoice remains unpaid.')
+    }
+  }, [refetch])
+
+  const checkoutMutation = useCreateCheckoutSession({
     mutation: {
-      onSuccess: () => {
-        setMessage('Payment processed successfully!')
-        refetch()
+      onSuccess: (session) => {
+        if (!session.checkoutUrl) {
+          setMessage('Unable to start secure checkout. Please try again.')
+          return
+        }
+        window.location.assign(session.checkoutUrl)
       },
       onError: (err: Error) => {
-        setMessage(err.message || 'Payment processing failed.')
+        setMessage(err.message || 'Unable to start secure checkout.')
       },
     },
   })
 
   const handlePay = (paymentId: string) => {
     setMessage(null)
-    processPaymentMutation.mutate({
-      id: paymentId,
-      params: {
-        method: 'ONLINE_CARD',
-      },
-    })
+    checkoutMutation.mutate({ id: paymentId })
   }
 
   return (
@@ -63,7 +73,7 @@ function CustomerPaymentsContent() {
         {message && (
           <div
             className={`p-3 rounded-lg text-xs font-semibold ${
-              message.includes('successfully')
+              message.includes('submitted')
                 ? 'bg-status-completed/10 text-status-completed border border-status-completed/30'
                 : 'bg-destructive/10 text-destructive border border-destructive/30'
             }`}
@@ -127,10 +137,12 @@ function CustomerPaymentsContent() {
                           <button
                             type="button"
                             onClick={() => p.id && handlePay(p.id)}
-                            disabled={processPaymentMutation.isPending}
+                            disabled={checkoutMutation.isPending}
                             className="px-3 py-1 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity text-xs disabled:opacity-50"
                           >
-                            Pay Online
+                            {checkoutMutation.isPending
+                              ? 'Opening...'
+                              : 'Pay securely'}
                           </button>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-completed">

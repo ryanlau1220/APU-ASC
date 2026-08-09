@@ -65,7 +65,7 @@ function StaffPaymentsContent() {
     processPaymentMutation.mutate({
       id: paymentId,
       params: {
-        method: 'COUNTER_CASH',
+        method: 'CASH',
       },
     })
   }
