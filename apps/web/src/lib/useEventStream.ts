@@ -9,6 +9,7 @@ const TOPIC_QUERY_PREFIXES: Record<string, readonly string[]> = {
   'work-orders': ['/api/v1/work-orders'],
   notifications: ['/api/v1/notifications'],
   documents: ['/api/v1/work-orders'],
+  payments: ['/api/v1/payments'],
 }
 
 export type LiveUpdateMessage = {

@@ -1,6 +1,7 @@
 import {
   getGetMyNotificationsQueryKey,
   getGetMyPreferencesQueryKey,
+  useCreateCheckoutSession,
   getGetMyPaymentsQueryKey,
   useGetMyNotifications,
   useGetMyPayments,
@@ -15,12 +16,14 @@ import { errorMessage, formatCurrency, formatDate } from '../../lib/format'
 import { useQueryClient } from '@tanstack/react-query'
 import * as React from 'react'
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native'
+import * as WebBrowser from 'expo-web-browser'
 
 export default function MoreScreen() {
   const queryClient = useQueryClient()
   const { signOut } = useAuth()
   const notifications = useGetMyNotifications({ limit: 50 })
   const payments = useGetMyPayments()
+  const checkout = useCreateCheckoutSession()
   const preferences = useGetMyPreferences()
   const markRead = useMarkNotificationRead()
   const markAllRead = useMarkAllNotificationsRead()
@@ -41,6 +44,23 @@ export default function MoreScreen() {
           void queryClient.invalidateQueries({
             queryKey: getGetMyPreferencesQueryKey(),
           }),
+        onError: (error) => setMessage(errorMessage(error)),
+      },
+    )
+  }
+
+  const startCheckout = (paymentId: string) => {
+    checkout.mutate(
+      { id: paymentId },
+      {
+        onSuccess: async (session) => {
+          if (!session.checkoutUrl) {
+            setMessage('Unable to start secure checkout. Please try again.')
+            return
+          }
+          await WebBrowser.openBrowserAsync(session.checkoutUrl)
+          void queryClient.invalidateQueries({ queryKey: getGetMyPaymentsQueryKey() })
+        },
         onError: (error) => setMessage(errorMessage(error)),
       },
     )
@@ -87,6 +107,15 @@ export default function MoreScreen() {
             <View style={styles.row}><Text style={styles.invoice}>{payment.invoiceNumber || 'Invoice'}</Text><StatusPill value={payment.paymentStatus} /></View>
             <Text style={styles.amount}>{formatCurrency(payment.amount)}</Text>
             <Text style={styles.meta}>Created {formatDate(payment.createdAt)}</Text>
+            {payment.paymentStatus !== 'PAID' && payment.id ? (
+              <PrimaryButton
+                label={checkout.isPending ? 'Opening secure checkout…' : 'Pay securely'}
+                loading={checkout.isPending}
+                onPress={() => {
+                  if (payment.id) startCheckout(payment.id)
+                }}
+              />
+            ) : null}
           </Card>
         ))}
       </LoadState>
