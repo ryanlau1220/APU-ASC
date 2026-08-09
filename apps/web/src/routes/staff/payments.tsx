@@ -10,9 +10,11 @@ import * as React from 'react'
 import {
   useCreateInvoice,
   useGetAllPayments,
+  useGetAllQuotations,
+  useGetAllWorkOrders,
   useProcessPayment,
 } from '../../api/generated/endpoints'
-import type { PaymentDto } from '../../api/generated/models'
+import type { PaymentDto, QuotationDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
 
@@ -28,6 +30,19 @@ function StaffPaymentsContent() {
 
   const { data: paymentsData = [], refetch } = useGetAllPayments()
   const payments = (paymentsData || []) as WorkOrderPaymentDto[]
+  const { data: workOrders = [] } = useGetAllWorkOrders()
+  const { data: quotationData = [] } = useGetAllQuotations()
+  const quotations = quotationData as QuotationDto[]
+  const invoiceReadyWorkOrders = workOrders.filter(
+    (workOrder) =>
+      workOrder.status === 'COMPLETED' &&
+      quotations.some(
+        (quotation) =>
+          quotation.workOrderId === workOrder.id &&
+          quotation.status === 'APPROVED',
+      ) &&
+      !payments.some((payment) => payment.workOrderId === workOrder.id),
+  )
 
   const createInvoiceMutation = useCreateInvoice({
     mutation: {
@@ -114,20 +129,32 @@ function StaffPaymentsContent() {
           >
             <div>
               <label
-                htmlFor="aptIdInput"
+                htmlFor="workOrderIdInput"
                 className="block text-xs font-semibold text-muted-foreground mb-1"
               >
-                Work Order ID
+                Completed work order
               </label>
-              <input
+              <select
                 id="workOrderIdInput"
-                type="text"
                 required
                 value={workOrderId}
                 onChange={(e) => setWorkOrderId(e.target.value)}
-                placeholder="e.g. WO-201"
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
-              />
+              >
+                <option value="">
+                  {invoiceReadyWorkOrders.length === 0
+                    ? 'No completed work orders ready to invoice'
+                    : 'Select a completed work order'}
+                </option>
+                {invoiceReadyWorkOrders.map((workOrder) => (
+                  <option key={workOrder.id} value={workOrder.id}>
+                    {workOrder.id} · {workOrder.serviceId} · completed
+                    {workOrder.completedAt
+                      ? ` ${new Date(workOrder.completedAt).toLocaleDateString()}`
+                      : ''}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
