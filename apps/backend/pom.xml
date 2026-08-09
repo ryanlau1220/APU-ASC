@@ -24,6 +24,7 @@
         <spring-modulith.version>1.2.0</spring-modulith.version>
         <springdoc.version>2.5.0</springdoc.version>
         <aws-sdk.version>2.25.10</aws-sdk.version>
+        <stripe-java.version>33.2.0</stripe-java.version>
     </properties>
 
     <dependencyManagement>
@@ -121,6 +122,13 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
+        </dependency>
+
+        <!-- Stripe Checkout -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>${stripe-java.version}</version>
         </dependency>
 
         <!-- Sentry Error Tracking -->
