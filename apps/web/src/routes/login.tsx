@@ -43,10 +43,6 @@ function LoginPage() {
     setTheme(nextTheme)
   }
 
-  const handleManualRedirect = () => {
-    window.location.href = '/oauth2/authorization/keycloak'
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors justify-between">
       <header className="px-6 py-4 border-b border-border bg-card">
@@ -94,14 +90,13 @@ function LoginPage() {
               : 'Connecting securely to APU Automotive Service Centre Enterprise Identity Service…'}
           </p>
 
-          <button
-            type="button"
-            onClick={handleManualRedirect}
+          <a
+            href="/oauth2/authorization/keycloak"
             className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-xs shadow-md"
           >
             <ShieldCheck className="w-4 h-4" />
             Proceed to Secure SSO Sign In
-          </button>
+          </a>
         </div>
       </main>
 
