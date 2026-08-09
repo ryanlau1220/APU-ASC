@@ -117,7 +117,12 @@ class StripeCheckoutService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stripe signature.");
     }
 
-    Optional<StripeObject> object = event.getDataObjectDeserializer().getObject();
+    if (!isCheckoutSettlementEvent(event.getType())) {
+      log.debug("Ignored Stripe event type {}", event.getType());
+      return;
+    }
+
+    Optional<StripeObject> object = deserializeCheckoutSession(event);
     if (object.isEmpty() || !(object.get() instanceof Session session)) {
       log.warn(
           "Ignored Stripe event {} because it did not contain a Checkout Session", event.getType());
@@ -129,7 +134,33 @@ class StripeCheckoutService {
           settleCompletedSession(session);
       case "checkout.session.async_payment_failed", "checkout.session.expired" ->
           markFailedSession(session);
-      default -> log.debug("Ignored Stripe event type {}", event.getType());
+      default -> {
+        // isCheckoutSettlementEvent above limits this switch to the supported event types.
+      }
+    }
+  }
+
+  private boolean isCheckoutSettlementEvent(String eventType) {
+    return Set.of(
+            "checkout.session.completed",
+            "checkout.session.async_payment_succeeded",
+            "checkout.session.async_payment_failed",
+            "checkout.session.expired")
+        .contains(eventType);
+  }
+
+  private Optional<StripeObject> deserializeCheckoutSession(Event event) {
+    Optional<StripeObject> compatibleObject = event.getDataObjectDeserializer().getObject();
+    if (compatibleObject.isPresent()) {
+      return compatibleObject;
+    }
+    try {
+      // The Stripe signature has already been verified. Events retain the account's API version,
+      // which can differ from the SDK version and makes the compatibility-safe path unavailable.
+      return Optional.of(event.getDataObjectDeserializer().deserializeUnsafe());
+    } catch (StripeException ex) {
+      log.warn("Could not deserialize signed Stripe event {}", event.getId(), ex);
+      return Optional.empty();
     }
   }
 
