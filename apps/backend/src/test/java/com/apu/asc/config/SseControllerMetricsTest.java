@@ -33,7 +33,7 @@ class SseControllerMetricsTest {
   @DisplayName("Tracks active subscribers and successful live-update delivery")
   void tracksSubscriberAndDeliveryMetrics() {
     TestingAuthenticationToken authentication =
-        new TestingAuthenticationToken("USR-101", "not-used", "ROLE_MANAGER");
+        new TestingAuthenticationToken("keycloak-101", "not-used", "ROLE_MANAGER");
 
     controller.subscribe(authentication);
     controller.handleLiveUpdateEvent(LiveUpdateEvent.forRoles("work-orders", "WO-101", "MANAGER"));
@@ -84,7 +84,7 @@ class SseControllerMetricsTest {
 
     @Override
     public Optional<UserDto> findByKeycloakId(String keycloakId) {
-      return Optional.empty();
+      return "keycloak-101".equals(keycloakId) ? Optional.of(USER) : Optional.empty();
     }
 
     @Override

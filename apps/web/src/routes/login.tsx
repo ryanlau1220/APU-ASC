@@ -12,6 +12,7 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
+  const [loggedOut, setLoggedOut] = React.useState(false)
 
   React.useEffect(() => {
     const root = document.documentElement
@@ -20,7 +21,12 @@ function LoginPage() {
       root.getAttribute('data-theme') === 'dark'
     setTheme(isDark ? 'dark' : 'light')
 
-    // Automatically initiate Keycloak Enterprise SSO redirect
+    if (new URLSearchParams(window.location.search).has('loggedOut')) {
+      setLoggedOut(true)
+      return
+    }
+
+    // Automatically initiate Keycloak Enterprise SSO redirect.
     const timer = setTimeout(() => {
       window.location.href = '/oauth2/authorization/keycloak'
     }, 400)
@@ -80,11 +86,12 @@ function LoginPage() {
             <LogIn className="w-6 h-6" />
           </div>
           <h1 className="font-heading text-2xl font-bold">
-            Redirecting to APU-ASC SSO
+            {loggedOut ? 'You have signed out' : 'Redirecting to APU-ASC SSO'}
           </h1>
           <p className="text-xs text-muted-foreground">
-            Connecting securely to APU Automotive Service Centre Enterprise
-            Identity Service…
+            {loggedOut
+              ? 'Sign in again when you are ready.'
+              : 'Connecting securely to APU Automotive Service Centre Enterprise Identity Service…'}
           </p>
 
           <button

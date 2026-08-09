@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.apu.asc.config.SecurityConfig;
@@ -41,6 +42,15 @@ class MeControllerTest {
         .perform(get("/api/v1/auth/me"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.authenticated").value(false));
+  }
+
+  @Test
+  @DisplayName("Should redirect a signed-out browser to the frontend login page")
+  void shouldRedirectLogoutToFrontendLogin() throws Exception {
+    mockMvc
+        .perform(get("/logout"))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("http://localhost:3000/login?loggedOut=true"));
   }
 
   @Test

@@ -15,6 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
@@ -103,6 +104,8 @@ public class CustomOidcUserService extends OidcUserService {
       log.info("JIT User Provisioning completed for user sub: {}, id: {}", sub, syncedUser.id());
     } catch (Exception e) {
       log.error("Failed to execute JIT user sync for sub {}: {}", sub, e.getMessage(), e);
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("jit_provisioning_failed"), "Unable to provision this account.");
     }
 
     String nameAttributeKey =

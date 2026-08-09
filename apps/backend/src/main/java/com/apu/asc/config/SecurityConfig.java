@@ -159,7 +159,9 @@ public class SecurityConfig {
   private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
     OidcClientInitiatedLogoutSuccessHandler handler =
         new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-    handler.setPostLogoutRedirectUri(frontendBaseUrl + "/oauth2/authorization/keycloak");
+    String signedOutPage = frontendBaseUrl + "/login?loggedOut=true";
+    handler.setPostLogoutRedirectUri(signedOutPage);
+    handler.setDefaultTargetUrl(signedOutPage);
     return handler;
   }
 

@@ -244,31 +244,22 @@ class UserServiceImpl implements UserApi {
       String keycloakId, String username, String email, String fullName, String role) {
     Optional<UserEntity> existing = userRepository.findByKeycloakId(keycloakId);
     if (existing.isPresent()) {
-      UserEntity user = existing.get();
-      boolean updated = false;
-      if (email != null && !email.equals(user.getEmail())) {
-        user.setEmail(email);
-        updated = true;
+      return syncExistingJitUser(existing.get(), email, fullName, role, false);
+    }
+
+    Optional<UserEntity> usernameOwner = userRepository.findByUsername(username);
+    Optional<UserEntity> emailOwner = userRepository.findByEmail(email);
+    if (usernameOwner.isPresent() || emailOwner.isPresent()) {
+      if (usernameOwner.isPresent()
+          && emailOwner
+              .filter(owner -> owner.getId().equals(usernameOwner.get().getId()))
+              .isPresent()) {
+        UserEntity user = usernameOwner.get();
+        user.setKeycloakId(keycloakId);
+        return syncExistingJitUser(user, email, fullName, role, true);
       }
-      if (fullName != null && !fullName.equals(user.getFullName())) {
-        user.setFullName(fullName);
-        updated = true;
-      }
-      if (role != null && !role.equals(user.getRole())) {
-        user.setRole(role);
-        updated = true;
-      }
-      if (updated) {
-        userRepository.save(user);
-        eventPublisher.publishEvent(
-            new AuditEvent(
-                user.getId(),
-                "USER_JIT_UPDATED",
-                "USER",
-                user.getId(),
-                "Updated JIT user profile"));
-      }
-      return toDto(user);
+      throw new IllegalStateException(
+          "A different application account already owns this Keycloak username or email.");
     }
 
     String generatedId = "USR-" + UUID.randomUUID().toString();
@@ -287,6 +278,34 @@ class UserServiceImpl implements UserApi {
         new AuditEvent(
             created.id(), "USER_JIT_PROVISIONED", "USER", created.id(), "JIT Provisioned user"));
     return created;
+  }
+
+  private UserDto syncExistingJitUser(
+      UserEntity user, String email, String fullName, String role, boolean relinked) {
+    boolean updated = relinked;
+    if (email != null && !email.equals(user.getEmail())) {
+      user.setEmail(email);
+      updated = true;
+    }
+    if (fullName != null && !fullName.equals(user.getFullName())) {
+      user.setFullName(fullName);
+      updated = true;
+    }
+    if (role != null && !role.equals(user.getRole())) {
+      user.setRole(role);
+      updated = true;
+    }
+    if (updated) {
+      userRepository.save(user);
+      eventPublisher.publishEvent(
+          new AuditEvent(
+              user.getId(),
+              relinked ? "USER_JIT_RELINKED" : "USER_JIT_UPDATED",
+              "USER",
+              user.getId(),
+              relinked ? "Relinked JIT user identity" : "Updated JIT user profile"));
+    }
+    return toDto(user);
   }
 
   @Override

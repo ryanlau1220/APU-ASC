@@ -34,44 +34,18 @@ public class CurrentUserService {
 
   private Optional<UserDto> resolveUser(Authentication authentication) {
     LinkedHashSet<String> subjects = new LinkedHashSet<>();
-    LinkedHashSet<String> usernames = new LinkedHashSet<>();
-    LinkedHashSet<String> emails = new LinkedHashSet<>();
-    LinkedHashSet<String> ids = new LinkedHashSet<>();
 
     Object principal = authentication.getPrincipal();
     if (principal instanceof OidcUser oidcUser) {
       add(subjects, oidcUser.getSubject());
-      add(usernames, oidcUser.getPreferredUsername());
-      add(emails, oidcUser.getEmail());
     } else if (principal instanceof Jwt jwt) {
       add(subjects, jwt.getSubject());
-      add(usernames, jwt.getClaimAsString("preferred_username"));
-      add(emails, jwt.getClaimAsString("email"));
     }
 
     add(subjects, authentication.getName());
-    add(ids, authentication.getName());
 
     for (String subject : subjects) {
       Optional<UserDto> user = userApi.findByKeycloakId(subject);
-      if (user.isPresent()) {
-        return user;
-      }
-    }
-    for (String username : usernames) {
-      Optional<UserDto> user = userApi.findByUsername(username);
-      if (user.isPresent()) {
-        return user;
-      }
-    }
-    for (String email : emails) {
-      Optional<UserDto> user = userApi.findByEmail(email);
-      if (user.isPresent()) {
-        return user;
-      }
-    }
-    for (String id : ids) {
-      Optional<UserDto> user = userApi.findById(id);
       if (user.isPresent()) {
         return user;
       }

@@ -1,6 +1,7 @@
 package com.apu.asc.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -43,5 +45,19 @@ class CurrentUserServiceTest {
     assertThat(currentUser.id()).isEqualTo("USR-CUSTOMER");
     assertThat(currentUser.roles()).containsExactly("CUSTOMER");
     verify(userApi).findByKeycloakId("KC-CUSTOMER");
+  }
+
+  @Test
+  void rejectsAnUnmappedKeycloakSubjectWithoutUsernameOrEmailFallback() {
+    TestingAuthenticationToken authentication =
+        new TestingAuthenticationToken(
+            "unknown-keycloak-subject",
+            "n/a",
+            List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER")));
+    authentication.setAuthenticated(true);
+    when(userApi.findByKeycloakId("unknown-keycloak-subject")).thenReturn(Optional.empty());
+
+    assertThatThrownBy(() -> new CurrentUserService(userApi).requireCurrentUser(authentication))
+        .isInstanceOf(AccessDeniedException.class);
   }
 }
