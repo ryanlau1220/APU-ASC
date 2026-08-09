@@ -9,6 +9,7 @@ import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.scheduling.SlotAvailabilityDto;
 import com.apu.asc.scheduling.SlotCapacityUpdateDto;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,5 +73,24 @@ class SchedulingServiceImplTest {
     assertThat(event.audienceRoles())
         .containsExactlyInAnyOrder("CUSTOMER", "TECHNICIAN", "STAFF", "MANAGER");
     assertThat(event.occurredAt()).isNotNull();
+  }
+
+  @Test
+  void returnsAvailabilityWhenStandardAndAdditionalSlotsAreConfigured() {
+    SlotAvailabilityDto standardSlot = new SlotAvailabilityDto(DATE, SLOT, 3, 1, 2, true);
+    SlotAvailabilityDto additionalSlot = new SlotAvailabilityDto(DATE, "02:00 PM", 3, 0, 3, true);
+    when(capacityStore.findByDate(DATE)).thenReturn(List.of(standardSlot, additionalSlot));
+
+    List<SlotAvailabilityDto> availability = schedulingService.getAvailability(DATE);
+
+    assertThat(availability)
+        .extracting(SlotAvailabilityDto::timeSlot)
+        .containsExactly(
+            "09:00 - 10:00 AM",
+            "10:00 - 11:00 AM",
+            "02:00 - 03:00 PM",
+            "04:00 - 05:00 PM",
+            "02:00 PM");
+    assertThat(availability.getFirst()).isEqualTo(standardSlot);
   }
 }

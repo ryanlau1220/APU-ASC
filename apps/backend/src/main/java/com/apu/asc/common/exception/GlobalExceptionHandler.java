@@ -46,6 +46,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return problemDetail;
   }
 
+  @ExceptionHandler(Exception.class)
+  public ProblemDetail handleUnexpected(Exception ex) {
+    log.error("Unhandled request failure", ex);
+    ProblemDetail problemDetail =
+        ProblemDetail.forStatusAndDetail(
+            org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
+            "The request could not be completed. Please try again later.");
+    problemDetail.setType(URI.create("https://apu-asc.com/errors/internal-error"));
+    problemDetail.setTitle("Internal Server Error");
+    return problemDetail;
+  }
+
   @Override
   protected ResponseEntity<Object> handleAsyncRequestTimeoutException(
       AsyncRequestTimeoutException ex,

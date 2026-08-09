@@ -6,11 +6,11 @@ import com.apu.asc.scheduling.SchedulingTimeSlots;
 import com.apu.asc.scheduling.SlotAvailabilityDto;
 import com.apu.asc.scheduling.SlotCapacityUpdateDto;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -38,24 +38,19 @@ class SchedulingServiceImpl implements SchedulingApi {
     capacityStore
         .findByDate(appointmentDate)
         .forEach(slot -> configuredSlots.put(slot.timeSlot(), slot));
-    return Stream.concat(
-            SchedulingTimeSlots.STANDARD_SLOTS.stream()
-                .map(
-                    timeSlot -> {
-                      SlotAvailabilityDto configured = configuredSlots.remove(timeSlot);
-                      return configured != null
-                          ? configured
-                          : new SlotAvailabilityDto(
-                              appointmentDate,
-                              timeSlot,
-                              defaultSlotCapacity,
-                              0,
-                              defaultSlotCapacity,
-                              true);
-                    }),
-            configuredSlots.values().stream()
-                .sorted(Comparator.comparing(SlotAvailabilityDto::timeSlot)))
-        .toList();
+    List<SlotAvailabilityDto> availability = new ArrayList<>();
+    for (String timeSlot : SchedulingTimeSlots.STANDARD_SLOTS) {
+      SlotAvailabilityDto configured = configuredSlots.remove(timeSlot);
+      availability.add(
+          configured != null
+              ? configured
+              : new SlotAvailabilityDto(
+                  appointmentDate, timeSlot, defaultSlotCapacity, 0, defaultSlotCapacity, true));
+    }
+    configuredSlots.values().stream()
+        .sorted(Comparator.comparing(SlotAvailabilityDto::timeSlot))
+        .forEach(availability::add);
+    return List.copyOf(availability);
   }
 
   @Override
