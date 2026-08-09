@@ -2,6 +2,7 @@ package com.apu.asc.payment.internal;
 
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
+import com.apu.asc.payment.CheckoutSessionDto;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
 import com.apu.asc.quotation.QuotationApi;
@@ -39,6 +40,7 @@ class PaymentController {
   private final QuotationApi quotationApi;
   private final CurrentUserService currentUserService;
   private final AccessPolicy accessPolicy;
+  private final StripeCheckoutService stripeCheckoutService;
 
   @GetMapping
   @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
@@ -121,8 +123,8 @@ class PaymentController {
   }
 
   @PostMapping("/{id}/pay")
-  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF')")
-  @Operation(summary = "Process invoice payment")
+  @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
+  @Operation(summary = "Record a counter cash or card payment")
   public ResponseEntity<PaymentDto> processPayment(
       @PathVariable final String id,
       @RequestParam final String method,
@@ -131,6 +133,17 @@ class PaymentController {
     accessPolicy.requireSelfOrOperational(
         currentUserService.requireCurrentUser(authentication), payment.customerId());
     return ResponseEntity.ok(paymentApi.processPayment(id, method));
+  }
+
+  @PostMapping("/{id}/checkout")
+  @PreAuthorize("hasRole('CUSTOMER')")
+  @Operation(summary = "Create or resume Stripe Checkout for my invoice")
+  public ResponseEntity<CheckoutSessionDto> createCheckoutSession(
+      @PathVariable final String id, Authentication authentication) {
+    PaymentDto payment = paymentApi.getPaymentById(id);
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), payment.customerId());
+    return ResponseEntity.ok(stripeCheckoutService.createCheckoutSession(id));
   }
 
   @DeleteMapping("/{id}")

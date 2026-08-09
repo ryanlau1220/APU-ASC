@@ -11,5 +11,7 @@ interface PaymentRepository extends JpaRepository<PaymentEntity, String> {
 
   Optional<PaymentEntity> findByWorkOrderId(String workOrderId);
 
+  Optional<PaymentEntity> findByStripeCheckoutSessionId(String stripeCheckoutSessionId);
+
   List<PaymentEntity> findByCustomerId(String customerId);
 }

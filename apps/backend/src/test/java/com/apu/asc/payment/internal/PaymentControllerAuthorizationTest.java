@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
+import com.apu.asc.payment.CheckoutSessionDto;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
 import com.apu.asc.quotation.QuotationApi;
@@ -35,6 +36,7 @@ class PaymentControllerAuthorizationTest {
   @Mock private WorkOrderApi workOrderApi;
   @Mock private QuotationApi quotationApi;
   @Mock private CurrentUserService currentUserService;
+  @Mock private StripeCheckoutService stripeCheckoutService;
 
   private PaymentController controller;
 
@@ -42,17 +44,35 @@ class PaymentControllerAuthorizationTest {
   void setUp() {
     controller =
         new PaymentController(
-            paymentApi, workOrderApi, quotationApi, currentUserService, new AccessPolicy());
+            paymentApi,
+            workOrderApi,
+            quotationApi,
+            currentUserService,
+            new AccessPolicy(),
+            stripeCheckoutService);
   }
 
   @Test
-  void customerCannotProcessAnotherCustomersInvoice() {
+  void customerCannotStartCheckoutForAnotherCustomersInvoice() {
     when(paymentApi.getPaymentById("PAY-OTHER")).thenReturn(payment("USR-OTHER"));
     when(currentUserService.requireCurrentUser(AUTHENTICATION))
         .thenReturn(new AuthenticatedUser("USR-CUSTOMER", Set.of("CUSTOMER")));
 
-    assertThatThrownBy(() -> controller.processPayment("PAY-OTHER", "ONLINE_CARD", AUTHENTICATION))
+    assertThatThrownBy(() -> controller.createCheckoutSession("PAY-OTHER", AUTHENTICATION))
         .isInstanceOf(AccessDeniedException.class);
+  }
+
+  @Test
+  void customerCanStartCheckoutForOwnInvoice() {
+    when(paymentApi.getPaymentById("PAY-MINE")).thenReturn(payment("USR-CUSTOMER"));
+    when(currentUserService.requireCurrentUser(AUTHENTICATION))
+        .thenReturn(new AuthenticatedUser("USR-CUSTOMER", Set.of("CUSTOMER")));
+    when(stripeCheckoutService.createCheckoutSession("PAY-MINE"))
+        .thenReturn(new CheckoutSessionDto("https://checkout.stripe.com/c/pay/cs_test"));
+
+    controller.createCheckoutSession("PAY-MINE", AUTHENTICATION);
+
+    verify(stripeCheckoutService).createCheckoutSession("PAY-MINE");
   }
 
   @Test

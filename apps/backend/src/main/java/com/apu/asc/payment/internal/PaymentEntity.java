@@ -48,6 +48,12 @@ class PaymentEntity {
   @Column(name = "paid_at")
   private Instant paidAt;
 
+  @Column(name = "stripe_checkout_session_id")
+  private String stripeCheckoutSessionId;
+
+  @Column(name = "stripe_payment_intent_id")
+  private String stripePaymentIntentId;
+
   @Column(name = "created_at", updatable = false)
   private Instant createdAt;
 

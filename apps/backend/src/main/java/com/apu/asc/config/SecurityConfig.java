@@ -90,7 +90,8 @@ public class SecurityConfig {
             csrf ->
                 csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                    .ignoringRequestMatchers("/api/v1/auth/**", "/login/oauth2/**", "/logout"))
+                    .ignoringRequestMatchers(
+                        "/api/v1/auth/**", "/api/v1/stripe/webhook", "/login/oauth2/**", "/logout"))
         .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
         .oauth2Login(
             oauth2 ->
@@ -125,6 +126,7 @@ public class SecurityConfig {
                         "/actuator/health",
                         "/actuator/health/**",
                         "/api/v1/auth/**",
+                        "/api/v1/stripe/webhook",
                         "/api/v1/users/avatar/file/**",
                         "/api/v1/audit-logs/sentry-test",
                         "/login/**",

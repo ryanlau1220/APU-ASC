@@ -1,12 +1,17 @@
 package com.apu.asc.payment.internal;
 
 import com.apu.asc.common.event.AuditEvent;
+import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.common.exception.ResourceNotFoundException;
+import com.apu.asc.notification.NotificationRequestedEvent;
+import com.apu.asc.notification.NotificationType;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.payment.PaymentMethod;
 import com.apu.asc.payment.PaymentStatus;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -80,10 +85,7 @@ class PaymentServiceImpl implements PaymentApi {
             .customerId(paymentDto.customerId())
             .invoiceNumber(invoiceNum)
             .amount(paymentDto.amount())
-            .paymentMethod(
-                paymentDto.paymentMethod() != null && !paymentDto.paymentMethod().isBlank()
-                    ? paymentDto.paymentMethod()
-                    : "PENDING")
+            .paymentMethod(PaymentMethod.PENDING.name())
             .paymentStatus(PaymentStatus.UNPAID.name())
             .build();
     PaymentDto created = toDto(paymentRepository.save(entity));
@@ -139,9 +141,16 @@ class PaymentServiceImpl implements PaymentApi {
     if (current == PaymentStatus.PAID) {
       return toDto(payment);
     }
+    PaymentMethod paymentMethod = PaymentMethod.fromString(method);
+    if (paymentMethod != PaymentMethod.CASH
+        && paymentMethod != PaymentMethod.CREDIT_CARD
+        && paymentMethod != PaymentMethod.DEBIT_CARD) {
+      throw new IllegalArgumentException(
+          "Only counter cash or card payments can be recorded manually.");
+    }
     String beforeState = paymentAuditState(payment);
     current.requireTransitionTo(PaymentStatus.PAID);
-    payment.setPaymentMethod(method);
+    payment.setPaymentMethod(paymentMethod.name());
     payment.setPaymentStatus(PaymentStatus.PAID.name());
     if (payment.getPaidAt() == null) payment.setPaidAt(Instant.now());
     PaymentDto updated = toDto(paymentRepository.save(payment));
@@ -154,6 +163,7 @@ class PaymentServiceImpl implements PaymentApi {
             "Processed payment.",
             beforeState,
             paymentAuditState(payment)));
+    publishPaymentUpdates(updated);
     return updated;
   }
 
@@ -195,5 +205,18 @@ class PaymentServiceImpl implements PaymentApi {
         + entity.getPaymentMethod()
         + "; paymentStatus="
         + entity.getPaymentStatus();
+  }
+
+  private void publishPaymentUpdates(PaymentDto payment) {
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forUsersAndRoles(
+            "payments", payment.id(), Set.of(payment.customerId()), Set.of("STAFF", "MANAGER")));
+    eventPublisher.publishEvent(
+        NotificationRequestedEvent.forUsers(
+            NotificationType.PAYMENT_RECEIVED,
+            Set.of(payment.customerId()),
+            "Payment received",
+            "Payment for invoice " + payment.invoiceNumber() + " has been received.",
+            "/customer/payments"));
   }
 }

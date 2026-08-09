@@ -6,7 +6,8 @@ public enum PaymentMethod {
   DEBIT_CARD,
   ONLINE_BANKING,
   CASH,
-  E_WALLET;
+  E_WALLET,
+  STRIPE_CHECKOUT;
 
   public static PaymentMethod fromString(String method) {
     if (method == null || method.isBlank()) {

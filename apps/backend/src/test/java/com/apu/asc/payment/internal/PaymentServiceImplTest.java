@@ -111,4 +111,23 @@ class PaymentServiceImplTest {
     assertThat(updated.paymentMethod()).isEqualTo("CREDIT_CARD");
     verifyNoInteractions(eventPublisher);
   }
+
+  @Test
+  void shouldRejectOnlineMethodsForManualPaymentProcessing() {
+    PaymentEntity payment =
+        PaymentEntity.builder()
+            .id("PAY-1")
+            .customerId("CUST-1")
+            .invoiceNumber("INV-001")
+            .amount(BigDecimal.valueOf(150.00))
+            .paymentMethod("PENDING")
+            .paymentStatus("UNPAID")
+            .build();
+    when(paymentRepository.findById("PAY-1")).thenReturn(Optional.of(payment));
+
+    assertThatThrownBy(() -> paymentService.processPayment("PAY-1", "ONLINE_BANKING"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("counter cash or card");
+    verifyNoInteractions(eventPublisher);
+  }
 }
