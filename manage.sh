@@ -111,13 +111,13 @@ case "$1" in
         pnpm --filter @apu-asc/mobile verify
         ;;
     docker)
-        echo -e "${YELLOW}Starting Docker Compose infrastructure and observability stack...${RESET}"
-        docker compose --profile observability up -d
+        echo -e "${YELLOW}Starting Docker Compose infrastructure, observability, and Stripe sandbox listener...${RESET}"
+        docker compose --profile observability --profile stripe up -d
         echo -e "${GREEN}✓ [OK] Docker infrastructure and observability containers started successfully in detached mode.${RESET}"
         ;;
     docker:down)
-        echo -e "${YELLOW}Stopping Docker Compose infrastructure and observability stack...${RESET}"
-        docker compose --profile observability down
+        echo -e "${YELLOW}Stopping Docker Compose infrastructure, observability, and Stripe sandbox listener...${RESET}"
+        docker compose --profile observability --profile stripe down
         echo -e "${GREEN}✓ [OK] Docker infrastructure and observability containers stopped and removed.${RESET}"
         ;;
     prod:up)
@@ -229,7 +229,7 @@ case "$1" in
         echo "Clean complete."
         ;;
     *)
-        echo "Usage: ./manage.sh {dev|mobile|mobile:android|mobile:verify|docker|docker:down|prod:up|prod:deploy|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
+        echo "Usage: ./manage.sh {dev|mobile|mobile:android|mobile:build|mobile:build:local|mobile:verify|docker|docker:down|prod:up|prod:deploy|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
         exit 1
         ;;
 esac
