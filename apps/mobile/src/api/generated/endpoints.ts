@@ -28,6 +28,7 @@ import type {
 	CategoryDto,
 	ChangePassword200,
 	ChangePasswordRequest,
+	CheckoutSessionDto,
 	DocumentDto,
 	FeedbackDto,
 	ForgotPasswordOtpRequest,
@@ -4092,6 +4093,95 @@ export const useUploadAvatar = <TError = unknown, TContext = unknown>(
 };
 
 /**
+ * @summary Receive a signed Stripe Checkout event
+ */
+export const receiveWebhook = (
+	receiveWebhookBody: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<void>(
+		{
+			url: `/api/v1/stripe/webhook`,
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			data: receiveWebhookBody,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getReceiveWebhookMutationOptions = <
+	TError = unknown,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof receiveWebhook>>,
+		TError,
+		{ data: string },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof receiveWebhook>>,
+	TError,
+	{ data: string },
+	TContext
+> => {
+	const mutationKey = ["receiveWebhook"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof receiveWebhook>>,
+		{ data: string }
+	> = (props) => {
+		const { data } = props ?? {};
+
+		return receiveWebhook(data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type ReceiveWebhookMutationResult = NonNullable<
+	Awaited<ReturnType<typeof receiveWebhook>>
+>;
+export type ReceiveWebhookMutationBody = string;
+export type ReceiveWebhookMutationError = unknown;
+
+/**
+ * @summary Receive a signed Stripe Checkout event
+ */
+export const useReceiveWebhook = <TError = unknown, TContext = unknown>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof receiveWebhook>>,
+			TError,
+			{ data: string },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof receiveWebhook>>,
+	TError,
+	{ data: string },
+	TContext
+> => {
+	const mutationOptions = getReceiveWebhookMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+
+/**
  * @summary Get all quotations
  */
 export const getAllQuotations = (
@@ -4727,7 +4817,7 @@ export const useCreateInvoice = <TError = unknown, TContext = unknown>(
 };
 
 /**
- * @summary Process invoice payment
+ * @summary Record a counter cash or card payment
  */
 export const processPayment = (
 	id: string,
@@ -4786,7 +4876,7 @@ export type ProcessPaymentMutationResult = NonNullable<
 export type ProcessPaymentMutationError = unknown;
 
 /**
- * @summary Process invoice payment
+ * @summary Record a counter cash or card payment
  */
 export const useProcessPayment = <TError = unknown, TContext = unknown>(
 	options?: {
@@ -4806,6 +4896,89 @@ export const useProcessPayment = <TError = unknown, TContext = unknown>(
 	TContext
 > => {
 	const mutationOptions = getProcessPaymentMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Create or resume Stripe Checkout for my invoice
+ */
+export const createCheckoutSession = (
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<CheckoutSessionDto>(
+		{ url: `/api/v1/payments/${id}/checkout`, method: "POST", signal },
+		options,
+	);
+};
+
+export const getCreateCheckoutSessionMutationOptions = <
+	TError = unknown,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof createCheckoutSession>>,
+		TError,
+		{ id: string },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof createCheckoutSession>>,
+	TError,
+	{ id: string },
+	TContext
+> => {
+	const mutationKey = ["createCheckoutSession"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof createCheckoutSession>>,
+		{ id: string }
+	> = (props) => {
+		const { id } = props ?? {};
+
+		return createCheckoutSession(id, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCheckoutSessionMutationResult = NonNullable<
+	Awaited<ReturnType<typeof createCheckoutSession>>
+>;
+
+export type CreateCheckoutSessionMutationError = unknown;
+
+/**
+ * @summary Create or resume Stripe Checkout for my invoice
+ */
+export const useCreateCheckoutSession = <TError = unknown, TContext = unknown>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof createCheckoutSession>>,
+			TError,
+			{ id: string },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof createCheckoutSession>>,
+	TError,
+	{ id: string },
+	TContext
+> => {
+	const mutationOptions = getCreateCheckoutSessionMutationOptions(options);
 
 	return useMutation(mutationOptions, queryClient);
 };

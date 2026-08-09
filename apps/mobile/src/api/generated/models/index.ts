@@ -11,6 +11,7 @@ export * from "./auditLogDto";
 export * from "./categoryDto";
 export * from "./changePassword200";
 export * from "./changePasswordRequest";
+export * from "./checkoutSessionDto";
 export * from "./documentDto";
 export * from "./documentDtoType";
 export * from "./feedbackDto";
