@@ -10,6 +10,7 @@ import com.apu.asc.quotation.QuotationDto;
 import com.apu.asc.user.CurrentUserService;
 import com.apu.asc.workorder.WorkOrderApi;
 import com.apu.asc.workorder.WorkOrderDto;
+import com.apu.asc.workorder.WorkOrderStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -97,6 +98,10 @@ class PaymentController {
       @Valid @RequestBody final PaymentDto paymentDto, Authentication authentication) {
     currentUserService.requireCurrentUser(authentication);
     WorkOrderDto workOrder = resolveWorkOrder(paymentDto);
+    if (!WorkOrderStatus.COMPLETED.name().equals(workOrder.status())) {
+      throw new IllegalArgumentException(
+          "An invoice can only be issued for a completed work order.");
+    }
     QuotationDto approvedQuotation = quotationApi.getApprovedByWorkOrder(workOrder.id());
     PaymentDto securedPayment =
         new PaymentDto(

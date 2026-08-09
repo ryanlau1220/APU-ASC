@@ -3,6 +3,7 @@ package com.apu.asc.payment.internal;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.apu.asc.common.security.AccessPolicy;
@@ -85,7 +86,7 @@ class PaymentControllerAuthorizationTest {
             "VEH-1",
             "SVC-1",
             null,
-            "IN_PROGRESS",
+            "COMPLETED",
             null,
             null,
             null,
@@ -110,6 +111,36 @@ class PaymentControllerAuthorizationTest {
     verify(paymentApi).createInvoice(captured.capture());
     org.assertj.core.api.Assertions.assertThat(captured.getValue().amount())
         .isEqualByComparingTo("350.00");
+  }
+
+  @Test
+  void invoiceCannotBeIssuedBeforeWorkIsCompleted() {
+    WorkOrderDto workOrder =
+        new WorkOrderDto(
+            "WO-1",
+            "APT-1",
+            "USR-1",
+            "VEH-1",
+            "SVC-1",
+            null,
+            "IN_PROGRESS",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    PaymentDto request =
+        new PaymentDto(null, null, null, null, null, null, null, null, null, "WO-1");
+    when(currentUserService.requireCurrentUser(AUTHENTICATION))
+        .thenReturn(new AuthenticatedUser("USR-STAFF", Set.of("STAFF")));
+    when(workOrderApi.getWorkOrderById("WO-1")).thenReturn(workOrder);
+
+    assertThatThrownBy(() -> controller.createInvoice(request, AUTHENTICATION))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("completed work order");
+    verifyNoInteractions(quotationApi, paymentApi);
   }
 
   private PaymentDto payment(String customerId) {
