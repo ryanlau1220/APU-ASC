@@ -15,6 +15,8 @@ function checkHasPermission(
     (role) =>
       userRoles.includes(role) ||
       userRoles.includes(`ROLE_${role}`) ||
+      userRoles.includes('MANAGER') ||
+      userRoles.includes('ROLE_MANAGER') ||
       userRoles.includes('SYSTEM_ADMIN') ||
       userRoles.includes('ROLE_SYSTEM_ADMIN'),
   )
@@ -57,5 +59,16 @@ describe('Role-Based Access Control (RequireAuth Guard)', () => {
     expect(checkHasPermission(adminSession, ['STAFF'])).toBe(true)
     expect(checkHasPermission(adminSession, ['TECHNICIAN'])).toBe(true)
     expect(checkHasPermission(adminSession, ['CUSTOMER'])).toBe(true)
+  })
+
+  it('should allow MANAGER multi-portal access for the executive portal switcher', () => {
+    const managerSession: UserSession = {
+      authenticated: true,
+      roles: ['MANAGER'],
+    }
+
+    expect(checkHasPermission(managerSession, ['CUSTOMER'])).toBe(true)
+    expect(checkHasPermission(managerSession, ['STAFF'])).toBe(true)
+    expect(checkHasPermission(managerSession, ['TECHNICIAN'])).toBe(true)
   })
 })
