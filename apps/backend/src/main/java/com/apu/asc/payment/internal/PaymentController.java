@@ -5,6 +5,9 @@ import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.payment.CheckoutSessionDto;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.payment.PaymentExceptionRequest;
+import com.apu.asc.payment.PaymentMethod;
+import com.apu.asc.payment.PaymentRecordDto;
 import com.apu.asc.quotation.QuotationApi;
 import com.apu.asc.quotation.QuotationDto;
 import com.apu.asc.user.CurrentUserService;
@@ -15,8 +18,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.HtmlUtils;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -92,7 +99,7 @@ class PaymentController {
   }
 
   @PostMapping
-  @PreAuthorize("hasRole('STAFF')")
+  @PreAuthorize("hasAnyRole('STAFF', 'MANAGER')")
   @Operation(summary = "Create invoice for appointment")
   public ResponseEntity<PaymentDto> createInvoice(
       @Valid @RequestBody final PaymentDto paymentDto, Authentication authentication) {
@@ -151,8 +158,47 @@ class PaymentController {
     return ResponseEntity.ok(stripeCheckoutService.createCheckoutSession(id));
   }
 
+  @PostMapping("/{id}/void")
+  @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM_ADMIN')")
+  @Operation(summary = "Void an unpaid invoice with a recorded reason")
+  public ResponseEntity<PaymentDto> voidInvoice(
+      @PathVariable final String id, @Valid @RequestBody final PaymentExceptionRequest request) {
+    PaymentDto payment = paymentApi.getPaymentById(id);
+    if (PaymentMethod.STRIPE_CHECKOUT.name().equals(payment.paymentMethod())) {
+      return ResponseEntity.ok(stripeCheckoutService.voidInvoice(id, request.reason()));
+    }
+    return ResponseEntity.ok(paymentApi.voidInvoice(id, request.reason()));
+  }
+
+  @PostMapping("/{id}/refund")
+  @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM_ADMIN')")
+  @Operation(summary = "Issue a full refund with a recorded reason")
+  public ResponseEntity<PaymentDto> refundPayment(
+      @PathVariable final String id, @Valid @RequestBody final PaymentExceptionRequest request) {
+    PaymentDto payment = paymentApi.getPaymentById(id);
+    if (PaymentMethod.STRIPE_CHECKOUT.name().equals(payment.paymentMethod())) {
+      return ResponseEntity.ok(stripeCheckoutService.requestRefund(id, request.reason()));
+    }
+    return ResponseEntity.ok(paymentApi.refundCounterPayment(id, request.reason()));
+  }
+
+  @GetMapping(value = "/{id}/record", produces = MediaType.TEXT_HTML_VALUE)
+  @PreAuthorize("hasAnyRole('CUSTOMER', 'STAFF', 'MANAGER')")
+  @Operation(summary = "Open a printable payment receipt or credit note")
+  public ResponseEntity<String> getPrintableRecord(
+      @PathVariable final String id, Authentication authentication) {
+    PaymentDto payment = paymentApi.getPaymentById(id);
+    accessPolicy.requireSelfOrOperational(
+        currentUserService.requireCurrentUser(authentication), payment.customerId());
+    return ResponseEntity.ok()
+        .contentType(MediaType.TEXT_HTML)
+        .header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'")
+        .header("X-Content-Type-Options", "nosniff")
+        .body(renderFinancialRecord(paymentApi.getPaymentRecord(id)));
+  }
+
   @DeleteMapping("/{id}")
-  @PreAuthorize("hasRole('MANAGER')")
+  @PreAuthorize("hasAnyRole('MANAGER', 'SYSTEM_ADMIN')")
   @Operation(summary = "Delete invoice/payment record")
   public ResponseEntity<Void> deletePayment(@PathVariable final String id) {
     paymentApi.deletePayment(id);
@@ -171,5 +217,56 @@ class PaymentController {
                   new IllegalArgumentException("The appointment does not yet have a work order."));
     }
     throw new IllegalArgumentException("An invoice must be associated with a work order.");
+  }
+
+  private String renderFinancialRecord(PaymentRecordDto record) {
+    String heading =
+        switch (record.paymentStatus()) {
+          case "PAID" -> "Payment receipt";
+          case "REFUND_PENDING" -> "Refund record";
+          case "REFUNDED" -> "Credit note";
+          case "VOID" -> "Void notice";
+          default -> "Invoice record";
+        };
+    String eventLabel =
+        record.refundedAt() != null ? "Refunded" : record.voidedAt() != null ? "Voided" : "Paid";
+    String eventDate =
+        record.refundedAt() != null
+            ? formatDate(record.refundedAt())
+            : record.voidedAt() != null
+                ? formatDate(record.voidedAt())
+                : record.paidAt() != null ? formatDate(record.paidAt()) : "Not settled";
+    String exceptionDetail =
+        record.refundReason() != null
+            ? "<tr><th>Refund reason</th><td>%s</td></tr>".formatted(escape(record.refundReason()))
+            : record.voidReason() != null
+                ? "<tr><th>Void reason</th><td>%s</td></tr>".formatted(escape(record.voidReason()))
+                : "";
+    return """
+        <!doctype html>
+        <html lang="en"><head><meta charset="utf-8"><title>%s</title>
+        <style>body{font-family:Arial,sans-serif;color:#152238;margin:48px;max-width:720px}h1{margin-bottom:4px}.muted{color:#60738f}table{border-collapse:collapse;width:100%%;margin-top:28px}th,td{border-bottom:1px solid #dbe4ef;padding:12px;text-align:left}th{width:38%%;color:#526783}.amount{font-size:24px;font-weight:700;color:#087fe7}@media print{body{margin:24px}}</style>
+        </head><body><h1>%s</h1><p class="muted">APU Automotive Service Centre</p>
+        <table><tr><th>Invoice</th><td>%s</td></tr><tr><th>Status</th><td>%s</td></tr><tr><th>Amount</th><td class="amount">RM %s</td></tr><tr><th>Method</th><td>%s</td></tr><tr><th>%s</th><td>%s</td></tr>%s</table>
+        </body></html>
+        """
+        .formatted(
+            escape(heading),
+            escape(heading),
+            escape(record.invoiceNumber()),
+            escape(record.paymentStatus()),
+            record.amount(),
+            escape(record.paymentMethod()),
+            eventLabel,
+            eventDate,
+            exceptionDetail);
+  }
+
+  private String formatDate(java.time.Instant value) {
+    return DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC).format(value);
+  }
+
+  private String escape(String value) {
+    return HtmlUtils.htmlEscape(value == null ? "—" : value);
   }
 }

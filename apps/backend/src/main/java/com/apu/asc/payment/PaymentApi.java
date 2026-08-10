@@ -19,5 +19,11 @@ public interface PaymentApi {
 
   PaymentDto processPayment(String paymentId, String method);
 
+  PaymentDto voidInvoice(String paymentId, String reason);
+
+  PaymentDto refundCounterPayment(String paymentId, String reason);
+
+  PaymentRecordDto getPaymentRecord(String paymentId);
+
   void deletePayment(String id);
 }

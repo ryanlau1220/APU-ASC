@@ -3,7 +3,9 @@ package com.apu.asc.payment;
 public enum PaymentStatus {
   UNPAID,
   PAID,
+  REFUND_PENDING,
   REFUNDED,
+  VOID,
   FAILED;
 
   public static PaymentStatus fromString(String status) {
@@ -26,10 +28,11 @@ public enum PaymentStatus {
 
   private boolean canTransitionTo(PaymentStatus target) {
     return switch (this) {
-      case UNPAID -> target == PAID || target == FAILED;
-      case PAID -> target == REFUNDED;
-      case FAILED -> target == PAID;
-      case REFUNDED -> false;
+      case UNPAID -> target == PAID || target == FAILED || target == VOID;
+      case PAID -> target == REFUND_PENDING || target == REFUNDED;
+      case REFUND_PENDING -> target == PAID || target == REFUNDED;
+      case FAILED -> target == PAID || target == VOID;
+      case REFUNDED, VOID -> false;
     };
   }
 }

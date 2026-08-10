@@ -130,4 +130,49 @@ class PaymentServiceImplTest {
         .hasMessageContaining("counter cash or card");
     verifyNoInteractions(eventPublisher);
   }
+
+  @Test
+  void shouldVoidAnUnpaidInvoiceAndRetainTheReason() {
+    PaymentEntity payment =
+        PaymentEntity.builder()
+            .id("PAY-1")
+            .customerId("CUST-1")
+            .invoiceNumber("INV-001")
+            .amount(BigDecimal.valueOf(150.00))
+            .paymentMethod("PENDING")
+            .paymentStatus("UNPAID")
+            .build();
+    when(paymentRepository.findById("PAY-1")).thenReturn(Optional.of(payment));
+    when(paymentRepository.save(payment)).thenReturn(payment);
+
+    PaymentDto updated = paymentService.voidInvoice("PAY-1", "Duplicate invoice");
+
+    assertThat(updated.paymentStatus()).isEqualTo("VOID");
+    assertThat(payment.getVoidedAt()).isNotNull();
+    assertThat(payment.getVoidReason()).isEqualTo("Duplicate invoice");
+    verify(paymentRepository).save(payment);
+  }
+
+  @Test
+  void shouldRecordCounterRefundAndRetainTheReason() {
+    PaymentEntity payment =
+        PaymentEntity.builder()
+            .id("PAY-1")
+            .customerId("CUST-1")
+            .invoiceNumber("INV-001")
+            .amount(BigDecimal.valueOf(150.00))
+            .paymentMethod("CASH")
+            .paymentStatus("PAID")
+            .paidAt(Instant.now())
+            .build();
+    when(paymentRepository.findById("PAY-1")).thenReturn(Optional.of(payment));
+    when(paymentRepository.save(payment)).thenReturn(payment);
+
+    PaymentDto updated = paymentService.refundCounterPayment("PAY-1", "Service not completed");
+
+    assertThat(updated.paymentStatus()).isEqualTo("REFUNDED");
+    assertThat(payment.getRefundedAt()).isNotNull();
+    assertThat(payment.getRefundReason()).isEqualTo("Service not completed");
+    verify(paymentRepository).save(payment);
+  }
 }

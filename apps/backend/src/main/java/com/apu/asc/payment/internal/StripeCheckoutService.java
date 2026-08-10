@@ -5,15 +5,18 @@ import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.notification.NotificationRequestedEvent;
 import com.apu.asc.notification.NotificationType;
 import com.apu.asc.payment.CheckoutSessionDto;
+import com.apu.asc.payment.PaymentDto;
 import com.apu.asc.payment.PaymentMethod;
 import com.apu.asc.payment.PaymentStatus;
 import com.stripe.StripeClient;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
+import com.stripe.model.Refund;
 import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import com.stripe.param.RefundCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -63,12 +66,9 @@ class StripeCheckoutService {
                     new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "The requested invoice does not exist."));
     PaymentStatus status = PaymentStatus.fromString(payment.getPaymentStatus());
-    if (status == PaymentStatus.PAID) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, "This invoice has already been paid.");
-    }
-    if (status == PaymentStatus.REFUNDED) {
+    if (status != PaymentStatus.UNPAID && status != PaymentStatus.FAILED) {
       throw new ResponseStatusException(
-          HttpStatus.CONFLICT, "A refunded invoice cannot be paid again.");
+          HttpStatus.CONFLICT, "This invoice is not available for online payment.");
     }
 
     StripeClient stripeClient = stripeClient();
@@ -101,6 +101,84 @@ class StripeCheckoutService {
   }
 
   @Transactional
+  PaymentDto voidInvoice(String paymentId, String reason) {
+    PaymentEntity payment = requirePayment(paymentId);
+    PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
+    current.requireTransitionTo(PaymentStatus.VOID);
+    expireOpenCheckoutSession(payment);
+
+    String beforeState = paymentAuditState(payment);
+    payment.setPaymentStatus(PaymentStatus.VOID.name());
+    payment.setVoidedAt(Instant.now());
+    payment.setVoidReason(reason.trim());
+    PaymentEntity saved = paymentRepository.save(payment);
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            null,
+            "INVOICE_VOIDED",
+            "PAYMENT",
+            saved.getId(),
+            "Voided invoice " + saved.getInvoiceNumber(),
+            beforeState,
+            paymentAuditState(saved)));
+    publishPaymentLiveUpdate(saved);
+    return toDto(saved);
+  }
+
+  @Transactional
+  PaymentDto requestRefund(String paymentId, String reason) {
+    PaymentEntity payment = requirePayment(paymentId);
+    PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
+    current.requireTransitionTo(PaymentStatus.REFUND_PENDING);
+    if (payment.getStripePaymentIntentId() == null
+        || payment.getStripePaymentIntentId().isBlank()) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "The Stripe payment reference is unavailable for this invoice.");
+    }
+
+    try {
+      Refund refund =
+          stripeClient()
+              .v1()
+              .refunds()
+              .create(
+                  RefundCreateParams.builder()
+                      .setPaymentIntent(payment.getStripePaymentIntentId())
+                      .setReason(RefundCreateParams.Reason.REQUESTED_BY_CUSTOMER)
+                      .putMetadata("paymentId", payment.getId())
+                      .putMetadata("refundReason", reason.trim())
+                      .build());
+      if (refund.getId() == null || refund.getStatus() == null) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_GATEWAY, "Stripe did not return a usable refund confirmation.");
+      }
+
+      String beforeState = paymentAuditState(payment);
+      payment.setStripeRefundId(refund.getId());
+      payment.setRefundReason(reason.trim());
+      applyRefundStatus(payment, refund.getStatus());
+      PaymentEntity saved = paymentRepository.save(payment);
+      eventPublisher.publishEvent(
+          new AuditEvent(
+              null,
+              "STRIPE_REFUND_REQUESTED",
+              "PAYMENT",
+              saved.getId(),
+              "Requested Stripe refund for invoice " + saved.getInvoiceNumber(),
+              beforeState,
+              paymentAuditState(saved)));
+      publishPaymentLiveUpdate(saved);
+      if (PaymentStatus.REFUNDED.name().equals(saved.getPaymentStatus())) {
+        publishRefundNotification(saved);
+      }
+      return toDto(saved);
+    } catch (StripeException ex) {
+      log.warn("Stripe refund creation failed for payment {}", paymentId, ex);
+      throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Unable to request Stripe refund.");
+    }
+  }
+
+  @Transactional
   void handleWebhook(byte[] payload, String signature) {
     requireConfigured(webhookSecret, "Stripe webhooks are not configured.");
     if (signature == null || signature.isBlank()) {
@@ -117,12 +195,19 @@ class StripeCheckoutService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Stripe signature.");
     }
 
-    if (!isCheckoutSettlementEvent(event.getType())) {
-      log.debug("Ignored Stripe event type {}", event.getType());
+    if (isCheckoutSettlementEvent(event.getType())) {
+      handleCheckoutEvent(event);
       return;
     }
+    if (isRefundEvent(event.getType())) {
+      handleRefundEvent(event);
+      return;
+    }
+    log.debug("Ignored Stripe event type {}", event.getType());
+  }
 
-    Optional<StripeObject> object = deserializeCheckoutSession(event);
+  private void handleCheckoutEvent(Event event) {
+    Optional<StripeObject> object = deserializeSignedStripeObject(event);
     if (object.isEmpty() || !(object.get() instanceof Session session)) {
       log.warn(
           "Ignored Stripe event {} because it did not contain a Checkout Session", event.getType());
@@ -140,6 +225,73 @@ class StripeCheckoutService {
     }
   }
 
+  private void handleRefundEvent(Event event) {
+    Optional<StripeObject> object = deserializeSignedStripeObject(event);
+    if (object.isEmpty() || !(object.get() instanceof Refund refund)) {
+      log.warn("Ignored Stripe event {} because it did not contain a refund", event.getType());
+      return;
+    }
+    updateRefundFromWebhook(refund);
+  }
+
+  private boolean isRefundEvent(String eventType) {
+    return Set.of("refund.created", "refund.updated", "refund.failed").contains(eventType);
+  }
+
+  private Optional<StripeObject> deserializeSignedStripeObject(Event event) {
+    Optional<StripeObject> compatibleObject = event.getDataObjectDeserializer().getObject();
+    if (compatibleObject.isPresent()) {
+      return compatibleObject;
+    }
+    try {
+      // This fallback only processes Stripe events after their webhook signature is verified.
+      return Optional.of(event.getDataObjectDeserializer().deserializeUnsafe());
+    } catch (StripeException ex) {
+      log.warn("Could not deserialize signed Stripe event {}", event.getId(), ex);
+      return Optional.empty();
+    }
+  }
+
+  private void updateRefundFromWebhook(Refund refund) {
+    if (refund.getId() == null || refund.getStatus() == null) {
+      log.warn("Ignored Stripe refund event without an ID or status");
+      return;
+    }
+    Optional<PaymentEntity> matchingPayment =
+        paymentRepository.findByStripeRefundId(refund.getId());
+    if (matchingPayment.isEmpty()) {
+      log.info("Ignored Stripe refund {} with no matching payment", refund.getId());
+      return;
+    }
+
+    PaymentEntity payment = matchingPayment.get();
+    if (refund.getPaymentIntent() == null
+        || !refund.getPaymentIntent().equals(payment.getStripePaymentIntentId())) {
+      log.error("Stripe refund {} does not match its recorded payment intent", refund.getId());
+      return;
+    }
+    PaymentStatus before = PaymentStatus.fromString(payment.getPaymentStatus());
+    applyRefundStatus(payment, refund.getStatus());
+    if (before == PaymentStatus.fromString(payment.getPaymentStatus())) {
+      log.debug("Stripe refund {} did not change payment state", refund.getId());
+      return;
+    }
+    PaymentEntity saved = paymentRepository.save(payment);
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            null,
+            "STRIPE_REFUND_STATUS_UPDATED",
+            "PAYMENT",
+            saved.getId(),
+            "Stripe refund " + refund.getId() + " is " + refund.getStatus(),
+            "paymentStatus=" + before,
+            paymentAuditState(saved)));
+    publishPaymentLiveUpdate(saved);
+    if (PaymentStatus.REFUNDED.name().equals(saved.getPaymentStatus())) {
+      publishRefundNotification(saved);
+    }
+  }
+
   private boolean isCheckoutSettlementEvent(String eventType) {
     return Set.of(
             "checkout.session.completed",
@@ -147,21 +299,6 @@ class StripeCheckoutService {
             "checkout.session.async_payment_failed",
             "checkout.session.expired")
         .contains(eventType);
-  }
-
-  private Optional<StripeObject> deserializeCheckoutSession(Event event) {
-    Optional<StripeObject> compatibleObject = event.getDataObjectDeserializer().getObject();
-    if (compatibleObject.isPresent()) {
-      return compatibleObject;
-    }
-    try {
-      // The Stripe signature has already been verified. Events retain the account's API version,
-      // which can differ from the SDK version and makes the compatibility-safe path unavailable.
-      return Optional.of(event.getDataObjectDeserializer().deserializeUnsafe());
-    } catch (StripeException ex) {
-      log.warn("Could not deserialize signed Stripe event {}", event.getId(), ex);
-      return Optional.empty();
-    }
   }
 
   private CheckoutSessionDto findOpenCheckoutSession(
@@ -230,8 +367,7 @@ class StripeCheckoutService {
       return;
     }
     PaymentEntity payment = findMatchingPayment(session);
-    if (payment == null
-        || PaymentStatus.fromString(payment.getPaymentStatus()) == PaymentStatus.PAID) {
+    if (payment == null || !isCheckoutPayable(payment)) {
       return;
     }
     PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
@@ -256,8 +392,7 @@ class StripeCheckoutService {
 
   private void markFailedSession(Session session) {
     PaymentEntity payment = findMatchingPayment(session);
-    if (payment == null
-        || PaymentStatus.fromString(payment.getPaymentStatus()) == PaymentStatus.PAID) {
+    if (payment == null || !isCheckoutPayable(payment)) {
       return;
     }
     PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
@@ -299,6 +434,11 @@ class StripeCheckoutService {
     return payment.get();
   }
 
+  private boolean isCheckoutPayable(PaymentEntity payment) {
+    PaymentStatus status = PaymentStatus.fromString(payment.getPaymentStatus());
+    return status == PaymentStatus.UNPAID || status == PaymentStatus.FAILED;
+  }
+
   private boolean matchesInvoice(Session session, PaymentEntity payment) {
     if (session.getAmountTotal() == null || session.getCurrency() == null) {
       return false;
@@ -337,13 +477,56 @@ class StripeCheckoutService {
         + payment.getPaymentStatus();
   }
 
+  private PaymentEntity requirePayment(String paymentId) {
+    return paymentRepository
+        .findById(paymentId)
+        .orElseThrow(
+            () ->
+                new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "The requested invoice does not exist."));
+  }
+
+  private void expireOpenCheckoutSession(PaymentEntity payment) {
+    if (payment.getStripeCheckoutSessionId() == null) {
+      return;
+    }
+    try {
+      Session session =
+          stripeClient().v1().checkout().sessions().retrieve(payment.getStripeCheckoutSessionId());
+      if ("open".equals(session.getStatus())) {
+        stripeClient().v1().checkout().sessions().expire(session.getId());
+      }
+    } catch (StripeException ex) {
+      log.warn("Unable to expire Checkout session for payment {}", payment.getId(), ex);
+      throw new ResponseStatusException(
+          HttpStatus.BAD_GATEWAY, "Unable to void the online invoice.");
+    }
+  }
+
+  private void applyRefundStatus(PaymentEntity payment, String stripeStatus) {
+    PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
+    switch (stripeStatus) {
+      case "succeeded" -> {
+        current.requireTransitionTo(PaymentStatus.REFUNDED);
+        payment.setPaymentStatus(PaymentStatus.REFUNDED.name());
+        if (payment.getRefundedAt() == null) {
+          payment.setRefundedAt(Instant.now());
+        }
+      }
+      case "pending", "requires_action" -> {
+        current.requireTransitionTo(PaymentStatus.REFUND_PENDING);
+        payment.setPaymentStatus(PaymentStatus.REFUND_PENDING.name());
+      }
+      case "failed", "canceled" -> {
+        current.requireTransitionTo(PaymentStatus.PAID);
+        payment.setPaymentStatus(PaymentStatus.PAID.name());
+      }
+      default -> log.warn("Ignored unsupported Stripe refund status {}", stripeStatus);
+    }
+  }
+
   private void publishPaymentUpdates(PaymentEntity payment) {
-    eventPublisher.publishEvent(
-        LiveUpdateEvent.forUsersAndRoles(
-            "payments",
-            payment.getId(),
-            Set.of(payment.getCustomerId()),
-            Set.of("STAFF", "MANAGER")));
+    publishPaymentLiveUpdate(payment);
     eventPublisher.publishEvent(
         NotificationRequestedEvent.forUsers(
             NotificationType.PAYMENT_RECEIVED,
@@ -351,5 +534,38 @@ class StripeCheckoutService {
             "Payment received",
             "Payment for invoice " + payment.getInvoiceNumber() + " has been received.",
             "/customer/payments"));
+  }
+
+  private void publishRefundNotification(PaymentEntity payment) {
+    eventPublisher.publishEvent(
+        NotificationRequestedEvent.forUsers(
+            NotificationType.PAYMENT_REFUNDED,
+            Set.of(payment.getCustomerId()),
+            "Payment refunded",
+            "A refund has been issued for invoice " + payment.getInvoiceNumber() + ".",
+            "/customer/payments"));
+  }
+
+  private void publishPaymentLiveUpdate(PaymentEntity payment) {
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forUsersAndRoles(
+            "payments",
+            payment.getId(),
+            Set.of(payment.getCustomerId()),
+            Set.of("STAFF", "MANAGER")));
+  }
+
+  private PaymentDto toDto(PaymentEntity payment) {
+    return new PaymentDto(
+        payment.getId(),
+        payment.getAppointmentId(),
+        payment.getCustomerId(),
+        payment.getInvoiceNumber(),
+        payment.getAmount(),
+        payment.getPaymentMethod(),
+        payment.getPaymentStatus(),
+        payment.getPaidAt(),
+        payment.getCreatedAt(),
+        payment.getWorkOrderId());
   }
 }

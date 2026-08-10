@@ -1,5 +1,6 @@
 package com.apu.asc.payment.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -11,6 +12,7 @@ import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.payment.CheckoutSessionDto;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
+import com.apu.asc.payment.PaymentRecordDto;
 import com.apu.asc.quotation.QuotationApi;
 import com.apu.asc.quotation.QuotationDto;
 import com.apu.asc.user.CurrentUserService;
@@ -141,6 +143,35 @@ class PaymentControllerAuthorizationTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("completed work order");
     verifyNoInteractions(quotationApi, paymentApi);
+  }
+
+  @Test
+  void printableRecordIsOwnerScopedAndEscapesRecordedReasons() {
+    when(paymentApi.getPaymentById("PAY-MINE")).thenReturn(payment("USR-CUSTOMER"));
+    when(currentUserService.requireCurrentUser(AUTHENTICATION))
+        .thenReturn(new AuthenticatedUser("USR-CUSTOMER", Set.of("CUSTOMER")));
+    when(paymentApi.getPaymentRecord("PAY-MINE"))
+        .thenReturn(
+            new PaymentRecordDto(
+                "PAY-MINE",
+                "INV-1",
+                BigDecimal.TEN,
+                "CASH",
+                "REFUNDED",
+                null,
+                null,
+                null,
+                java.time.Instant.now(),
+                "<script>alert(1)</script>",
+                java.time.Instant.now()));
+
+    org.springframework.http.ResponseEntity<String> response =
+        controller.getPrintableRecord("PAY-MINE", AUTHENTICATION);
+
+    assertThat(response.getBody())
+        .contains("Credit note")
+        .contains("&lt;script&gt;alert(1)&lt;/script&gt;")
+        .doesNotContain("<script>alert(1)</script>");
   }
 
   private PaymentDto payment(String customerId) {

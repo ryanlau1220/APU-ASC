@@ -8,6 +8,7 @@ import com.apu.asc.notification.NotificationType;
 import com.apu.asc.payment.PaymentApi;
 import com.apu.asc.payment.PaymentDto;
 import com.apu.asc.payment.PaymentMethod;
+import com.apu.asc.payment.PaymentRecordDto;
 import com.apu.asc.payment.PaymentStatus;
 import java.time.Instant;
 import java.util.List;
@@ -169,6 +170,66 @@ class PaymentServiceImpl implements PaymentApi {
 
   @Override
   @Transactional
+  public PaymentDto voidInvoice(final String paymentId, final String reason) {
+    PaymentEntity payment = requirePayment(paymentId);
+    PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
+    current.requireTransitionTo(PaymentStatus.VOID);
+    String beforeState = paymentAuditState(payment);
+    payment.setPaymentStatus(PaymentStatus.VOID.name());
+    payment.setVoidedAt(Instant.now());
+    payment.setVoidReason(reason.trim());
+    PaymentDto updated = toDto(paymentRepository.save(payment));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.customerId(),
+            "INVOICE_VOIDED",
+            "PAYMENT",
+            updated.id(),
+            "Voided invoice " + updated.invoiceNumber(),
+            beforeState,
+            paymentAuditState(payment)));
+    publishPaymentLiveUpdate(updated);
+    return updated;
+  }
+
+  @Override
+  @Transactional
+  public PaymentDto refundCounterPayment(final String paymentId, final String reason) {
+    PaymentEntity payment = requirePayment(paymentId);
+    if (PaymentMethod.STRIPE_CHECKOUT.name().equals(payment.getPaymentMethod())) {
+      throw new IllegalArgumentException("Stripe payments must be refunded through Stripe.");
+    }
+    PaymentStatus current = PaymentStatus.fromString(payment.getPaymentStatus());
+    current.requireTransitionTo(PaymentStatus.REFUNDED);
+    String beforeState = paymentAuditState(payment);
+    payment.setPaymentStatus(PaymentStatus.REFUNDED.name());
+    payment.setRefundedAt(Instant.now());
+    payment.setRefundReason(reason.trim());
+    PaymentDto updated = toDto(paymentRepository.save(payment));
+    eventPublisher.publishEvent(
+        new AuditEvent(
+            updated.customerId(),
+            "COUNTER_PAYMENT_REFUNDED",
+            "PAYMENT",
+            updated.id(),
+            "Recorded counter refund for invoice " + updated.invoiceNumber(),
+            beforeState,
+            paymentAuditState(payment)));
+    publishPaymentRefunded(updated);
+    return updated;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PaymentRecordDto getPaymentRecord(final String paymentId) {
+    return paymentRepository
+        .findById(paymentId)
+        .map(this::toRecord)
+        .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+  }
+
+  @Override
+  @Transactional
   public void deletePayment(final String id) {
     PaymentEntity payment =
         paymentRepository
@@ -198,6 +259,27 @@ class PaymentServiceImpl implements PaymentApi {
         entity.getWorkOrderId());
   }
 
+  private PaymentRecordDto toRecord(PaymentEntity entity) {
+    return new PaymentRecordDto(
+        entity.getId(),
+        entity.getInvoiceNumber(),
+        entity.getAmount(),
+        entity.getPaymentMethod(),
+        entity.getPaymentStatus(),
+        entity.getPaidAt(),
+        entity.getVoidedAt(),
+        entity.getVoidReason(),
+        entity.getRefundedAt(),
+        entity.getRefundReason(),
+        entity.getCreatedAt());
+  }
+
+  private PaymentEntity requirePayment(String paymentId) {
+    return paymentRepository
+        .findById(paymentId)
+        .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+  }
+
   private String paymentAuditState(PaymentEntity entity) {
     return "amount="
         + entity.getAmount()
@@ -208,9 +290,7 @@ class PaymentServiceImpl implements PaymentApi {
   }
 
   private void publishPaymentUpdates(PaymentDto payment) {
-    eventPublisher.publishEvent(
-        LiveUpdateEvent.forUsersAndRoles(
-            "payments", payment.id(), Set.of(payment.customerId()), Set.of("STAFF", "MANAGER")));
+    publishPaymentLiveUpdate(payment);
     eventPublisher.publishEvent(
         NotificationRequestedEvent.forUsers(
             NotificationType.PAYMENT_RECEIVED,
@@ -218,5 +298,22 @@ class PaymentServiceImpl implements PaymentApi {
             "Payment received",
             "Payment for invoice " + payment.invoiceNumber() + " has been received.",
             "/customer/payments"));
+  }
+
+  private void publishPaymentRefunded(PaymentDto payment) {
+    publishPaymentLiveUpdate(payment);
+    eventPublisher.publishEvent(
+        NotificationRequestedEvent.forUsers(
+            NotificationType.PAYMENT_REFUNDED,
+            Set.of(payment.customerId()),
+            "Payment refunded",
+            "A refund has been recorded for invoice " + payment.invoiceNumber() + ".",
+            "/customer/payments"));
+  }
+
+  private void publishPaymentLiveUpdate(PaymentDto payment) {
+    eventPublisher.publishEvent(
+        LiveUpdateEvent.forUsersAndRoles(
+            "payments", payment.id(), Set.of(payment.customerId()), Set.of("STAFF", "MANAGER")));
   }
 }

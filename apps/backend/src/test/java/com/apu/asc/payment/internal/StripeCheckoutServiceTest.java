@@ -83,6 +83,32 @@ class StripeCheckoutServiceTest {
     verify(eventPublisher, never()).publishEvent(any(Object.class));
   }
 
+  @Test
+  void confirmsARefundOnlyFromTheMatchingSignedStripeWebhook() throws Exception {
+    PaymentEntity payment =
+        PaymentEntity.builder()
+            .id("PAY-1")
+            .customerId("CUS-1")
+            .invoiceNumber("INV-1")
+            .amount(new BigDecimal("12.50"))
+            .paymentMethod("STRIPE_CHECKOUT")
+            .paymentStatus("REFUND_PENDING")
+            .stripePaymentIntentId("pi_test_1")
+            .stripeRefundId("re_test_1")
+            .refundReason("Customer request")
+            .build();
+    byte[] payload = completedRefundPayload();
+    when(paymentRepository.findByStripeRefundId("re_test_1")).thenReturn(Optional.of(payment));
+    when(paymentRepository.save(payment)).thenReturn(payment);
+
+    stripeCheckoutService.handleWebhook(payload, validSignature(payload));
+
+    assertThat(payment.getPaymentStatus()).isEqualTo("REFUNDED");
+    assertThat(payment.getRefundedAt()).isNotNull();
+    verify(paymentRepository).save(payment);
+    verify(eventPublisher, times(3)).publishEvent(any(Object.class));
+  }
+
   private byte[] completedCheckoutPayload() {
     return """
         {
@@ -98,6 +124,26 @@ class StripeCheckoutServiceTest {
               "amount_total": 1250,
               "currency": "myr",
               "client_reference_id": "PAY-1",
+              "payment_intent": "pi_test_1"
+            }
+          }
+        }
+        """
+        .getBytes(StandardCharsets.UTF_8);
+  }
+
+  private byte[] completedRefundPayload() {
+    return """
+        {
+          "id": "evt_test_refund_1",
+          "object": "event",
+          "api_version": "2025-01-27.acacia",
+          "type": "refund.updated",
+          "data": {
+            "object": {
+              "id": "re_test_1",
+              "object": "refund",
+              "status": "succeeded",
               "payment_intent": "pi_test_1"
             }
           }

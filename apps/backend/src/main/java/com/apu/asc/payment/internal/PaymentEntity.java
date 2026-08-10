@@ -54,6 +54,21 @@ class PaymentEntity {
   @Column(name = "stripe_payment_intent_id")
   private String stripePaymentIntentId;
 
+  @Column(name = "stripe_refund_id")
+  private String stripeRefundId;
+
+  @Column(name = "voided_at")
+  private Instant voidedAt;
+
+  @Column(name = "void_reason", length = 500)
+  private String voidReason;
+
+  @Column(name = "refunded_at")
+  private Instant refundedAt;
+
+  @Column(name = "refund_reason", length = 500)
+  private String refundReason;
+
   @Column(name = "created_at", updatable = false)
   private Instant createdAt;
 
