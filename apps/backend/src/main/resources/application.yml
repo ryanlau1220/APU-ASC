@@ -189,6 +189,13 @@ keycloak:
 scheduling:
   default-slot-capacity: ${SCHEDULING_DEFAULT_SLOT_CAPACITY:3}
 
+appointment-reminders:
+  enabled: ${APPOINTMENT_REMINDERS_ENABLED:true}
+  fixed-delay-ms: ${APPOINTMENT_REMINDERS_FIXED_DELAY_MS:900000}
+  initial-delay-ms: ${APPOINTMENT_REMINDERS_INITIAL_DELAY_MS:60000}
+  days-ahead: ${APPOINTMENT_REMINDERS_DAYS_AHEAD:1}
+  time-zone: ${APPOINTMENT_REMINDERS_TIME_ZONE:Asia/Kuala_Lumpur}
+
 app:
   frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
   security:

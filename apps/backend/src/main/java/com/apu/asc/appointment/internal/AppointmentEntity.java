@@ -55,6 +55,9 @@ class AppointmentEntity {
   @Column(name = "updated_at")
   private Instant updatedAt;
 
+  @Column(name = "reminder_queued_at")
+  private Instant reminderQueuedAt;
+
   @PrePersist
   void prePersist() {
     if (createdAt == null) createdAt = Instant.now();

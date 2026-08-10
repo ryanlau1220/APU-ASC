@@ -165,6 +165,7 @@ class AppointmentServiceImpl implements AppointmentApi {
 
     entity.setAppointmentDate(newDate);
     entity.setTimeSlot(newTimeSlot);
+    if (slotChanged) entity.setReminderQueuedAt(null);
     if (appointmentDto.notes() != null) entity.setNotes(appointmentDto.notes());
     if (appointmentDto.technicianId() != null)
       entity.setTechnicianId(appointmentDto.technicianId());

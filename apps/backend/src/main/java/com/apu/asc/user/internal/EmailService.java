@@ -2,6 +2,7 @@ package com.apu.asc.user.internal;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -137,6 +138,66 @@ public class EmailService {
     } catch (Exception e) {
       log.error("SMTP delivery attempt to {} failed: {}", recipientEmail, e.getMessage(), e);
       throw new IllegalStateException("Could not send employee invitation email.", e);
+    }
+  }
+
+  public void sendAppointmentReminderEmail(
+      String recipientEmail,
+      String recipientName,
+      LocalDate appointmentDate,
+      String timeSlot,
+      boolean technician) {
+    if (!StringUtils.hasText(recipientEmail)) {
+      log.warn("Skipping appointment reminder email because the recipient has no email address");
+      return;
+    }
+    try {
+      var message = mailSender.createMimeMessage();
+      var helper = new MimeMessageHelper(message, true, "UTF-8");
+      helper.setFrom(StringUtils.hasText(fromEmail) ? fromEmail.trim() : "noreply@apu-asc.com");
+      helper.setTo(recipientEmail.trim());
+      helper.setSubject("APU-ASC Appointment Reminder");
+
+      Context context = new Context();
+      context.setVariable("subject", "APU-ASC Appointment Reminder");
+      context.setVariable(
+          "mainContent",
+          "Hi "
+              + (StringUtils.hasText(recipientName) ? recipientName.trim() : "there")
+              + ", your "
+              + (technician ? "assigned service appointment" : "service appointment")
+              + " is tomorrow, "
+              + appointmentDate
+              + " at "
+              + timeSlot
+              + ".");
+      context.setVariable(
+          "subContent",
+          technician
+              ? "Please review the assigned job before the workshop visit."
+              : "Please arrive a few minutes early and contact the workshop if you need help.");
+      context.setVariable(
+          "actionUrl",
+          UriComponentsBuilder.fromUriString(frontendBaseUrl)
+              .path(technician ? "/technician/jobs" : "/customer/appointments")
+              .build()
+              .encode()
+              .toUriString());
+      context.setVariable("codeDisplay", "TOMORROW");
+      context.setVariable("platformInfo", "APU-ASC Appointment Reminder");
+      context.setVariable("locationInfo", "Kuala Lumpur, Malaysia");
+      context.setVariable(
+          "timeFormatted",
+          ZonedDateTime.now(ZoneId.of("Asia/Kuala_Lumpur"))
+              .format(
+                  DateTimeFormatter.ofPattern(
+                      "MMMM d, yyyy 'at' hh:mm:ss a 'GMT+8'", Locale.ENGLISH)));
+
+      helper.setText(templateEngine.process("email/transactional-email", context), true);
+      mailSender.send(message);
+      log.info("Successfully sent appointment reminder email to {}", recipientEmail);
+    } catch (Exception e) {
+      throw new IllegalStateException("Could not send appointment reminder email.", e);
     }
   }
 

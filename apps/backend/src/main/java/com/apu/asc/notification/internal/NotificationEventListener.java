@@ -1,8 +1,10 @@
 package com.apu.asc.notification.internal;
 
+import com.apu.asc.common.event.AppointmentReminderRequestedEvent;
 import com.apu.asc.common.event.LiveUpdateEvent;
 import com.apu.asc.notification.NotificationApi;
 import com.apu.asc.notification.NotificationRequestedEvent;
+import com.apu.asc.notification.NotificationType;
 import com.apu.asc.user.UserApi;
 import com.apu.asc.user.UserDto;
 import io.micrometer.core.instrument.Counter;
@@ -53,6 +55,24 @@ class NotificationEventListener {
           LiveUpdateEvent.forUsersAndRoles("notifications", null, recipients, Set.of()));
       createdNotifications.increment(recipients.size());
     }
+  }
+
+  @ApplicationModuleListener(id = "appointment-reminder-notification-delivery")
+  void handle(AppointmentReminderRequestedEvent event) {
+    handle(
+        new NotificationRequestedEvent(
+            event.eventId(),
+            NotificationType.APPOINTMENT_REMINDER,
+            Set.of(event.customerId()),
+            Set.of(),
+            "Appointment reminder",
+            "Your appointment is tomorrow, "
+                + event.appointmentDate()
+                + " at "
+                + event.timeSlot()
+                + ".",
+            "/customer/appointments",
+            event.occurredAt()));
   }
 
   private String normalizeRole(UserDto user) {
