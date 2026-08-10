@@ -1,5 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CheckCircle2, CreditCard, DollarSign, ShieldCheck } from 'lucide-react'
+import {
+  CheckCircle2,
+  CreditCard,
+  DollarSign,
+  ReceiptText,
+  ShieldCheck,
+} from 'lucide-react'
 import * as React from 'react'
 import {
   useCreateCheckoutSession,
@@ -133,7 +139,8 @@ function CustomerPaymentsContent() {
                         </span>
                       </td>
                       <td className="py-3.5 px-3">
-                        {p.paymentStatus !== 'PAID' ? (
+                        {p.paymentStatus === 'UNPAID' ||
+                        p.paymentStatus === 'FAILED' ? (
                           <button
                             type="button"
                             onClick={() => p.id && handlePay(p.id)}
@@ -145,10 +152,27 @@ function CustomerPaymentsContent() {
                               : 'Pay securely'}
                           </button>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-completed">
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            Paid
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-completed">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              {p.paymentStatus === 'REFUND_PENDING'
+                                ? 'Refund pending'
+                                : p.paymentStatus === 'REFUNDED'
+                                  ? 'Refunded'
+                                  : p.paymentStatus === 'VOID'
+                                    ? 'Voided'
+                                    : 'Paid'}
+                            </span>
+                            <a
+                              href={`/api/v1/payments/${p.id}/record`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                            >
+                              <ReceiptText className="w-3.5 h-3.5" />
+                              Record
+                            </a>
+                          </div>
                         )}
                       </td>
                     </tr>

@@ -4,7 +4,10 @@ import {
   CreditCard,
   DollarSign,
   Plus,
+  ReceiptText,
+  RotateCcw,
   ShieldCheck,
+  XCircle,
 } from 'lucide-react'
 import * as React from 'react'
 import {
@@ -13,10 +16,13 @@ import {
   useGetAllQuotations,
   useGetAllWorkOrders,
   useProcessPayment,
+  useRefundPayment,
+  useVoidInvoice,
 } from '../../api/generated/endpoints'
 import type { PaymentDto, QuotationDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
+import { useUserSession } from '../__root'
 
 type WorkOrderPaymentDto = PaymentDto & { workOrderId?: string }
 
@@ -27,6 +33,10 @@ export const Route = createFileRoute('/staff/payments')({
 function StaffPaymentsContent() {
   const [workOrderId, setWorkOrderId] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
+  const { userSession } = useUserSession()
+  const canManagePaymentExceptions =
+    userSession?.roles?.includes('MANAGER') ||
+    userSession?.roles?.includes('SYSTEM_ADMIN')
 
   const { data: paymentsData = [], refetch } = useGetAllPayments()
   const payments = (paymentsData || []) as WorkOrderPaymentDto[]
@@ -69,6 +79,34 @@ function StaffPaymentsContent() {
     },
   })
 
+  const voidInvoiceMutation = useVoidInvoice({
+    mutation: {
+      onSuccess: () => {
+        setMessage('Invoice voided successfully.')
+        refetch()
+      },
+      onError: (err: Error) => {
+        setMessage(err.message || 'Unable to void invoice.')
+      },
+    },
+  })
+
+  const refundPaymentMutation = useRefundPayment({
+    mutation: {
+      onSuccess: (payment) => {
+        setMessage(
+          payment.paymentStatus === 'REFUND_PENDING'
+            ? 'Refund requested successfully. Stripe will confirm the final result.'
+            : 'Refund recorded successfully.',
+        )
+        refetch()
+      },
+      onError: (err: Error) => {
+        setMessage(err.message || 'Unable to issue refund.')
+      },
+    },
+  })
+
   const handleCreateInvoice = (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
@@ -82,6 +120,29 @@ function StaffPaymentsContent() {
       params: {
         method: 'CASH',
       },
+    })
+  }
+
+  const handleException = (paymentId: string, action: 'void' | 'refund') => {
+    const label =
+      action === 'void' ? 'void this invoice' : 'refund this payment'
+    if (!window.confirm(`Are you sure you want to ${label}?`)) return
+    const reason = window.prompt(`Reason to ${label}:`)
+    if (!reason?.trim()) {
+      setMessage('A reason is required for an invoice exception.')
+      return
+    }
+    setMessage(null)
+    if (action === 'void') {
+      voidInvoiceMutation.mutate({
+        id: paymentId,
+        data: { reason: reason.trim() },
+      })
+      return
+    }
+    refundPaymentMutation.mutate({
+      id: paymentId,
+      data: { reason: reason.trim() },
     })
   }
 
@@ -230,20 +291,81 @@ function StaffPaymentsContent() {
                         </span>
                       </td>
                       <td className="py-3.5 px-3">
-                        {p.paymentStatus !== 'PAID' ? (
-                          <button
-                            type="button"
-                            onClick={() => p.id && handleProcess(p.id)}
-                            disabled={processPaymentMutation.isPending}
-                            className="px-3 py-1 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity text-xs disabled:opacity-50"
-                          >
-                            Mark Paid (Cash/POS)
-                          </button>
+                        {p.paymentStatus === 'UNPAID' ||
+                        p.paymentStatus === 'FAILED' ? (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => p.id && handleProcess(p.id)}
+                              disabled={processPaymentMutation.isPending}
+                              className="px-3 py-1 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity text-xs disabled:opacity-50"
+                            >
+                              Mark Paid (Cash/POS)
+                            </button>
+                            {canManagePaymentExceptions && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  p.id && handleException(p.id, 'void')
+                                }
+                                disabled={voidInvoiceMutation.isPending}
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg border border-destructive/30 text-destructive font-semibold hover:bg-destructive/10 transition-colors text-xs disabled:opacity-50"
+                              >
+                                <XCircle className="w-3.5 h-3.5" />
+                                Void invoice
+                              </button>
+                            )}
+                          </div>
+                        ) : p.paymentStatus === 'PAID' &&
+                          canManagePaymentExceptions ? (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                p.id && handleException(p.id, 'refund')
+                              }
+                              disabled={refundPaymentMutation.isPending}
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-lg border border-destructive/30 text-destructive font-semibold hover:bg-destructive/10 transition-colors text-xs disabled:opacity-50"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              Refund
+                            </button>
+                            <a
+                              href={`/api/v1/payments/${p.id}/record`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-lg border border-border font-semibold hover:bg-muted transition-colors text-xs"
+                            >
+                              <ReceiptText className="w-3.5 h-3.5" />
+                              Receipt
+                            </a>
+                          </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-completed">
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            Completed
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {p.paymentStatus === 'REFUND_PENDING' ? (
+                              <span className="text-[11px] font-semibold text-status-pending">
+                                Refund pending
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-completed">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                {p.paymentStatus === 'REFUNDED'
+                                  ? 'Refunded'
+                                  : p.paymentStatus === 'VOID'
+                                    ? 'Voided'
+                                    : 'Completed'}
+                              </span>
+                            )}
+                            <a
+                              href={`/api/v1/payments/${p.id}/record`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                            >
+                              <ReceiptText className="w-3.5 h-3.5" />
+                              Record
+                            </a>
+                          </div>
                         )}
                       </td>
                     </tr>
