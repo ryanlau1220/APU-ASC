@@ -5,13 +5,19 @@ import {
   useCreateAppointment,
   useCreateWorkOrder,
   useGetAllAppointments,
+  useGetAllUsers,
+  useGetServices,
   useGetSlotAvailability,
+  useGetVehiclesByCustomer,
   useUpdateAppointmentStatus,
 } from '../../api/generated/endpoints'
 import type {
   AppointmentDto,
+  ServiceDto,
   SlotAvailabilityDto,
   UpdateAppointmentStatusStatus,
+  UserDto,
+  VehicleDto,
 } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
@@ -35,6 +41,23 @@ function StaffAppointmentsContent() {
 
   const { data: appointmentsData = [], refetch } = useGetAllAppointments()
   const appointments = (appointmentsData || []) as AppointmentDto[]
+  const { data: usersData = [] } = useGetAllUsers()
+  const users = (usersData || []) as UserDto[]
+  const customers = users.filter(
+    (user) => user.role === 'CUSTOMER' && user.status === 'ACTIVE',
+  )
+  const technicians = users.filter(
+    (user) => user.role === 'TECHNICIAN' && user.status === 'ACTIVE',
+  )
+  const { data: vehiclesData = [], isLoading: isLoadingVehicles } =
+    useGetVehiclesByCustomer(customerId, {
+      query: { enabled: Boolean(customerId) },
+    })
+  const vehicles = (vehiclesData || []) as VehicleDto[]
+  const { data: servicesData = [] } = useGetServices()
+  const services = (servicesData || []).filter(
+    (service): service is ServiceDto => service.status === 'ACTIVE',
+  )
   const {
     data: slotAvailabilityData = [],
     isFetching: isLoadingAvailability,
@@ -176,17 +199,26 @@ function StaffAppointmentsContent() {
                 htmlFor="custInput"
                 className="block text-xs font-semibold text-muted-foreground mb-1"
               >
-                Customer ID / Email
+                Customer
               </label>
-              <input
+              <select
                 id="custInput"
-                type="text"
                 required
                 value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-                placeholder="e.g. USR-401"
+                onChange={(e) => {
+                  setCustomerId(e.target.value)
+                  setVehicleId('')
+                }}
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
-              />
+              >
+                <option value="">-- Choose Customer --</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.fullName || customer.username || customer.email} (
+                    {customer.email})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -194,17 +226,29 @@ function StaffAppointmentsContent() {
                 htmlFor="vehInput"
                 className="block text-xs font-semibold text-muted-foreground mb-1"
               >
-                Vehicle ID / License Plate
+                Vehicle
               </label>
-              <input
+              <select
                 id="vehInput"
-                type="text"
                 required
                 value={vehicleId}
                 onChange={(e) => setVehicleId(e.target.value)}
-                placeholder="e.g. VEH-101 / WYY 8888"
+                disabled={!customerId || isLoadingVehicles}
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
-              />
+              >
+                <option value="">
+                  {customerId
+                    ? isLoadingVehicles
+                      ? 'Loading vehicles…'
+                      : '-- Choose Customer Vehicle --'
+                    : 'Choose a customer first'}
+                </option>
+                {vehicles.map((vehicle) => (
+                  <option key={vehicle.id} value={vehicle.id}>
+                    {vehicle.licensePlate} ({vehicle.make} {vehicle.model})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -212,17 +256,23 @@ function StaffAppointmentsContent() {
                 htmlFor="svcInput"
                 className="block text-xs font-semibold text-muted-foreground mb-1"
               >
-                Service Package ID
+                Service Package
               </label>
-              <input
+              <select
                 id="svcInput"
-                type="text"
                 required
                 value={serviceId}
                 onChange={(e) => setServiceId(e.target.value)}
-                placeholder="e.g. SVC-ENGINE-OIL"
                 className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
-              />
+              >
+                <option value="">-- Choose Service Package --</option>
+                {services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name} — RM{' '}
+                    {Number(service.basePrice || 0).toFixed(2)}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -336,7 +386,7 @@ function StaffAppointmentsContent() {
                     <th className="py-3 px-3">Date & Slot</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3">Booking Action</th>
-                    <th className="py-3 px-3">Technician ID</th>
+                    <th className="py-3 px-3">Technician</th>
                     <th className="py-3 px-3">Workshop Action</th>
                   </tr>
                 </thead>
@@ -401,8 +451,7 @@ function StaffAppointmentsContent() {
                         )}
                       </td>
                       <td className="py-3.5 px-3">
-                        <input
-                          type="text"
+                        <select
                           value={technicianAssignments[apt.id || ''] || ''}
                           onChange={(event) =>
                             apt.id &&
@@ -411,9 +460,17 @@ function StaffAppointmentsContent() {
                               [apt.id as string]: event.target.value,
                             }))
                           }
-                          placeholder="Optional technician ID"
                           className="w-36 rounded border border-border bg-input px-2 py-1 text-[11px] outline-none focus:border-primary"
-                        />
+                        >
+                          <option value="">Assign later</option>
+                          {technicians.map((technician) => (
+                            <option key={technician.id} value={technician.id}>
+                              {technician.fullName ||
+                                technician.username ||
+                                technician.email}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="py-3.5 px-3">
                         {apt.status === 'CONFIRMED' ? (
