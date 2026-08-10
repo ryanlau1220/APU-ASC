@@ -33,12 +33,14 @@ import { Route as ManagerAuditLogsRouteImport } from './routes/manager/audit-log
 import { Route as ManagerOperationsRouteImport } from './routes/manager/operations'
 import { Route as ManagerServicesRouteImport } from './routes/manager/services'
 import { Route as ManagerVehiclesRouteImport } from './routes/manager/vehicles'
+import { Route as ManagerWorkOrdersRouteImport } from './routes/manager/work-orders'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
 import { Route as StaffAppointmentsRouteImport } from './routes/staff/appointments'
 import { Route as StaffPaymentsRouteImport } from './routes/staff/payments'
 import { Route as StaffQuotationsRouteImport } from './routes/staff/quotations'
 import { Route as StaffServicesRouteImport } from './routes/staff/services'
 import { Route as StaffUsersRouteImport } from './routes/staff/users'
+import { Route as StaffWorkOrdersRouteImport } from './routes/staff/work-orders'
 import { Route as TechnicianIndexRouteImport } from './routes/technician/index'
 import { Route as TechnicianFeedbackRouteImport } from './routes/technician/feedback'
 import { Route as TechnicianJobsRouteImport } from './routes/technician/jobs'
@@ -163,6 +165,11 @@ const ManagerVehiclesRoute = ManagerVehiclesRouteImport.update({
   path: '/vehicles',
   getParentRoute: () => ManagerRouteRoute,
 } as any)
+const ManagerWorkOrdersRoute = ManagerWorkOrdersRouteImport.update({
+  id: '/work-orders',
+  path: '/work-orders',
+  getParentRoute: () => ManagerRouteRoute,
+} as any)
 const StaffIndexRoute = StaffIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -191,6 +198,11 @@ const StaffServicesRoute = StaffServicesRouteImport.update({
 const StaffUsersRoute = StaffUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => StaffRouteRoute,
+} as any)
+const StaffWorkOrdersRoute = StaffWorkOrdersRouteImport.update({
+  id: '/work-orders',
+  path: '/work-orders',
   getParentRoute: () => StaffRouteRoute,
 } as any)
 const TechnicianIndexRoute = TechnicianIndexRouteImport.update({
@@ -232,11 +244,13 @@ export interface FileRoutesByFullPath {
   '/manager/operations': typeof ManagerOperationsRoute
   '/manager/services': typeof ManagerServicesRoute
   '/manager/vehicles': typeof ManagerVehiclesRoute
+  '/manager/work-orders': typeof ManagerWorkOrdersRoute
   '/staff/appointments': typeof StaffAppointmentsRoute
   '/staff/payments': typeof StaffPaymentsRoute
   '/staff/quotations': typeof StaffQuotationsRoute
   '/staff/services': typeof StaffServicesRoute
   '/staff/users': typeof StaffUsersRoute
+  '/staff/work-orders': typeof StaffWorkOrdersRoute
   '/technician/feedback': typeof TechnicianFeedbackRoute
   '/technician/jobs': typeof TechnicianJobsRoute
   '/customer/': typeof CustomerIndexRoute
@@ -263,11 +277,13 @@ export interface FileRoutesByTo {
   '/manager/operations': typeof ManagerOperationsRoute
   '/manager/services': typeof ManagerServicesRoute
   '/manager/vehicles': typeof ManagerVehiclesRoute
+  '/manager/work-orders': typeof ManagerWorkOrdersRoute
   '/staff/appointments': typeof StaffAppointmentsRoute
   '/staff/payments': typeof StaffPaymentsRoute
   '/staff/quotations': typeof StaffQuotationsRoute
   '/staff/services': typeof StaffServicesRoute
   '/staff/users': typeof StaffUsersRoute
+  '/staff/work-orders': typeof StaffWorkOrdersRoute
   '/technician/feedback': typeof TechnicianFeedbackRoute
   '/technician/jobs': typeof TechnicianJobsRoute
   '/customer': typeof CustomerIndexRoute
@@ -299,11 +315,13 @@ export interface FileRoutesById {
   '/manager/operations': typeof ManagerOperationsRoute
   '/manager/services': typeof ManagerServicesRoute
   '/manager/vehicles': typeof ManagerVehiclesRoute
+  '/manager/work-orders': typeof ManagerWorkOrdersRoute
   '/staff/appointments': typeof StaffAppointmentsRoute
   '/staff/payments': typeof StaffPaymentsRoute
   '/staff/quotations': typeof StaffQuotationsRoute
   '/staff/services': typeof StaffServicesRoute
   '/staff/users': typeof StaffUsersRoute
+  '/staff/work-orders': typeof StaffWorkOrdersRoute
   '/technician/feedback': typeof TechnicianFeedbackRoute
   '/technician/jobs': typeof TechnicianJobsRoute
   '/customer/': typeof CustomerIndexRoute
@@ -336,11 +354,13 @@ export interface FileRouteTypes {
     | '/manager/operations'
     | '/manager/services'
     | '/manager/vehicles'
+    | '/manager/work-orders'
     | '/staff/appointments'
     | '/staff/payments'
     | '/staff/quotations'
     | '/staff/services'
     | '/staff/users'
+    | '/staff/work-orders'
     | '/technician/feedback'
     | '/technician/jobs'
     | '/customer/'
@@ -367,11 +387,13 @@ export interface FileRouteTypes {
     | '/manager/operations'
     | '/manager/services'
     | '/manager/vehicles'
+    | '/manager/work-orders'
     | '/staff/appointments'
     | '/staff/payments'
     | '/staff/quotations'
     | '/staff/services'
     | '/staff/users'
+    | '/staff/work-orders'
     | '/technician/feedback'
     | '/technician/jobs'
     | '/customer'
@@ -402,11 +424,13 @@ export interface FileRouteTypes {
     | '/manager/operations'
     | '/manager/services'
     | '/manager/vehicles'
+    | '/manager/work-orders'
     | '/staff/appointments'
     | '/staff/payments'
     | '/staff/quotations'
     | '/staff/services'
     | '/staff/users'
+    | '/staff/work-orders'
     | '/technician/feedback'
     | '/technician/jobs'
     | '/customer/'
@@ -600,6 +624,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerVehiclesRouteImport
       parentRoute: typeof ManagerRouteRoute
     }
+    '/manager/work-orders': {
+      id: '/manager/work-orders'
+      path: '/work-orders'
+      fullPath: '/manager/work-orders'
+      preLoaderRoute: typeof ManagerWorkOrdersRouteImport
+      parentRoute: typeof ManagerRouteRoute
+    }
     '/staff/': {
       id: '/staff/'
       path: '/'
@@ -640,6 +671,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/staff/users'
       preLoaderRoute: typeof StaffUsersRouteImport
+      parentRoute: typeof StaffRouteRoute
+    }
+    '/staff/work-orders': {
+      id: '/staff/work-orders'
+      path: '/work-orders'
+      fullPath: '/staff/work-orders'
+      preLoaderRoute: typeof StaffWorkOrdersRouteImport
       parentRoute: typeof StaffRouteRoute
     }
     '/technician/': {
@@ -694,6 +732,7 @@ interface ManagerRouteRouteChildren {
   ManagerOperationsRoute: typeof ManagerOperationsRoute
   ManagerServicesRoute: typeof ManagerServicesRoute
   ManagerVehiclesRoute: typeof ManagerVehiclesRoute
+  ManagerWorkOrdersRoute: typeof ManagerWorkOrdersRoute
   ManagerIndexRoute: typeof ManagerIndexRoute
 }
 
@@ -703,6 +742,7 @@ const ManagerRouteRouteChildren: ManagerRouteRouteChildren = {
   ManagerOperationsRoute: ManagerOperationsRoute,
   ManagerServicesRoute: ManagerServicesRoute,
   ManagerVehiclesRoute: ManagerVehiclesRoute,
+  ManagerWorkOrdersRoute: ManagerWorkOrdersRoute,
   ManagerIndexRoute: ManagerIndexRoute,
 }
 
@@ -716,6 +756,7 @@ interface StaffRouteRouteChildren {
   StaffQuotationsRoute: typeof StaffQuotationsRoute
   StaffServicesRoute: typeof StaffServicesRoute
   StaffUsersRoute: typeof StaffUsersRoute
+  StaffWorkOrdersRoute: typeof StaffWorkOrdersRoute
   StaffIndexRoute: typeof StaffIndexRoute
 }
 
@@ -725,6 +766,7 @@ const StaffRouteRouteChildren: StaffRouteRouteChildren = {
   StaffQuotationsRoute: StaffQuotationsRoute,
   StaffServicesRoute: StaffServicesRoute,
   StaffUsersRoute: StaffUsersRoute,
+  StaffWorkOrdersRoute: StaffWorkOrdersRoute,
   StaffIndexRoute: StaffIndexRoute,
 }
 
