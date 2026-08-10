@@ -1,9 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Calendar, Car, Plus, ShieldCheck, User } from 'lucide-react'
+import {
+  Calendar,
+  Car,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  User,
+} from 'lucide-react'
 import * as React from 'react'
 import {
   useCreateVehicle,
+  useDeleteVehicle,
   useGetMyVehicles,
+  useUpdateVehicle,
 } from '../../api/generated/endpoints'
 import type { VehicleDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -24,6 +34,9 @@ function CustomerVehiclesContent() {
   const [model, setModel] = React.useState('')
   const [yearOfManufacture, setYearOfManufacture] = React.useState(2023)
   const [vin, setVin] = React.useState('')
+  const [editingVehicle, setEditingVehicle] = React.useState<VehicleDto | null>(
+    null,
+  )
   const [message, setMessage] = React.useState<string | null>(null)
 
   const { data: vehiclesData = [], refetch } = useGetMyVehicles()
@@ -44,19 +57,75 @@ function CustomerVehiclesContent() {
       },
     },
   })
+  const updateVehicleMutation = useUpdateVehicle<Error>()
+  const deleteVehicleMutation = useDeleteVehicle<Error>()
+
+  const resetForm = () => {
+    setLicensePlate('')
+    setMake('')
+    setModel('')
+    setYearOfManufacture(2023)
+    setVin('')
+    setEditingVehicle(null)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
+    const data = {
+      customerId,
+      licensePlate,
+      make,
+      model,
+      yearOfManufacture: Number(yearOfManufacture),
+    }
+    if (editingVehicle?.id) {
+      updateVehicleMutation.mutate(
+        { id: editingVehicle.id, data: { ...editingVehicle, ...data } },
+        {
+          onSuccess: () => {
+            setMessage('Vehicle updated successfully!')
+            resetForm()
+            refetch()
+          },
+          onError: (err) =>
+            setMessage(err.message || 'Failed to update vehicle.'),
+        },
+      )
+      return
+    }
     createVehicleMutation.mutate({
-      data: {
-        customerId,
-        licensePlate,
-        make,
-        model,
-        yearOfManufacture: Number(yearOfManufacture),
-      },
+      data,
     })
+  }
+
+  const startEditing = (vehicle: VehicleDto) => {
+    setEditingVehicle(vehicle)
+    setLicensePlate(vehicle.licensePlate || '')
+    setMake(vehicle.make || '')
+    setModel(vehicle.model || '')
+    setYearOfManufacture(vehicle.yearOfManufacture || 2023)
+    setMessage(null)
+  }
+
+  const deleteVehicle = (vehicle: VehicleDto) => {
+    if (
+      !vehicle.id ||
+      !confirm(`Remove ${vehicle.licensePlate} from your garage?`)
+    )
+      return
+    deleteVehicleMutation.mutate(
+      { id: vehicle.id },
+      {
+        onSuccess: () => {
+          setMessage('Vehicle removed successfully!')
+          if (editingVehicle?.id === vehicle.id) resetForm()
+          refetch()
+        },
+        onError: (err) =>
+          setMessage(err.message || 'Failed to remove vehicle.'),
+      },
+    )
   }
 
   return (
@@ -81,8 +150,12 @@ function CustomerVehiclesContent() {
         {/* Vehicle Registration Form */}
         <section className="bg-card border border-border rounded-xl p-6 space-y-4">
           <h2 className="font-heading text-lg font-bold flex items-center gap-2">
-            <Plus className="w-4 h-4 text-primary" />
-            Register New Vehicle
+            {editingVehicle ? (
+              <Pencil className="w-4 h-4 text-primary" />
+            ) : (
+              <Plus className="w-4 h-4 text-primary" />
+            )}
+            {editingVehicle ? 'Edit Vehicle' : 'Register New Vehicle'}
           </h2>
 
           {message && (
@@ -194,13 +267,28 @@ function CustomerVehiclesContent() {
             <div className="sm:col-span-2 lg:col-span-1 flex items-end">
               <button
                 type="submit"
-                disabled={createVehicleMutation.isPending}
+                disabled={
+                  createVehicleMutation.isPending ||
+                  updateVehicleMutation.isPending
+                }
                 className="w-full py-2 px-4 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {createVehicleMutation.isPending
-                  ? 'Registering...'
-                  : 'Register Vehicle'}
+                {createVehicleMutation.isPending ||
+                updateVehicleMutation.isPending
+                  ? 'Saving...'
+                  : editingVehicle
+                    ? 'Save Vehicle'
+                    : 'Register Vehicle'}
               </button>
+              {editingVehicle && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="mt-2 w-full rounded-lg border border-border px-4 py-2 text-xs font-semibold hover:bg-muted"
+                >
+                  Cancel edit
+                </button>
+              )}
             </div>
           </form>
         </section>
@@ -247,7 +335,26 @@ function CustomerVehiclesContent() {
                       <User className="w-3.5 h-3.5" />
                       Owner Registered
                     </span>
-                    <ShieldCheck className="w-4 h-4 text-status-completed" />
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => startEditing(v)}
+                        className="rounded p-1 text-primary hover:bg-primary/10"
+                        aria-label={`Edit ${v.licensePlate}`}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteVehicle(v)}
+                        disabled={deleteVehicleMutation.isPending}
+                        className="rounded p-1 text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                        aria-label={`Remove ${v.licensePlate}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <ShieldCheck className="w-4 h-4 text-status-completed" />
+                    </div>
                   </div>
                 </div>
               ))}

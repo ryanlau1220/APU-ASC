@@ -8,6 +8,7 @@ import {
   useGetMyVehicles,
   useGetServices,
   useGetSlotAvailability,
+  useUpdateAppointment,
 } from '../../api/generated/endpoints'
 import type {
   AppointmentDto,
@@ -29,6 +30,10 @@ function CustomerAppointmentsContent() {
   const [timeSlot, setTimeSlot] = React.useState('09:00 - 10:00 AM')
   const [notes, setNotes] = React.useState('')
   const [message, setMessage] = React.useState<string | null>(null)
+  const [reschedulingAppointment, setReschedulingAppointment] =
+    React.useState<AppointmentDto | null>(null)
+  const [rescheduleDate, setRescheduleDate] = React.useState('')
+  const [rescheduleTimeSlot, setRescheduleTimeSlot] = React.useState('')
 
   const { data: vehiclesData = [] } = useGetMyVehicles()
   const myVehicles = (vehiclesData || []) as VehicleDto[]
@@ -48,6 +53,15 @@ function CustomerAppointmentsContent() {
   )
   const slotAvailability =
     slotAvailabilityData as Required<SlotAvailabilityDto>[]
+  const {
+    data: rescheduleAvailabilityData = [],
+    isFetching: isLoadingRescheduleAvailability,
+  } = useGetSlotAvailability(
+    { date: rescheduleDate },
+    { query: { enabled: Boolean(rescheduleDate) } },
+  )
+  const rescheduleAvailability =
+    rescheduleAvailabilityData as Required<SlotAvailabilityDto>[]
 
   const createAppointmentMutation = useCreateAppointment({
     mutation: {
@@ -78,6 +92,7 @@ function CustomerAppointmentsContent() {
       },
     },
   })
+  const updateAppointmentMutation = useUpdateAppointment<Error>()
 
   const handleBook = (e: React.FormEvent) => {
     e.preventDefault()
@@ -101,6 +116,53 @@ function CustomerAppointmentsContent() {
         notes,
       },
     })
+  }
+
+  const startRescheduling = (appointment: AppointmentDto) => {
+    setReschedulingAppointment(appointment)
+    setRescheduleDate(appointment.appointmentDate || '')
+    setRescheduleTimeSlot('')
+    setMessage(null)
+  }
+
+  const rescheduleAppointment = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (
+      !reschedulingAppointment?.id ||
+      !rescheduleDate ||
+      !rescheduleTimeSlot
+    ) {
+      setMessage('Choose a new date and available time slot.')
+      return
+    }
+    if (
+      !rescheduleAvailability.find(
+        (slot) => slot.timeSlot === rescheduleTimeSlot,
+      )?.bookable
+    ) {
+      setMessage('Please choose a time slot with remaining workshop capacity.')
+      return
+    }
+    updateAppointmentMutation.mutate(
+      {
+        id: reschedulingAppointment.id,
+        data: {
+          ...reschedulingAppointment,
+          appointmentDate: rescheduleDate,
+          timeSlot: rescheduleTimeSlot,
+        },
+      },
+      {
+        onSuccess: () => {
+          setMessage('Appointment rescheduled successfully!')
+          setReschedulingAppointment(null)
+          refetch()
+          refetchAvailability()
+        },
+        onError: (err) =>
+          setMessage(err.message || 'Failed to reschedule appointment.'),
+      },
+    )
   }
 
   return (
@@ -286,6 +348,75 @@ function CustomerAppointmentsContent() {
             My Appointment Schedule
           </h2>
 
+          {reschedulingAppointment && (
+            <form
+              onSubmit={rescheduleAppointment}
+              className="grid gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:grid-cols-[1fr_1fr_auto]"
+            >
+              <label className="text-xs font-semibold text-muted-foreground">
+                New appointment date
+                <input
+                  type="date"
+                  min={new Date().toISOString().slice(0, 10)}
+                  value={rescheduleDate}
+                  onChange={(event) => {
+                    setRescheduleDate(event.target.value)
+                    setRescheduleTimeSlot('')
+                  }}
+                  required
+                  className="mt-1 w-full rounded-lg border border-border bg-input px-3 py-2 text-xs outline-none focus:border-primary"
+                />
+              </label>
+              <label className="text-xs font-semibold text-muted-foreground">
+                Available time slot
+                <select
+                  value={rescheduleTimeSlot}
+                  onChange={(event) =>
+                    setRescheduleTimeSlot(event.target.value)
+                  }
+                  required
+                  disabled={!rescheduleDate || isLoadingRescheduleAvailability}
+                  className="mt-1 w-full rounded-lg border border-border bg-input px-3 py-2 text-xs outline-none focus:border-primary disabled:opacity-50"
+                >
+                  <option value="">
+                    {isLoadingRescheduleAvailability
+                      ? 'Checking capacity…'
+                      : 'Choose an available slot'}
+                  </option>
+                  {rescheduleAvailability.map((slot) => (
+                    <option
+                      key={slot.timeSlot}
+                      value={slot.timeSlot}
+                      disabled={!slot.bookable}
+                    >
+                      {slot.timeSlot} — {slot.available} of {slot.capacity}{' '}
+                      available{!slot.bookable ? ' (full)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="flex items-end gap-2">
+                <button
+                  type="submit"
+                  disabled={
+                    updateAppointmentMutation.isPending ||
+                    isLoadingRescheduleAvailability
+                  }
+                  className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  Save schedule
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReschedulingAppointment(null)}
+                  className="rounded-lg border border-border px-3 py-2 text-xs font-semibold hover:bg-muted"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
           {myAppointments.length === 0 ? (
             <div className="text-center py-8 text-xs text-muted-foreground">
               No appointments scheduled. Fill in the form above to book a
@@ -340,17 +471,26 @@ function CustomerAppointmentsContent() {
                       </td>
                       <td className="py-3.5 px-3">
                         {apt.status === 'PENDING' ? (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              apt.id &&
-                              cancelAppointmentMutation.mutate({ id: apt.id })
-                            }
-                            disabled={cancelAppointmentMutation.isPending}
-                            className="rounded-lg border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
-                          >
-                            Cancel
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => startRescheduling(apt)}
+                              className="rounded-lg border border-primary/40 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                            >
+                              Reschedule
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                apt.id &&
+                                cancelAppointmentMutation.mutate({ id: apt.id })
+                              }
+                              disabled={cancelAppointmentMutation.isPending}
+                              className="rounded-lg border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         ) : (
                           <span className="text-[11px] text-muted-foreground">
                             —

@@ -79,6 +79,19 @@ class AppointmentControllerAuthorizationTest {
   }
 
   @Test
+  void customerCannotRescheduleAConfirmedAppointment() {
+    AppointmentDto appointment = confirmedAppointment("USR-CUSTOMER");
+    when(appointmentApi.getAppointmentById("APT-OTHER")).thenReturn(appointment);
+    when(currentUserService.requireCurrentUser(AUTHENTICATION))
+        .thenReturn(new AuthenticatedUser("USR-CUSTOMER", Set.of("CUSTOMER")));
+
+    assertThatThrownBy(() -> controller.updateAppointment("APT-OTHER", appointment, AUTHENTICATION))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("pending");
+    verifyNoInteractions(vehicleApi);
+  }
+
+  @Test
   void operationalBookingWithoutCustomerIdUsesTheSelectedVehiclesOwner() {
     when(currentUserService.requireCurrentUser(AUTHENTICATION))
         .thenReturn(new AuthenticatedUser("USR-STAFF", Set.of("STAFF")));

@@ -1,11 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { FileText, Plus, Send, Trash2 } from 'lucide-react'
+import { FileText, Pencil, Plus, Send, Trash2 } from 'lucide-react'
 import * as React from 'react'
 import {
   useCreateQuotationDraft,
   useGetAllQuotations,
   useGetAllWorkOrders,
   useSubmitQuotation,
+  useUpdateQuotationDraft,
 } from '../../api/generated/endpoints'
 import type {
   QuotationDto,
@@ -42,11 +43,15 @@ function StaffQuotationsContent() {
   const [notes, setNotes] = React.useState('')
   const [validUntil, setValidUntil] = React.useState('')
   const [lines, setLines] = React.useState<DraftLine[]>([initialLine()])
+  const [editingDraftId, setEditingDraftId] = React.useState<string | null>(
+    null,
+  )
 
   const { data: workOrders = [] } = useGetAllWorkOrders()
   const { data: quotationData = [], refetch } = useGetAllQuotations()
   const quotations = quotationData as Quote[]
   const createMutation = useCreateQuotationDraft<Error>()
+  const updateMutation = useUpdateQuotationDraft<Error>()
   const submitMutation = useSubmitQuotation<Error>()
 
   const estimateTotal = lines.reduce(
@@ -67,7 +72,15 @@ function StaffQuotationsContent() {
     )
   }
 
-  const createDraft = (event: React.FormEvent) => {
+  const resetDraft = () => {
+    setEditingDraftId(null)
+    setWorkOrderId('')
+    setNotes('')
+    setValidUntil('')
+    setLines([initialLine()])
+  }
+
+  const saveDraft = (event: React.FormEvent) => {
     event.preventDefault()
     setMessage(null)
     if (
@@ -80,33 +93,51 @@ function StaffQuotationsContent() {
       )
       return
     }
-    createMutation.mutate(
-      {
-        data: {
-          workOrderId,
-          notes: notes.trim() || undefined,
-          validUntil,
-          items: lines.map(({ description, quantity, unitPrice }) => ({
-            description: description.trim(),
-            quantity: Number(quantity),
-            unitPrice: Number(unitPrice),
-          })),
-        },
-      },
-      {
-        onSuccess: () => {
-          setMessage(
-            'Quotation draft created. Review it, then send it for approval.',
-          )
-          setWorkOrderId('')
-          setNotes('')
-          setValidUntil('')
-          setLines([initialLine()])
-          refetch()
-        },
-        onError: (error: Error) => setMessage(error.message),
-      },
+    const data = {
+      workOrderId,
+      notes: notes.trim() || undefined,
+      validUntil,
+      items: lines.map(({ description, quantity, unitPrice }) => ({
+        description: description.trim(),
+        quantity: Number(quantity),
+        unitPrice: Number(unitPrice),
+      })),
+    }
+    const onSuccess = () => {
+      setMessage(
+        editingDraftId
+          ? 'Quotation draft updated successfully!'
+          : 'Quotation draft created. Review it, then send it for approval.',
+      )
+      resetDraft()
+      refetch()
+    }
+    const onError = (error: Error) => setMessage(error.message)
+    if (editingDraftId) {
+      updateMutation.mutate(
+        { id: editingDraftId, data },
+        { onSuccess, onError },
+      )
+      return
+    }
+    createMutation.mutate({ data }, { onSuccess, onError })
+  }
+
+  const editDraft = (quote: Quote) => {
+    if (!quote.id) return
+    setEditingDraftId(quote.id)
+    setWorkOrderId(quote.workOrderId)
+    setNotes(quote.notes || '')
+    setValidUntil(quote.validUntil)
+    setLines(
+      quote.items.map((item) => ({
+        key: crypto.randomUUID(),
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
     )
+    setMessage(null)
   }
 
   const submit = (id: string) => {
@@ -159,12 +190,14 @@ function StaffQuotationsContent() {
 
         <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <form
-            onSubmit={createDraft}
+            onSubmit={saveDraft}
             className="rounded-xl border border-border bg-card p-6 space-y-5"
           >
             <div>
               <h2 className="font-heading text-lg font-bold">
-                New quotation draft
+                {editingDraftId
+                  ? 'Edit quotation draft'
+                  : 'New quotation draft'}
               </h2>
               <p className="text-xs text-muted-foreground mt-1">
                 Prices are recalculated and fixed by the server.
@@ -176,6 +209,7 @@ function StaffQuotationsContent() {
                 value={workOrderId}
                 onChange={(event) => setWorkOrderId(event.target.value)}
                 required
+                disabled={Boolean(editingDraftId)}
                 className="mt-1.5 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
               >
                 <option value="">Select an active work order</option>
@@ -291,11 +325,22 @@ function StaffQuotationsContent() {
             </div>
             <button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={createMutation.isPending || updateMutation.isPending}
               className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
             >
-              Save quotation draft
+              {editingDraftId
+                ? 'Save quotation changes'
+                : 'Save quotation draft'}
             </button>
+            {editingDraftId && (
+              <button
+                type="button"
+                onClick={resetDraft}
+                className="w-full rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:bg-muted"
+              >
+                Cancel edit
+              </button>
+            )}
           </form>
 
           <section className="rounded-xl border border-border bg-card p-6 space-y-4">
@@ -334,14 +379,23 @@ function StaffQuotationsContent() {
                         {money.format(quote.totalAmount)}
                       </span>
                       {quote.status === 'DRAFT' && (
-                        <button
-                          type="button"
-                          onClick={() => submit(quote.id)}
-                          disabled={submitMutation.isPending}
-                          className="inline-flex items-center gap-1 rounded-lg border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
-                        >
-                          <Send className="h-3.5 w-3.5" /> Send for approval
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => editDraft(quote)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
+                          >
+                            <Pencil className="h-3.5 w-3.5" /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => submit(quote.id)}
+                            disabled={submitMutation.isPending}
+                            className="inline-flex items-center gap-1 rounded-lg border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+                          >
+                            <Send className="h-3.5 w-3.5" /> Send for approval
+                          </button>
+                        </div>
                       )}
                     </div>
                   </article>

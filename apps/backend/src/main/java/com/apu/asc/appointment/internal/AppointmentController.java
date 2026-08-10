@@ -154,6 +154,9 @@ class AppointmentController {
 
     if (!accessPolicy.isOperationalUser(currentUser)) {
       accessPolicy.requireSelfOrOperational(currentUser, existing.customerId());
+      if (AppointmentStatus.fromString(existing.status()) != AppointmentStatus.PENDING) {
+        throw new IllegalArgumentException("Customers can reschedule only pending appointments.");
+      }
       String vehicleId =
           appointmentDto.vehicleId() != null ? appointmentDto.vehicleId() : existing.vehicleId();
       accessPolicy.requireSelfOrOperational(

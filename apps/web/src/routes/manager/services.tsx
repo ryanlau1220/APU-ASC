@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { BookOpen, Plus, Trash2 } from 'lucide-react'
+import { BookOpen, Pencil, Plus, Trash2 } from 'lucide-react'
 import * as React from 'react'
 import {
   useCreateCategory,
@@ -8,6 +8,8 @@ import {
   useDeleteService,
   useGetCategories,
   useGetServices,
+  useUpdateCategory,
+  useUpdateService,
 } from '../../api/generated/endpoints'
 import type { CategoryDto, ServiceDto } from '../../api/generated/models'
 import Footer from '../../components/Footer'
@@ -22,8 +24,14 @@ function ManagerServicesContent() {
   const [description, setDescription] = React.useState('')
   const [basePrice, setBasePrice] = React.useState('')
   const [duration, setDuration] = React.useState('60')
-  const [categoryId, setCategoryId] = React.useState('CAT-GENERAL')
+  const [categoryId, setCategoryId] = React.useState('')
   const [catName, setCatName] = React.useState('')
+  const [catDescription, setCatDescription] = React.useState('')
+  const [editingService, setEditingService] = React.useState<ServiceDto | null>(
+    null,
+  )
+  const [editingCategory, setEditingCategory] =
+    React.useState<CategoryDto | null>(null)
   const [message, setMessage] = React.useState<string | null>(null)
 
   const { data: servicesData = [], refetch } = useGetServices()
@@ -37,9 +45,7 @@ function ManagerServicesContent() {
     mutation: {
       onSuccess: () => {
         setMessage('Service package created successfully!')
-        setName('')
-        setDescription('')
-        setBasePrice('')
+        resetServiceForm()
         refetch()
       },
       onError: (err: Error) => {
@@ -47,6 +53,7 @@ function ManagerServicesContent() {
       },
     },
   })
+  const updateServiceMutation = useUpdateService<Error>()
 
   const deleteServiceMutation = useDeleteService({
     mutation: {
@@ -76,7 +83,7 @@ function ManagerServicesContent() {
     mutation: {
       onSuccess: () => {
         setMessage('Category created successfully!')
-        setCatName('')
+        resetCategoryForm()
         refetchCategories()
       },
       onError: (err: Error) => {
@@ -84,18 +91,50 @@ function ManagerServicesContent() {
       },
     },
   })
+  const updateCategoryMutation = useUpdateCategory<Error>()
+
+  const resetServiceForm = () => {
+    setName('')
+    setDescription('')
+    setBasePrice('')
+    setDuration('60')
+    setCategoryId('')
+    setEditingService(null)
+  }
+
+  const resetCategoryForm = () => {
+    setCatName('')
+    setCatDescription('')
+    setEditingCategory(null)
+  }
 
   const handleCreateService = (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
+    const data = {
+      name,
+      description,
+      basePrice: Number(basePrice),
+      durationMinutes: Number(duration),
+      categoryId,
+    }
+    if (editingService?.id) {
+      updateServiceMutation.mutate(
+        { id: editingService.id, data: { ...editingService, ...data } },
+        {
+          onSuccess: () => {
+            setMessage('Service package updated successfully!')
+            resetServiceForm()
+            refetch()
+          },
+          onError: (err) =>
+            setMessage(err.message || 'Failed to update service package.'),
+        },
+      )
+      return
+    }
     createServiceMutation.mutate({
-      data: {
-        name,
-        description,
-        basePrice: Number(basePrice),
-        durationMinutes: Number(duration),
-        categoryId,
-      },
+      data,
     })
   }
 
@@ -103,9 +142,45 @@ function ManagerServicesContent() {
     e.preventDefault()
     if (!catName) return
     setMessage(null)
+    const data = {
+      name: catName,
+      description: catDescription || 'Workshop service category',
+    }
+    if (editingCategory?.id) {
+      updateCategoryMutation.mutate(
+        { id: editingCategory.id, data: { ...editingCategory, ...data } },
+        {
+          onSuccess: () => {
+            setMessage('Category updated successfully!')
+            resetCategoryForm()
+            refetchCategories()
+          },
+          onError: (err) =>
+            setMessage(err.message || 'Failed to update category.'),
+        },
+      )
+      return
+    }
     createCategoryMutation.mutate({
-      data: { name: catName, description: 'Workshop service category' },
+      data,
     })
+  }
+
+  const editService = (service: ServiceDto) => {
+    setEditingService(service)
+    setName(service.name || '')
+    setDescription(service.description || '')
+    setBasePrice(String(service.basePrice || 0))
+    setDuration(String(service.durationMinutes || 60))
+    setCategoryId(service.categoryId || '')
+    setMessage(null)
+  }
+
+  const editCategory = (category: CategoryDto) => {
+    setEditingCategory(category)
+    setCatName(category.name || '')
+    setCatDescription(category.description || '')
+    setMessage(null)
   }
 
   const handleDeleteService = (id: string) => {
@@ -151,8 +226,14 @@ function ManagerServicesContent() {
           {/* Create Service Package Form */}
           <section className="lg:col-span-2 bg-card border border-border rounded-xl p-6 space-y-4">
             <h2 className="font-heading text-lg font-bold flex items-center gap-2">
-              <Plus className="w-4 h-4 text-primary" />
-              Create New Service Package
+              {editingService ? (
+                <Pencil className="w-4 h-4 text-primary" />
+              ) : (
+                <Plus className="w-4 h-4 text-primary" />
+              )}
+              {editingService
+                ? 'Edit Service Package'
+                : 'Create New Service Package'}
             </h2>
 
             <form
@@ -218,17 +299,22 @@ function ManagerServicesContent() {
                   htmlFor="sCategory"
                   className="block text-xs font-semibold text-muted-foreground mb-1"
                 >
-                  Category ID
+                  Category
                 </label>
-                <input
+                <select
                   id="sCategory"
-                  type="text"
                   required
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  placeholder="e.g. CAT-OIL-FLUIDS"
                   className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
-                />
+                >
+                  <option value="">Choose category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="sm:col-span-2">
@@ -251,13 +337,28 @@ function ManagerServicesContent() {
               <div className="sm:col-span-2 flex justify-end">
                 <button
                   type="submit"
-                  disabled={createServiceMutation.isPending}
+                  disabled={
+                    createServiceMutation.isPending ||
+                    updateServiceMutation.isPending
+                  }
                   className="py-2.5 px-6 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  {createServiceMutation.isPending
-                    ? 'Creating...'
-                    : 'Create Service Package'}
+                  {createServiceMutation.isPending ||
+                  updateServiceMutation.isPending
+                    ? 'Saving...'
+                    : editingService
+                      ? 'Save Service Package'
+                      : 'Create Service Package'}
                 </button>
+                {editingService && (
+                  <button
+                    type="button"
+                    onClick={resetServiceForm}
+                    className="ml-2 rounded-lg border border-border px-4 py-2.5 text-xs font-semibold hover:bg-muted"
+                  >
+                    Cancel edit
+                  </button>
+                )}
               </div>
             </form>
           </section>
@@ -265,8 +366,12 @@ function ManagerServicesContent() {
           {/* Quick Category Form */}
           <section className="bg-card border border-border rounded-xl p-6 space-y-4">
             <h2 className="font-heading text-lg font-bold flex items-center gap-2">
-              <Plus className="w-4 h-4 text-primary" />
-              New Category
+              {editingCategory ? (
+                <Pencil className="w-4 h-4 text-primary" />
+              ) : (
+                <Plus className="w-4 h-4 text-primary" />
+              )}
+              {editingCategory ? 'Edit Category' : 'New Category'}
             </h2>
 
             <form onSubmit={handleCreateCategory} className="space-y-4">
@@ -288,15 +393,47 @@ function ManagerServicesContent() {
                 />
               </div>
 
+              <div>
+                <label
+                  htmlFor="cDescription"
+                  className="block text-xs font-semibold text-muted-foreground mb-1"
+                >
+                  Description
+                </label>
+                <input
+                  id="cDescription"
+                  type="text"
+                  value={catDescription}
+                  onChange={(e) => setCatDescription(e.target.value)}
+                  placeholder="Optional category description"
+                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-xs outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
               <button
                 type="submit"
-                disabled={createCategoryMutation.isPending}
+                disabled={
+                  createCategoryMutation.isPending ||
+                  updateCategoryMutation.isPending
+                }
                 className="w-full py-2.5 px-4 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {createCategoryMutation.isPending
+                {createCategoryMutation.isPending ||
+                updateCategoryMutation.isPending
                   ? 'Saving...'
-                  : 'Add Category'}
+                  : editingCategory
+                    ? 'Save Category'
+                    : 'Add Category'}
               </button>
+              {editingCategory && (
+                <button
+                  type="button"
+                  onClick={resetCategoryForm}
+                  className="w-full rounded-lg border border-border px-4 py-2.5 text-xs font-semibold hover:bg-muted"
+                >
+                  Cancel edit
+                </button>
+              )}
             </form>
 
             {/* Existing Categories List */}
@@ -313,18 +450,28 @@ function ManagerServicesContent() {
                     <span className="font-semibold text-foreground">
                       {c.name}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (c.id && confirm(`Delete category ${c.name}?`)) {
-                          deleteCategoryMutation.mutate({ id: c.id })
-                        }
-                      }}
-                      className="text-muted-foreground hover:text-status-cancelled transition-colors"
-                      title="Delete Category"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => editCategory(c)}
+                        className="text-primary hover:text-primary/70 transition-colors"
+                        title="Edit Category"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (c.id && confirm(`Delete category ${c.name}?`)) {
+                            deleteCategoryMutation.mutate({ id: c.id })
+                          }
+                        }}
+                        className="text-muted-foreground hover:text-status-cancelled transition-colors"
+                        title="Delete Category"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -352,7 +499,7 @@ function ManagerServicesContent() {
                     <th className="py-3 px-3">Category</th>
                     <th className="py-3 px-3">Base Price</th>
                     <th className="py-3 px-3">Labor Time</th>
-                    <th className="py-3 px-3">Deactivate</th>
+                    <th className="py-3 px-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -375,14 +522,24 @@ function ManagerServicesContent() {
                         {s.durationMinutes || 60} mins
                       </td>
                       <td className="py-3.5 px-3">
-                        <button
-                          type="button"
-                          onClick={() => s.id && handleDeleteService(s.id)}
-                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
-                          title="Deactivate Service"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => editService(s)}
+                            className="rounded-lg p-1.5 text-primary hover:bg-primary/10 transition-colors"
+                            title="Edit Service"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => s.id && handleDeleteService(s.id)}
+                            className="rounded-lg p-1.5 text-destructive hover:bg-destructive/10 transition-colors"
+                            title="Deactivate Service"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
