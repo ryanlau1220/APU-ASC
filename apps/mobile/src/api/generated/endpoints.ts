@@ -43,6 +43,7 @@ import type {
 	NotificationDto,
 	NotificationUnreadCountDto,
 	PaymentDto,
+	PaymentExceptionRequest,
 	ProcessPaymentParams,
 	QuotationDecisionRequestDto,
 	QuotationDraftRequestDto,
@@ -4817,6 +4818,186 @@ export const useCreateInvoice = <TError = unknown, TContext = unknown>(
 };
 
 /**
+ * @summary Void an unpaid invoice with a recorded reason
+ */
+export const voidInvoice = (
+	id: string,
+	paymentExceptionRequest: PaymentExceptionRequest,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PaymentDto>(
+		{
+			url: `/api/v1/payments/${id}/void`,
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			data: paymentExceptionRequest,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getVoidInvoiceMutationOptions = <
+	TError = unknown,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof voidInvoice>>,
+		TError,
+		{ id: string; data: PaymentExceptionRequest },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof voidInvoice>>,
+	TError,
+	{ id: string; data: PaymentExceptionRequest },
+	TContext
+> => {
+	const mutationKey = ["voidInvoice"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof voidInvoice>>,
+		{ id: string; data: PaymentExceptionRequest }
+	> = (props) => {
+		const { id, data } = props ?? {};
+
+		return voidInvoice(id, data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type VoidInvoiceMutationResult = NonNullable<
+	Awaited<ReturnType<typeof voidInvoice>>
+>;
+export type VoidInvoiceMutationBody = PaymentExceptionRequest;
+export type VoidInvoiceMutationError = unknown;
+
+/**
+ * @summary Void an unpaid invoice with a recorded reason
+ */
+export const useVoidInvoice = <TError = unknown, TContext = unknown>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof voidInvoice>>,
+			TError,
+			{ id: string; data: PaymentExceptionRequest },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof voidInvoice>>,
+	TError,
+	{ id: string; data: PaymentExceptionRequest },
+	TContext
+> => {
+	const mutationOptions = getVoidInvoiceMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+
+/**
+ * @summary Issue a full refund with a recorded reason
+ */
+export const refundPayment = (
+	id: string,
+	paymentExceptionRequest: PaymentExceptionRequest,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<PaymentDto>(
+		{
+			url: `/api/v1/payments/${id}/refund`,
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			data: paymentExceptionRequest,
+			signal,
+		},
+		options,
+	);
+};
+
+export const getRefundPaymentMutationOptions = <
+	TError = unknown,
+	TContext = unknown,
+>(options?: {
+	mutation?: UseMutationOptions<
+		Awaited<ReturnType<typeof refundPayment>>,
+		TError,
+		{ id: string; data: PaymentExceptionRequest },
+		TContext
+	>;
+	request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+	Awaited<ReturnType<typeof refundPayment>>,
+	TError,
+	{ id: string; data: PaymentExceptionRequest },
+	TContext
+> => {
+	const mutationKey = ["refundPayment"];
+	const { mutation: mutationOptions, request: requestOptions } = options
+		? options.mutation &&
+			"mutationKey" in options.mutation &&
+			options.mutation.mutationKey
+			? options
+			: { ...options, mutation: { ...options.mutation, mutationKey } }
+		: { mutation: { mutationKey }, request: undefined };
+
+	const mutationFn: MutationFunction<
+		Awaited<ReturnType<typeof refundPayment>>,
+		{ id: string; data: PaymentExceptionRequest }
+	> = (props) => {
+		const { id, data } = props ?? {};
+
+		return refundPayment(id, data, requestOptions);
+	};
+
+	return { mutationFn, ...mutationOptions };
+};
+
+export type RefundPaymentMutationResult = NonNullable<
+	Awaited<ReturnType<typeof refundPayment>>
+>;
+export type RefundPaymentMutationBody = PaymentExceptionRequest;
+export type RefundPaymentMutationError = unknown;
+
+/**
+ * @summary Issue a full refund with a recorded reason
+ */
+export const useRefundPayment = <TError = unknown, TContext = unknown>(
+	options?: {
+		mutation?: UseMutationOptions<
+			Awaited<ReturnType<typeof refundPayment>>,
+			TError,
+			{ id: string; data: PaymentExceptionRequest },
+			TContext
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseMutationResult<
+	Awaited<ReturnType<typeof refundPayment>>,
+	TError,
+	{ id: string; data: PaymentExceptionRequest },
+	TContext
+> => {
+	const mutationOptions = getRefundPaymentMutationOptions(options);
+
+	return useMutation(mutationOptions, queryClient);
+};
+
+/**
  * @summary Record a counter cash or card payment
  */
 export const processPayment = (
@@ -8547,6 +8728,173 @@ export function useGetMyQuotations<
 	queryKey: DataTag<QueryKey, TData, TError>;
 } {
 	const queryOptions = getGetMyQuotationsQueryOptions(options);
+
+	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+		TData,
+		TError
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+	query.queryKey = queryOptions.queryKey;
+
+	return query;
+}
+
+/**
+ * @summary Open a printable payment receipt or credit note
+ */
+export const getPrintableRecord = (
+	id: string,
+	options?: SecondParameter<typeof customInstance>,
+	signal?: AbortSignal,
+) => {
+	return customInstance<string>(
+		{ url: `/api/v1/payments/${id}/record`, method: "GET", signal },
+		options,
+	);
+};
+
+export const getGetPrintableRecordQueryKey = (id?: string) => {
+	return [`/api/v1/payments/${id}/record`] as const;
+};
+
+export const getGetPrintableRecordQueryOptions = <
+	TData = Awaited<ReturnType<typeof getPrintableRecord>>,
+	TError = unknown,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getPrintableRecord>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+) => {
+	const { query: queryOptions, request: requestOptions } = options ?? {};
+
+	const queryKey = queryOptions?.queryKey ?? getGetPrintableRecordQueryKey(id);
+
+	const queryFn: QueryFunction<
+		Awaited<ReturnType<typeof getPrintableRecord>>
+	> = ({ signal }) => getPrintableRecord(id, requestOptions, signal);
+
+	return {
+		queryKey,
+		queryFn,
+		enabled: !!id,
+		...queryOptions,
+	} as UseQueryOptions<
+		Awaited<ReturnType<typeof getPrintableRecord>>,
+		TError,
+		TData
+	> & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetPrintableRecordQueryResult = NonNullable<
+	Awaited<ReturnType<typeof getPrintableRecord>>
+>;
+export type GetPrintableRecordQueryError = unknown;
+
+export function useGetPrintableRecord<
+	TData = Awaited<ReturnType<typeof getPrintableRecord>>,
+	TError = unknown,
+>(
+	id: string,
+	options: {
+		query: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getPrintableRecord>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				DefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getPrintableRecord>>,
+					TError,
+					Awaited<ReturnType<typeof getPrintableRecord>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetPrintableRecord<
+	TData = Awaited<ReturnType<typeof getPrintableRecord>>,
+	TError = unknown,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getPrintableRecord>>,
+				TError,
+				TData
+			>
+		> &
+			Pick<
+				UndefinedInitialDataOptions<
+					Awaited<ReturnType<typeof getPrintableRecord>>,
+					TError,
+					Awaited<ReturnType<typeof getPrintableRecord>>
+				>,
+				"initialData"
+			>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetPrintableRecord<
+	TData = Awaited<ReturnType<typeof getPrintableRecord>>,
+	TError = unknown,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getPrintableRecord>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Open a printable payment receipt or credit note
+ */
+
+export function useGetPrintableRecord<
+	TData = Awaited<ReturnType<typeof getPrintableRecord>>,
+	TError = unknown,
+>(
+	id: string,
+	options?: {
+		query?: Partial<
+			UseQueryOptions<
+				Awaited<ReturnType<typeof getPrintableRecord>>,
+				TError,
+				TData
+			>
+		>;
+		request?: SecondParameter<typeof customInstance>;
+	},
+	queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+	queryKey: DataTag<QueryKey, TData, TError>;
+} {
+	const queryOptions = getGetPrintableRecordQueryOptions(id, options);
 
 	const query = useQuery(queryOptions, queryClient) as UseQueryResult<
 		TData,

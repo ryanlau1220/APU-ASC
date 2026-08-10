@@ -107,7 +107,7 @@ export default function MoreScreen() {
             <View style={styles.row}><Text style={styles.invoice}>{payment.invoiceNumber || 'Invoice'}</Text><StatusPill value={payment.paymentStatus} /></View>
             <Text style={styles.amount}>{formatCurrency(payment.amount)}</Text>
             <Text style={styles.meta}>Created {formatDate(payment.createdAt)}</Text>
-            {payment.paymentStatus !== 'PAID' && payment.id ? (
+            {(payment.paymentStatus === 'UNPAID' || payment.paymentStatus === 'FAILED') && payment.id ? (
               <PrimaryButton
                 label={checkout.isPending ? 'Opening secure checkout…' : 'Pay securely'}
                 loading={checkout.isPending}

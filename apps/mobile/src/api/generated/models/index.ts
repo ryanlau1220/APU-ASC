@@ -28,6 +28,7 @@ export * from "./notificationDto";
 export * from "./notificationDtoType";
 export * from "./notificationUnreadCountDto";
 export * from "./paymentDto";
+export * from "./paymentExceptionRequest";
 export * from "./processPaymentParams";
 export * from "./quotationDecisionRequestDto";
 export * from "./quotationDecisionRequestDtoDecision";
