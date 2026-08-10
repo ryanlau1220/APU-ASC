@@ -1,20 +1,33 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Calendar, CheckCircle2, Clock, Plus } from 'lucide-react'
+import {
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Download,
+  FileText,
+  Loader2,
+  Plus,
+  Wrench,
+} from 'lucide-react'
 import * as React from 'react'
 import {
   useCancelAppointment,
   useCreateAppointment,
   useGetMyAppointments,
   useGetMyVehicles,
+  useGetMyWorkOrders,
   useGetServices,
   useGetSlotAvailability,
+  useGetWorkOrderDocuments,
   useUpdateAppointment,
 } from '../../api/generated/endpoints'
 import type {
   AppointmentDto,
+  DocumentDto,
   ServiceDto,
   SlotAvailabilityDto,
   VehicleDto,
+  WorkOrderDto,
 } from '../../api/generated/models'
 import Footer from '../../components/Footer'
 import Header from '../../components/Header'
@@ -43,6 +56,9 @@ function CustomerAppointmentsContent() {
 
   const { data: appointmentsData = [], refetch } = useGetMyAppointments()
   const myAppointments = (appointmentsData || []) as AppointmentDto[]
+  const { data: workOrdersData = [], isLoading: isLoadingWorkOrders } =
+    useGetMyWorkOrders()
+  const myWorkOrders = (workOrdersData || []) as WorkOrderDto[]
   const {
     data: slotAvailabilityData = [],
     isFetching: isLoadingAvailability,
@@ -504,9 +520,166 @@ function CustomerAppointmentsContent() {
             </div>
           )}
         </section>
+
+        <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <div>
+            <h2 className="font-heading text-lg font-bold flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-primary" />
+              Service Progress & Documents
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Follow work after vehicle check-in and download workshop evidence
+              or reports shared with you.
+            </p>
+          </div>
+
+          {isLoadingWorkOrders ? (
+            <div className="flex items-center gap-2 py-4 text-xs text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              Loading service progress…
+            </div>
+          ) : myWorkOrders.length === 0 ? (
+            <p className="py-4 text-xs text-muted-foreground">
+              No work orders yet. Service progress appears here after your
+              vehicle is checked in.
+            </p>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {myWorkOrders.map((workOrder) => (
+                <CustomerWorkOrderCard
+                  key={workOrder.id}
+                  workOrder={workOrder}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
       <Footer />
     </div>
   )
+}
+
+function CustomerWorkOrderCard({ workOrder }: { workOrder: WorkOrderDto }) {
+  const { data: documentsData = [], isLoading: isLoadingDocuments } =
+    useGetWorkOrderDocuments(workOrder.id || '')
+  const documents = (documentsData || []) as DocumentDto[]
+  const status = workOrder.status || 'OPEN'
+
+  return (
+    <article className="rounded-xl border border-border p-4 space-y-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-xs font-semibold text-primary">
+            {workOrder.id}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {workOrderProgressCopy(status)}
+          </p>
+        </div>
+        <span className={workOrderStatusClass(status)}>{status}</span>
+      </div>
+
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+        <div>
+          <dt className="text-muted-foreground">Vehicle</dt>
+          <dd className="mt-0.5 font-medium text-foreground">
+            {workOrder.vehicleId || 'Not recorded'}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">Service</dt>
+          <dd className="mt-0.5 font-medium text-foreground">
+            {workOrder.serviceId || 'Not recorded'}
+          </dd>
+        </div>
+        {workOrder.completedAt && (
+          <div className="col-span-2">
+            <dt className="text-muted-foreground">Completed</dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {formatWorkOrderDate(workOrder.completedAt)}
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      <div className="border-t border-border pt-3">
+        <h3 className="flex items-center gap-1.5 text-xs font-semibold">
+          <FileText className="h-4 w-4 text-primary" /> Workshop documents
+        </h3>
+        {isLoadingDocuments ? (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Loading documents…
+          </p>
+        ) : documents.length === 0 ? (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            No documents have been shared yet.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {documents.map((document) => (
+              <li
+                key={document.id}
+                className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 px-2.5 py-2 text-[11px]"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-foreground">
+                    {document.fileName}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {document.type?.replaceAll('_', ' ')}
+                  </span>
+                </span>
+                {document.id && (
+                  <a
+                    href={`/api/v1/documents/${document.id}/download`}
+                    className="inline-flex shrink-0 items-center gap-1 font-semibold text-primary hover:underline"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </article>
+  )
+}
+
+function workOrderProgressCopy(status: string) {
+  switch (status) {
+    case 'DIAGNOSING':
+      return 'The workshop is assessing your vehicle.'
+    case 'IN_PROGRESS':
+      return 'Service work is currently underway.'
+    case 'COMPLETED':
+      return 'Your service work has been completed.'
+    case 'CANCELLED':
+      return 'This work order was cancelled.'
+    default:
+      return 'Your vehicle has been checked in and is awaiting assessment.'
+  }
+}
+
+function workOrderStatusClass(status: string) {
+  const colorClass =
+    status === 'COMPLETED'
+      ? 'border-status-completed/30 bg-status-completed/10 text-status-completed'
+      : status === 'CANCELLED'
+        ? 'border-destructive/30 bg-destructive/10 text-destructive'
+        : 'border-status-pending/30 bg-status-pending/10 text-status-pending'
+  return `inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${colorClass}`
+}
+
+function formatWorkOrderDate(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.valueOf())
+    ? value
+    : date.toLocaleDateString('en-MY', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
 }

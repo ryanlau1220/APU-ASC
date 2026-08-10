@@ -5,20 +5,24 @@ import {
   useCreateAppointment,
   useGetMyAppointments,
   useGetMyVehicles,
+  useGetMyWorkOrders,
   useGetServices,
   useGetSlotAvailability,
+  useGetWorkOrderDocuments,
 } from '../../api/generated/endpoints'
 import { Card, LoadState, PrimaryButton, Screen, StatusPill, colors } from '../../components/ui'
 import { errorMessage, formatCurrency, formatDate } from '../../lib/format'
 import { useQueryClient } from '@tanstack/react-query'
 import * as React from 'react'
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import type { WorkOrderDto } from '../../api/generated/models'
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
 
 export default function AppointmentsScreen() {
   const queryClient = useQueryClient()
   const appointments = useGetMyAppointments()
+  const workOrders = useGetMyWorkOrders()
   const vehicles = useGetMyVehicles()
   const services = useGetServices()
   const [vehicleId, setVehicleId] = React.useState('')
@@ -218,8 +222,66 @@ export default function AppointmentsScreen() {
           </Card>
         ))}
       </LoadState>
+
+      <Text style={styles.sectionTitle}>Service progress & documents</Text>
+      <Text style={styles.hint}>Track work after vehicle check-in and see evidence shared by the workshop.</Text>
+      <LoadState loading={workOrders.isLoading} error={workOrders.error} empty={workOrders.data?.length === 0}>
+        {workOrders.data?.map((workOrder) => (
+          <WorkOrderProgressCard key={workOrder.id} workOrder={workOrder} />
+        ))}
+      </LoadState>
     </Screen>
   )
+}
+
+function WorkOrderProgressCard({ workOrder }: { workOrder: WorkOrderDto }) {
+  const documents = useGetWorkOrderDocuments(workOrder.id || '')
+
+  return (
+    <Card>
+      <View style={styles.row}>
+        <Text numberOfLines={1} style={styles.workOrderId}>{workOrder.id || 'Work order'}</Text>
+        <StatusPill value={workOrder.status} />
+      </View>
+      <Text style={styles.progress}>{workOrderProgressCopy(workOrder.status)}</Text>
+      <View style={styles.detailGrid}>
+        <View style={styles.detailCell}>
+          <Text style={styles.detailLabel}>Vehicle</Text>
+          <Text numberOfLines={1} style={styles.detailValue}>{workOrder.vehicleId || 'Not recorded'}</Text>
+        </View>
+        <View style={styles.detailCell}>
+          <Text style={styles.detailLabel}>Service</Text>
+          <Text numberOfLines={1} style={styles.detailValue}>{workOrder.serviceId || 'Not recorded'}</Text>
+        </View>
+      </View>
+      <View style={styles.documents}>
+        <Text style={styles.documentsTitle}>Workshop documents</Text>
+        <LoadState loading={documents.isLoading} error={documents.error} empty={documents.data?.length === 0}>
+          {documents.data?.map((document) => (
+            <View key={document.id} style={styles.documentRow}>
+              <Text numberOfLines={1} style={styles.documentName}>{document.fileName || 'Document'}</Text>
+              <Text style={styles.documentType}>{document.type?.replaceAll('_', ' ') || 'DOCUMENT'}</Text>
+            </View>
+          ))}
+        </LoadState>
+      </View>
+    </Card>
+  )
+}
+
+function workOrderProgressCopy(status?: string) {
+  switch (status) {
+    case 'DIAGNOSING':
+      return 'The workshop is assessing your vehicle.'
+    case 'IN_PROGRESS':
+      return 'Service work is currently underway.'
+    case 'COMPLETED':
+      return 'Your service work has been completed.'
+    case 'CANCELLED':
+      return 'This work order was cancelled.'
+    default:
+      return 'Your vehicle has been checked in and is awaiting assessment.'
+  }
 }
 
 function Choice({
@@ -269,6 +331,17 @@ const styles = StyleSheet.create({
   date: { color: colors.ink, fontSize: 18, fontWeight: '800' },
   time: { color: colors.primary, fontSize: 15, fontWeight: '700' },
   note: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  workOrderId: { color: colors.primary, flex: 1, fontFamily: 'monospace', fontSize: 13, fontWeight: '800', marginRight: 12 },
+  progress: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  detailGrid: { flexDirection: 'row', gap: 16 },
+  detailCell: { flex: 1, gap: 2 },
+  detailLabel: { color: colors.muted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+  detailValue: { color: colors.ink, fontSize: 13, fontWeight: '700' },
+  documents: { borderTopColor: colors.line, borderTopWidth: 1, gap: 8, marginTop: 2, paddingTop: 12 },
+  documentsTitle: { color: colors.ink, fontSize: 13, fontWeight: '800' },
+  documentRow: { backgroundColor: '#F4F7FB', borderRadius: 8, gap: 2, padding: 10 },
+  documentName: { color: colors.ink, fontSize: 13, fontWeight: '700' },
+  documentType: { color: colors.muted, fontSize: 11, fontWeight: '700' },
   success: { color: colors.success, fontSize: 13, fontWeight: '700' },
   error: { color: colors.danger, fontSize: 13, fontWeight: '700' },
   pressed: { opacity: 0.75 },
