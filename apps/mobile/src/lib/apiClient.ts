@@ -1,9 +1,30 @@
 import { API_BASE_URL } from './config'
+import { File, Paths } from 'expo-file-system'
+import * as Sharing from 'expo-sharing'
 
 let accessToken: string | null = null
 
 export function setAccessToken(token: string | null) {
   accessToken = token
+}
+
+export async function openProtectedDocument(documentId: string, fileName: string) {
+  if (!accessToken) throw new ApiError('Sign in again to open this document.', 401)
+
+  const safeId = documentId.replace(/[^a-zA-Z0-9_-]/g, '_')
+  if (!safeId) throw new ApiError('This document cannot be opened.', 400)
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'document'
+  const url = new URL(`/api/v1/documents/${encodeURIComponent(documentId)}/download`, `${API_BASE_URL}/`)
+  const destination = new File(Paths.cache, `${safeId}-${safeName}`)
+  const file = await File.downloadFileAsync(url.toString(), destination, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    idempotent: true,
+  })
+
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('Document sharing is unavailable on this device.')
+  }
+  await Sharing.shareAsync(file.uri)
 }
 
 export class ApiError extends Error {

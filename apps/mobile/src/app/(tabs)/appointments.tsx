@@ -8,9 +8,9 @@ import {
   useGetMyWorkOrders,
   useGetServices,
   useGetSlotAvailability,
-  useGetWorkOrderDocuments,
 } from '../../api/generated/endpoints'
 import { Card, LoadState, PrimaryButton, Screen, StatusPill, colors } from '../../components/ui'
+import { WorkOrderDocuments } from '../../components/work-order-documents'
 import { errorMessage, formatCurrency, formatDate } from '../../lib/format'
 import { useQueryClient } from '@tanstack/react-query'
 import * as React from 'react'
@@ -235,8 +235,6 @@ export default function AppointmentsScreen() {
 }
 
 function WorkOrderProgressCard({ workOrder }: { workOrder: WorkOrderDto }) {
-  const documents = useGetWorkOrderDocuments(workOrder.id || '')
-
   return (
     <Card>
       <View style={styles.row}>
@@ -254,17 +252,7 @@ function WorkOrderProgressCard({ workOrder }: { workOrder: WorkOrderDto }) {
           <Text numberOfLines={1} style={styles.detailValue}>{workOrder.serviceId || 'Not recorded'}</Text>
         </View>
       </View>
-      <View style={styles.documents}>
-        <Text style={styles.documentsTitle}>Workshop documents</Text>
-        <LoadState loading={documents.isLoading} error={documents.error} empty={documents.data?.length === 0}>
-          {documents.data?.map((document) => (
-            <View key={document.id} style={styles.documentRow}>
-              <Text numberOfLines={1} style={styles.documentName}>{document.fileName || 'Document'}</Text>
-              <Text style={styles.documentType}>{document.type?.replaceAll('_', ' ') || 'DOCUMENT'}</Text>
-            </View>
-          ))}
-        </LoadState>
-      </View>
+      {workOrder.id ? <WorkOrderDocuments workOrderId={workOrder.id} /> : null}
     </Card>
   )
 }
@@ -337,11 +325,6 @@ const styles = StyleSheet.create({
   detailCell: { flex: 1, gap: 2 },
   detailLabel: { color: colors.muted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   detailValue: { color: colors.ink, fontSize: 13, fontWeight: '700' },
-  documents: { borderTopColor: colors.line, borderTopWidth: 1, gap: 8, marginTop: 2, paddingTop: 12 },
-  documentsTitle: { color: colors.ink, fontSize: 13, fontWeight: '800' },
-  documentRow: { backgroundColor: '#F4F7FB', borderRadius: 8, gap: 2, padding: 10 },
-  documentName: { color: colors.ink, fontSize: 13, fontWeight: '700' },
-  documentType: { color: colors.muted, fontSize: 11, fontWeight: '700' },
   success: { color: colors.success, fontSize: 13, fontWeight: '700' },
   error: { color: colors.danger, fontSize: 13, fontWeight: '700' },
   pressed: { opacity: 0.75 },

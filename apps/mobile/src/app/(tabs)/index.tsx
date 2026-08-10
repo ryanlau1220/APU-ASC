@@ -1,9 +1,15 @@
 import { useGetMyAppointments, useGetMyQuotations, useGetUnreadNotificationCount } from '../../api/generated/endpoints'
 import { Card, LoadState, Screen, StatusPill, colors } from '../../components/ui'
+import { useAuth } from '../../lib/auth'
 import { formatCurrency, formatDate } from '../../lib/format'
+import { Redirect } from 'expo-router'
 import { StyleSheet, Text, View } from 'react-native'
 
 export default function CustomerHomeScreen() {
+  const { roles } = useAuth()
+  if (roles.includes('TECHNICIAN')) return <Redirect href="./jobs" />
+  if (roles.includes('STAFF') || roles.includes('MANAGER')) return <Redirect href="./operations" />
+
   const appointments = useGetMyAppointments()
   const quotations = useGetMyQuotations()
   const unread = useGetUnreadNotificationCount()

@@ -14,15 +14,18 @@ import { Card, LoadState, PrimaryButton, Screen, StatusPill, colors } from '../.
 import { useAuth } from '../../lib/auth'
 import { errorMessage, formatCurrency, formatDate } from '../../lib/format'
 import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
 import * as React from 'react'
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native'
 import * as WebBrowser from 'expo-web-browser'
 
 export default function MoreScreen() {
   const queryClient = useQueryClient()
-  const { signOut } = useAuth()
+  const router = useRouter()
+  const { roles, signOut } = useAuth()
+  const customer = !roles.includes('TECHNICIAN') && !roles.includes('STAFF') && !roles.includes('MANAGER')
   const notifications = useGetMyNotifications({ limit: 50 })
-  const payments = useGetMyPayments()
+  const payments = useGetMyPayments({ query: { enabled: customer } })
   const checkout = useCreateCheckoutSession()
   const preferences = useGetMyPreferences()
   const markRead = useMarkNotificationRead()
@@ -100,25 +103,39 @@ export default function MoreScreen() {
         </LoadState>
       </Card>
 
-      <Text style={styles.sectionTitle}>Invoices</Text>
-      <LoadState loading={payments.isLoading} error={payments.error} empty={payments.data?.length === 0}>
-        {payments.data?.map((payment) => (
-          <Card key={payment.id}>
-            <View style={styles.row}><Text style={styles.invoice}>{payment.invoiceNumber || 'Invoice'}</Text><StatusPill value={payment.paymentStatus} /></View>
-            <Text style={styles.amount}>{formatCurrency(payment.amount)}</Text>
-            <Text style={styles.meta}>Created {formatDate(payment.createdAt)}</Text>
-            {(payment.paymentStatus === 'UNPAID' || payment.paymentStatus === 'FAILED') && payment.id ? (
-              <PrimaryButton
-                label={checkout.isPending ? 'Opening secure checkout…' : 'Pay securely'}
-                loading={checkout.isPending}
-                onPress={() => {
-                  if (payment.id) startCheckout(payment.id)
-                }}
-              />
-            ) : null}
-          </Card>
-        ))}
-      </LoadState>
+      {customer ? (
+        <>
+          <Text style={styles.sectionTitle}>Invoices</Text>
+          <LoadState loading={payments.isLoading} error={payments.error} empty={payments.data?.length === 0}>
+            {payments.data?.map((payment) => (
+              <Card key={payment.id}>
+                <View style={styles.row}><Text style={styles.invoice}>{payment.invoiceNumber || 'Invoice'}</Text><StatusPill value={payment.paymentStatus} /></View>
+                <Text style={styles.amount}>{formatCurrency(payment.amount)}</Text>
+                <Text style={styles.meta}>Created {formatDate(payment.createdAt)}</Text>
+                {(payment.paymentStatus === 'UNPAID' || payment.paymentStatus === 'FAILED') && payment.id ? (
+                  <PrimaryButton
+                    label={checkout.isPending ? 'Opening secure checkout…' : 'Pay securely'}
+                    loading={checkout.isPending}
+                    onPress={() => {
+                      if (payment.id) startCheckout(payment.id)
+                    }}
+                  />
+                ) : null}
+              </Card>
+            ))}
+          </LoadState>
+
+          <Text style={styles.sectionTitle}>After-service feedback</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push('./feedback')}
+            style={({ pressed }) => [styles.feedbackLink, pressed && styles.pressed]}
+          >
+            <Text style={styles.feedbackLinkTitle}>Rate a completed service</Text>
+            <Text style={styles.feedbackLinkCopy}>Your feedback helps the workshop improve.</Text>
+          </Pressable>
+        </>
+      ) : null}
 
       <PrimaryButton label="Sign out" tone="quiet" onPress={() => void signOut()} />
     </Screen>
@@ -166,4 +183,7 @@ const styles = StyleSheet.create({
   amount: { color: colors.primary, fontSize: 21, fontWeight: '900' },
   meta: { color: colors.muted, fontSize: 12 },
   error: { color: colors.danger, fontSize: 13, fontWeight: '700' },
+  feedbackLink: { backgroundColor: '#EAF1FF', borderRadius: 14, gap: 4, padding: 15 },
+  feedbackLinkTitle: { color: colors.primary, fontSize: 15, fontWeight: '800' },
+  feedbackLinkCopy: { color: colors.muted, fontSize: 12 },
 })
