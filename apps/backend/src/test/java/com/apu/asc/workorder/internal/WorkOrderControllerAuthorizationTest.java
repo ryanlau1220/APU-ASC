@@ -7,6 +7,8 @@ import com.apu.asc.appointment.AppointmentApi;
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.user.CurrentUserService;
+import com.apu.asc.user.UserApi;
+import com.apu.asc.user.UserDto;
 import com.apu.asc.vehicle.VehicleApi;
 import com.apu.asc.workorder.WorkOrderApi;
 import com.apu.asc.workorder.WorkOrderDto;
@@ -29,6 +31,7 @@ class WorkOrderControllerAuthorizationTest {
   @Mock private WorkOrderApi workOrderApi;
   @Mock private AppointmentApi appointmentApi;
   @Mock private VehicleApi vehicleApi;
+  @Mock private UserApi userApi;
   @Mock private CurrentUserService currentUserService;
 
   private WorkOrderController controller;
@@ -37,7 +40,12 @@ class WorkOrderControllerAuthorizationTest {
   void setUp() {
     controller =
         new WorkOrderController(
-            workOrderApi, appointmentApi, vehicleApi, currentUserService, new AccessPolicy());
+            workOrderApi,
+            appointmentApi,
+            vehicleApi,
+            userApi,
+            currentUserService,
+            new AccessPolicy());
   }
 
   @Test
@@ -48,6 +56,47 @@ class WorkOrderControllerAuthorizationTest {
 
     assertThatThrownBy(() -> controller.getWorkOrderById("WO-OTHER", AUTHENTICATION))
         .isInstanceOf(AccessDeniedException.class);
+  }
+
+  @Test
+  void operationalUserCannotAssignWorkOrderToNonTechnician() {
+    WorkOrderDto existing = workOrder("USR-CUSTOMER");
+    WorkOrderDto requested =
+        new WorkOrderDto(
+            null,
+            null,
+            null,
+            null,
+            null,
+            "USR-CUSTOMER",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    when(currentUserService.requireCurrentUser(AUTHENTICATION))
+        .thenReturn(new AuthenticatedUser("USR-STAFF", Set.of("STAFF")));
+    when(workOrderApi.getWorkOrderById("WO-OTHER")).thenReturn(existing);
+    when(userApi.getUserById("USR-CUSTOMER"))
+        .thenReturn(
+            new UserDto(
+                "USR-CUSTOMER",
+                null,
+                "customer",
+                "customer@example.com",
+                "Customer",
+                "CUSTOMER",
+                "ACTIVE",
+                null,
+                null,
+                null));
+
+    assertThatThrownBy(() -> controller.updateWorkOrder("WO-OTHER", requested, AUTHENTICATION))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Work orders can only be assigned to an active technician account.");
   }
 
   private WorkOrderDto workOrder(String customerId) {

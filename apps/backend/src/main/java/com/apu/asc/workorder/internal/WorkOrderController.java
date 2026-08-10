@@ -5,6 +5,8 @@ import com.apu.asc.appointment.AppointmentDto;
 import com.apu.asc.common.security.AccessPolicy;
 import com.apu.asc.common.security.AuthenticatedUser;
 import com.apu.asc.user.CurrentUserService;
+import com.apu.asc.user.UserApi;
+import com.apu.asc.user.UserDto;
 import com.apu.asc.vehicle.VehicleApi;
 import com.apu.asc.vehicle.VehicleDto;
 import com.apu.asc.workorder.WorkOrderApi;
@@ -39,6 +41,7 @@ class WorkOrderController {
   private final WorkOrderApi workOrderApi;
   private final AppointmentApi appointmentApi;
   private final VehicleApi vehicleApi;
+  private final UserApi userApi;
   private final CurrentUserService currentUserService;
   private final AccessPolicy accessPolicy;
 
@@ -128,7 +131,7 @@ class WorkOrderController {
             existing.customerId(),
             existing.vehicleId(),
             existing.serviceId(),
-            workOrderDto.technicianId(),
+            requireActiveTechnician(workOrderDto.technicianId()),
             existing.status(),
             workOrderDto.intakeNotes(),
             workOrderDto.diagnosticNotes(),
@@ -187,7 +190,7 @@ class WorkOrderController {
           appointment.customerId(),
           appointment.vehicleId(),
           appointment.serviceId(),
-          requested.technicianId(),
+          requireActiveTechnician(requested.technicianId()),
           "OPEN",
           requested.intakeNotes() != null ? requested.intakeNotes() : appointment.notes(),
           null,
@@ -214,7 +217,7 @@ class WorkOrderController {
         requested.customerId(),
         requested.vehicleId(),
         requested.serviceId(),
-        requested.technicianId(),
+        requireActiveTechnician(requested.technicianId()),
         "OPEN",
         requested.intakeNotes(),
         null,
@@ -227,5 +230,18 @@ class WorkOrderController {
 
   private boolean isBlank(String value) {
     return value == null || value.isBlank();
+  }
+
+  private String requireActiveTechnician(String technicianId) {
+    if (isBlank(technicianId)) {
+      return null;
+    }
+    UserDto technician = userApi.getUserById(technicianId);
+    if (!"TECHNICIAN".equalsIgnoreCase(technician.role())
+        || !"ACTIVE".equalsIgnoreCase(technician.status())) {
+      throw new IllegalArgumentException(
+          "Work orders can only be assigned to an active technician account.");
+    }
+    return technician.id();
   }
 }

@@ -47,6 +47,7 @@ describe('Role-Based Header Navigation Unit Tests', () => {
       expect(routes[0]).toBe('/manager/')
       expect(routes[1]).toBe('/manager/services')
       expect(routes).toContain('/manager/appointments')
+      expect(routes).toContain('/manager/work-orders')
       expect(routes).toContain('/manager/vehicles')
       expect(routes).toContain('/manager/operations')
 
@@ -62,6 +63,7 @@ describe('Role-Based Header Navigation Unit Tests', () => {
       expect(routes[0]).toBe('/staff/')
       expect(routes[1]).toBe('/staff/services')
       expect(routes).toContain('/staff/appointments')
+      expect(routes).toContain('/staff/work-orders')
       expect(routes).toContain('/staff/users')
       expect(routes).toContain('/staff/payments')
     })
