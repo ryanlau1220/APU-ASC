@@ -25,7 +25,7 @@ module.exports = {
       foregroundImage: './assets/icon-foreground.png',
     },
   },
-  plugins: ['expo-router', 'expo-secure-store'],
+  plugins: ['expo-router', 'expo-secure-store', 'expo-sharing'],
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
