@@ -222,6 +222,15 @@ case "$1" in
         pnpm --filter @apu-asc/web test:e2e
         echo "Full-stack E2E testing complete."
         ;;
+    docs)
+        echo -e "${CYAN}Generating Spring Modulith architecture diagrams and documentation...${RESET}"
+        (cd apps/backend && mvn test -Dtest=ApuAscModulithTests)
+        rm -rf docs/diagrams/modulith
+        mkdir -p docs/diagrams/puml docs/diagrams/canvases
+        cp apps/backend/target/spring-modulith-docs/*.puml docs/diagrams/puml/
+        cp apps/backend/target/spring-modulith-docs/*.adoc docs/diagrams/canvases/
+        echo -e "${GREEN}✓ [OK] Diagrams organized in docs/diagrams/puml/ and canvases in docs/diagrams/canvases/${RESET}"
+        ;;
     clean)
         echo "Cleaning Maven target directories and web build assets..."
         (cd apps/backend && mvn clean)
@@ -229,7 +238,7 @@ case "$1" in
         echo "Clean complete."
         ;;
     *)
-        echo "Usage: ./manage.sh {dev|mobile|mobile:android|mobile:build|mobile:build:local|mobile:verify|docker|docker:down|prod:up|prod:deploy|prod:down|prod:status|build|lint|check|test|test:e2e|clean} [production-env-file]"
+        echo "Usage: ./manage.sh {dev|mobile|mobile:android|mobile:build|mobile:build:local|mobile:verify|docker|docker:down|prod:up|prod:deploy|prod:down|prod:status|build|lint|check|test|test:e2e|docs|clean} [production-env-file]"
         exit 1
         ;;
 esac
