@@ -1,0 +1,9 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.servicecatalog`
+|Spring components
+|_Services_
+
+* `c.a.a.s.ServiceCatalogApi` (via `c.a.a.s.internal.ServiceCatalogServiceImpl`)
+|===

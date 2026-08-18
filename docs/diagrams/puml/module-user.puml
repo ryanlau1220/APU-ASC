@@ -1,0 +1,20 @@
+@startuml
+set separator none
+title User
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+Container_Boundary("ApuAscApplication.ApuAscApplication_boundary", "ApuAscApplication", $tags="") {
+  Component(ApuAscApplication.ApuAscApplication.User, "User", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Common, "Common", $techn="Module", $descr="", $tags="", $link="")
+}
+
+Rel(ApuAscApplication.ApuAscApplication.User, ApuAscApplication.ApuAscApplication.Common, "listens to", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.User, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml

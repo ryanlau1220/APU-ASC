@@ -1,0 +1,24 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.config`
+|Spring components
+|_Controllers_
+
+* `c.a.a.c.ScalarUiController`
+* `c.a.a.c.SseController` listening to `c.a.a.c.event.LiveUpdateEvent`
+
+_Others_
+
+* `c.a.a.c.AppConfig`
+* `c.a.a.c.CacheConfig`
+* `c.a.a.c.HttpLoggingFilter`
+* `c.a.a.c.RateLimiterFilter`
+* `c.a.a.c.ScalarDocConfig`
+* `c.a.a.c.SecurityConfig`
+|Bean references
+|* `c.a.a.u.CustomOidcUserService` (in User)
+* `c.a.a.u.CurrentUserService` (in User)
+|Events listened to
+|* `c.a.a.c.event.LiveUpdateEvent`
+|===

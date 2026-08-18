@@ -1,0 +1,16 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.user`
+|Spring components
+|_Services_
+
+* `c.a.a.u.CurrentUserService`
+* `c.a.a.u.CustomOidcUserService`
+* `c.a.a.u.UserApi` (via `c.a.a.u.internal.UserServiceImpl`)
+|Bean references
+|* `c.a.a.c.security.AccessPolicy` (in Common)
+|Events listened to
+|* `c.a.a.c.event.AppointmentReminderRequestedEvent`
+* `c.a.a.c.event.EmployeeInvitationRequestedEvent`
+|===

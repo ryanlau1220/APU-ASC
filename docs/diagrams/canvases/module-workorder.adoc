@@ -1,0 +1,17 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.workorder`
+|Spring components
+|_Services_
+
+* `c.a.a.w.WorkOrderApi` (via `c.a.a.w.internal.WorkOrderServiceImpl`)
+|Bean references
+|* `c.a.a.a.AppointmentApi` (in Appointment)
+* `c.a.a.v.VehicleApi` (in Vehicle)
+* `c.a.a.u.UserApi` (in User)
+* `c.a.a.u.CurrentUserService` (in User)
+* `c.a.a.c.security.AccessPolicy` (in Common)
+|Events listened to
+|* `c.a.a.c.event.QuotationApprovedEvent`
+|===

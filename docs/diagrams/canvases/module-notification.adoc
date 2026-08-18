@@ -1,0 +1,14 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.notification`
+|Spring components
+|_Services_
+
+* `c.a.a.n.NotificationApi` (via `c.a.a.n.internal.NotificationServiceImpl`)
+|Bean references
+|* `c.a.a.u.CurrentUserService` (in User)
+* `c.a.a.u.UserApi` (in User)
+|Events listened to
+|* `c.a.a.c.event.AppointmentReminderRequestedEvent`
+|===

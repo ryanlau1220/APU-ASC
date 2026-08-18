@@ -1,0 +1,12 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.vehicle`
+|Spring components
+|_Services_
+
+* `c.a.a.v.VehicleApi` (via `c.a.a.v.internal.VehicleServiceImpl`)
+|Bean references
+|* `c.a.a.u.CurrentUserService` (in User)
+* `c.a.a.c.security.AccessPolicy` (in Common)
+|===

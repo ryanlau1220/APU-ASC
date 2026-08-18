@@ -1,0 +1,67 @@
+@startuml
+set separator none
+title ApuAscApplication
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+Container_Boundary("ApuAscApplication.ApuAscApplication_boundary", "ApuAscApplication", $tags="") {
+  Component(ApuAscApplication.ApuAscApplication.Audit, "Audit", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Scheduling, "Scheduling", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Payment, "Payment", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.User, "User", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Quotation, "Quotation", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Workorder, "Workorder", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Config, "Config", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Servicecatalog, "Servicecatalog", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Document, "Document", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Appointment, "Appointment", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Vehicle, "Vehicle", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Feedback, "Feedback", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Notification, "Notification", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Common, "Common", $techn="Module", $descr="", $tags="", $link="")
+}
+
+Rel(ApuAscApplication.ApuAscApplication.Document, ApuAscApplication.ApuAscApplication.Workorder, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Document, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Document, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Audit, ApuAscApplication.ApuAscApplication.Common, "listens to", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Config, ApuAscApplication.ApuAscApplication.Common, "listens to", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Config, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Appointment, ApuAscApplication.ApuAscApplication.Notification, "depends on", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Appointment, ApuAscApplication.ApuAscApplication.Vehicle, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Appointment, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Appointment, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Appointment, ApuAscApplication.ApuAscApplication.Scheduling, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Vehicle, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Vehicle, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Payment, ApuAscApplication.ApuAscApplication.Notification, "depends on", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Payment, ApuAscApplication.ApuAscApplication.Workorder, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Payment, ApuAscApplication.ApuAscApplication.Quotation, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Payment, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Payment, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Servicecatalog, ApuAscApplication.ApuAscApplication.Common, "depends on", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Quotation, ApuAscApplication.ApuAscApplication.Notification, "depends on", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Quotation, ApuAscApplication.ApuAscApplication.Workorder, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Quotation, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Quotation, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Workorder, ApuAscApplication.ApuAscApplication.Common, "listens to", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Workorder, ApuAscApplication.ApuAscApplication.Notification, "depends on", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Workorder, ApuAscApplication.ApuAscApplication.Appointment, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Workorder, ApuAscApplication.ApuAscApplication.Vehicle, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Workorder, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Workorder, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Notification, ApuAscApplication.ApuAscApplication.Common, "listens to", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Notification, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Feedback, ApuAscApplication.ApuAscApplication.Workorder, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Feedback, ApuAscApplication.ApuAscApplication.User, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Feedback, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.User, ApuAscApplication.ApuAscApplication.Common, "listens to", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.User, ApuAscApplication.ApuAscApplication.Common, "uses", $techn="", $tags="", $link="")
+Rel(ApuAscApplication.ApuAscApplication.Scheduling, ApuAscApplication.ApuAscApplication.Common, "depends on", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml

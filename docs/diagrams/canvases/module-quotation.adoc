@@ -1,0 +1,13 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.quotation`
+|Spring components
+|_Services_
+
+* `c.a.a.q.QuotationApi` (via `c.a.a.q.internal.QuotationServiceImpl`)
+|Bean references
+|* `c.a.a.w.WorkOrderApi` (in Workorder)
+* `c.a.a.u.CurrentUserService` (in User)
+* `c.a.a.c.security.AccessPolicy` (in Common)
+|===

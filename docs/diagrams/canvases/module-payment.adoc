@@ -1,0 +1,14 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.payment`
+|Spring components
+|_Services_
+
+* `c.a.a.p.PaymentApi` (via `c.a.a.p.internal.PaymentServiceImpl`)
+|Bean references
+|* `c.a.a.w.WorkOrderApi` (in Workorder)
+* `c.a.a.q.QuotationApi` (in Quotation)
+* `c.a.a.u.CurrentUserService` (in User)
+* `c.a.a.c.security.AccessPolicy` (in Common)
+|===

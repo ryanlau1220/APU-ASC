@@ -1,0 +1,9 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.scheduling`
+|Spring components
+|_Services_
+
+* `c.a.a.s.SchedulingApi` (via `c.a.a.s.internal.SchedulingServiceImpl`)
+|===

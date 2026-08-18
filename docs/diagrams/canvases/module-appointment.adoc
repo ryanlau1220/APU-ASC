@@ -1,0 +1,14 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.appointment`
+|Spring components
+|_Services_
+
+* `c.a.a.a.AppointmentApi` (via `c.a.a.a.internal.AppointmentServiceImpl`)
+|Bean references
+|* `c.a.a.v.VehicleApi` (in Vehicle)
+* `c.a.a.u.CurrentUserService` (in User)
+* `c.a.a.c.security.AccessPolicy` (in Common)
+* `c.a.a.s.SchedulingApi` (in Scheduling)
+|===

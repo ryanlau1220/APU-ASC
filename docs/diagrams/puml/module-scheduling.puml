@@ -1,0 +1,19 @@
+@startuml
+set separator none
+title Scheduling
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+Container_Boundary("ApuAscApplication.ApuAscApplication_boundary", "ApuAscApplication", $tags="") {
+  Component(ApuAscApplication.ApuAscApplication.Scheduling, "Scheduling", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Common, "Common", $techn="Module", $descr="", $tags="", $link="")
+}
+
+Rel(ApuAscApplication.ApuAscApplication.Scheduling, ApuAscApplication.ApuAscApplication.Common, "depends on", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml

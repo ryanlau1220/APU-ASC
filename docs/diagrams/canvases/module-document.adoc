@@ -1,0 +1,14 @@
+[%autowidth.stretch, cols="h,a"]
+|===
+|Base package
+|`com.apu.asc.document`
+|Spring components
+|_Services_
+
+* `c.a.a.d.DocumentApi` (via `c.a.a.d.internal.DocumentServiceImpl`)
+|Bean references
+|* `c.a.a.w.WorkOrderApi` (in Workorder)
+* `c.a.a.u.CurrentUserService` (in User)
+* `c.a.a.c.security.AccessPolicy` (in Common)
+* `c.a.a.c.storage.ObjectStorageApi` (in Common)
+|===
