@@ -226,10 +226,12 @@ case "$1" in
         echo -e "${CYAN}Generating Spring Modulith architecture diagrams and documentation...${RESET}"
         (cd apps/backend && mvn test -Dtest=ApuAscModulithTests)
         rm -rf docs/diagrams/modulith
-        mkdir -p docs/diagrams/puml docs/diagrams/canvases
+        mkdir -p docs/diagrams/puml docs/diagrams/canvases docs/diagrams/markdown
         cp apps/backend/target/spring-modulith-docs/*.puml docs/diagrams/puml/
         cp apps/backend/target/spring-modulith-docs/*.adoc docs/diagrams/canvases/
-        echo -e "${GREEN}✓ [OK] Diagrams organized in docs/diagrams/puml/ and canvases in docs/diagrams/canvases/${RESET}"
+        echo -e "${CYAN}Converting architecture diagrams to Markdown & Mermaid format...${RESET}"
+        node scripts/convert-modulith-to-markdown.mjs
+        echo -e "${GREEN}✓ [OK] Diagrams successfully generated in PUML, Canvases, and Markdown (Mermaid) formats under docs/diagrams/${RESET}"
         ;;
     clean)
         echo "Cleaning Maven target directories and web build assets..."
