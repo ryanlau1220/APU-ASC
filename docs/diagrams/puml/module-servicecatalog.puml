@@ -9,8 +9,8 @@ top to bottom direction
 !include <C4/C4_Component>
 
 Container_Boundary("ApuAscApplication.ApuAscApplication_boundary", "ApuAscApplication", $tags="") {
-  Component(ApuAscApplication.ApuAscApplication.Servicecatalog, "Servicecatalog", $techn="Module", $descr="", $tags="", $link="")
   Component(ApuAscApplication.ApuAscApplication.Common, "Common", $techn="Module", $descr="", $tags="", $link="")
+  Component(ApuAscApplication.ApuAscApplication.Servicecatalog, "Servicecatalog", $techn="Module", $descr="", $tags="", $link="")
 }
 
 Rel(ApuAscApplication.ApuAscApplication.Servicecatalog, ApuAscApplication.ApuAscApplication.Common, "depends on", $techn="", $tags="", $link="")
