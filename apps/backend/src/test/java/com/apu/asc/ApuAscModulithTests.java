@@ -22,4 +22,3 @@ class ApuAscModulithTests {
         .writeModuleCanvases();
   }
 }
-
