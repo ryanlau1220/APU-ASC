@@ -104,7 +104,7 @@ services:
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Set KEYCLOAK_DB_PASSWORD in deployment/.env.prod}
       KC_HTTP_ENABLED: "true"
       KC_HTTP_RELATIVE_PATH: /auth
-      KC_HOSTNAME: https://${APP_DOMAIN:?Set APP_DOMAIN in deployment/.env.prod}/auth
+      KC_HOSTNAME: ${APP_DOMAIN:?Set APP_DOMAIN in deployment/.env.prod}
       KC_HOSTNAME_STRICT: "true"
       KC_PROXY_HEADERS: xforwarded
       KC_HEALTH_ENABLED: "true"
