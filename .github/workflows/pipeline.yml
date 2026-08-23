@@ -84,7 +84,7 @@ jobs:
         run: |
           cp .github/ci.env .env
           docker compose up -d --wait postgres valkey minio traefik keycloak
-          curl --fail --retry 30 --retry-connrefused --retry-delay 1 --silent --show-error \
+          curl --fail --retry 30 --retry-all-errors --retry-connrefused --retry-delay 1 --silent --show-error \
             http://localhost/auth/realms/apu-asc/.well-known/openid-configuration >/dev/null
       - name: Run canonical test suite
         run: ./manage.sh test
@@ -115,7 +115,7 @@ jobs:
         run: |
           cp .github/ci.env .env
           docker compose up -d --wait postgres valkey minio traefik keycloak
-          curl --fail --retry 30 --retry-connrefused --retry-delay 1 --silent --show-error \
+          curl --fail --retry 30 --retry-all-errors --retry-connrefused --retry-delay 1 --silent --show-error \
             http://localhost/auth/realms/apu-asc/.well-known/openid-configuration >/dev/null
       - name: Run canonical end-to-end suite
         run: ./manage.sh test:e2e
